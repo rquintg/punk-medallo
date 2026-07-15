@@ -21,17 +21,17 @@ export default function DescargasContent({ initialPosts }: { initialPosts?: Blog
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {posts.map((post: { id: string; title: string; content: string }) => (
+        {posts.map((post: BlogPost) => (
           <div
             key={post.id}
             className="bg-[rgba(52,58,64,0.4)] p-6 rounded-lg border border-[#a40202]/30 backdrop-blur"
           >
             <h3 className="text-xl font-bold text-[#a40202] mb-4">
-              {post.title}
+              {post.title || "Sin título"}
             </h3>
             <div
               className="text-[#d0d0d0] leading-relaxed prose prose-invert prose-a:text-[#a40202] max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: post.content || "" }}
             />
           </div>
         ))}
