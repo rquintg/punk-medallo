@@ -70,10 +70,9 @@ export default function FotosContent({
               href={photo.permalink_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute inset-0 flex items-end justify-center bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 p-4"
-              aria-label="Ver foto en Facebook"
+              className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
-              <span className="bg-[#a40202] text-white px-4 py-2 rounded font-semibold text-sm">
+              <span className="bg-[#a40202] text-white px-4 py-2 rounded font-semibold">
                 Ver en Facebook
               </span>
             </a>
