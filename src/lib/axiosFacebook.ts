@@ -9,8 +9,29 @@ export type FacebookPhoto = {
   id: string;
   full_picture: string;
   message?: string;
-  permalink_url?: string;
+  permalink_url: string;
   created_time?: string;
+};
+
+const normalizeFacebookPermalink = (
+  permalinkUrl: string | undefined,
+  postId: string | undefined
+) => {
+  if (permalinkUrl) {
+    return permalinkUrl.replace("m.facebook.com", "www.facebook.com");
+  }
+
+  if (!postId) {
+    return null;
+  }
+
+  // Fallback for post IDs like "{pageId}_{postId}".
+  if (postId.includes("_")) {
+    const [pageId, storyId] = postId.split("_");
+    return `https://www.facebook.com/${pageId}/posts/${storyId}`;
+  }
+
+  return `https://www.facebook.com/${postId}`;
 };
 
 export const fetchFacebookPhotos = async (): Promise<FacebookPhoto[]> => {
@@ -37,25 +58,37 @@ export const fetchFacebookPhotos = async (): Promise<FacebookPhoto[]> => {
     const photos: FacebookPhoto[] = [];
 
     for (const post of posts) {
-      // Prefer full_picture when available
+      const attachment = post.attachments?.data?.[0];
+      const isPhotoLikeAttachment =
+        attachment &&
+        (attachment.media_type === "photo" ||
+          attachment.type === "photo" ||
+          attachment.type === "album" ||
+          !!attachment.subattachments?.data?.length);
+
+      if (!isPhotoLikeAttachment) {
+        continue;
+      }
+
+      const permalinkUrl = normalizeFacebookPermalink(post.permalink_url, post.id);
+      if (!permalinkUrl) {
+        continue;
+      }
+
+      // Prefer full_picture when available.
       if (post.full_picture) {
         photos.push({
           id: post.id,
           full_picture: post.full_picture,
           message: post.message,
-          permalink_url: post.permalink_url,
+          permalink_url: permalinkUrl,
           created_time: post.created_time,
         });
         continue;
       }
 
       // If not, try to extract from attachments / subattachments
-      if (
-        post.attachments &&
-        post.attachments.data &&
-        post.attachments.data.length > 0
-      ) {
-        const attachment = post.attachments.data[0];
+      if (attachment) {
 
         // Album/subattachments
         if (attachment.subattachments && attachment.subattachments.data) {
@@ -66,7 +99,7 @@ export const fetchFacebookPhotos = async (): Promise<FacebookPhoto[]> => {
                 id: `${post.id}_${i}`,
                 full_picture: mediaUrl,
                 message: post.message,
-                permalink_url: post.permalink_url,
+                permalink_url: permalinkUrl,
                 created_time: post.created_time,
               });
             }
@@ -81,7 +114,7 @@ export const fetchFacebookPhotos = async (): Promise<FacebookPhoto[]> => {
             id: post.id,
             full_picture: mediaUrl,
             message: post.message,
-            permalink_url: post.permalink_url,
+            permalink_url: permalinkUrl,
             created_time: post.created_time,
           });
         }
