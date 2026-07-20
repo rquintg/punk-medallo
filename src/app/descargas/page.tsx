@@ -25,12 +25,15 @@ export const metadata: Metadata = {
 
 export default async function Descargas() {
   let posts: BlogPost[] = [];
+  let nextPageToken: string | null = null;
+
   try {
     const data = await fetchBlogPosts();
-    posts = data.items || [];
+    posts = data.items ?? [];
+    nextPageToken = data.nextPageToken ?? null;
   } catch (error) {
     console.error("Error fetching initial blog posts:", error);
   }
 
-  return <DescargasContent initialPosts={posts} />;
+  return <DescargasContent initialPosts={posts} initialNextPageToken={nextPageToken} />;
 }
