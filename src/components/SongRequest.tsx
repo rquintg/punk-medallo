@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, ArrowLeft } from "lucide-react";
 
 const AZURACAST_WIDGET_URL =
@@ -21,32 +22,31 @@ export default function SongRequest({ isOpen, onClose }: SongRequestProps) {
 
   useEffect(() => {
     if (isOpen) {
+      const previousOverflow = document.body.style.overflow;
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = previousOverflow;
+      };
     }
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
   }, [isOpen, handleKeyDown]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[1050] flex items-center justify-center p-4"
+      className="fixed inset-0 z-100000 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="song-request-title"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-[rgba(7,7,7,0.56)] text-[#f8f9fa] rounded-lg shadow-[0px_0px_6px_6px_rgba(0,0,0,0.75)] z-10">
+      <div className="relative z-100001 w-full max-w-[95vw] md:max-w-3xl max-h-[calc(100dvh-2rem)] overflow-hidden bg-[rgba(7,7,7,0.56)] text-[#f8f9fa] rounded-lg shadow-[0px_0px_6px_6px_rgba(0,0,0,0.75)]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(149,157,165,0.2)] bg-[rgba(7,7,7,0.3)] rounded-t-lg">
           <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export default function SongRequest({ isOpen, onClose }: SongRequestProps) {
         </div>
 
         {/* Body */}
-        <div className="p-0">
+        <div className="p-0 h-[min(70dvh,600px)] max-h-[calc(100dvh-5.5rem)]">
           <iframe
             src={AZURACAST_WIDGET_URL}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
@@ -76,10 +76,11 @@ export default function SongRequest({ isOpen, onClose }: SongRequestProps) {
             loading="lazy"
             referrerPolicy="no-referrer"
             aria-label="Formulario de solicitud de canciones de Punk Medallo"
-            className="w-full min-h-[600px] border-0"
+            className="w-full h-full border-0"
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
