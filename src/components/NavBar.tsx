@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/eventos", label: "Toques" },
   { href: "/descargas", label: "Descargas" },
   { href: "/fotos", label: "Registro Fotográfico" },
+  { href: "/tienda", label: "Tienda" },
   { href: "/amigos", label: "Páginas Amigas" },
 ];
 
@@ -29,6 +30,7 @@ export default function NavBar() {
     "/about": "Acerca de",
     "/amigos": "Páginas Amigas",
     "/contacto": "Contacto",
+    "/tienda": "Tienda",
   };
 
   const pageTitle = pageTitles[pathname];
