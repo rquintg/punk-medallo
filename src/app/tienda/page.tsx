@@ -16,11 +16,11 @@ export const revalidate = 600;
 export const metadata: Metadata = {
   title: 'Tienda - Punk Medallo',
   description:
-    'Camisetas, parches, pins y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
+    'Camisetas y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
   openGraph: {
     title: 'Tienda - Punk Medallo',
     description:
-      'Camisetas, parches, pins y accesorios punk. Merch oficial de Punk Medallo.',
+      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
     url: TIENDA_URL,
     images: [
       {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Tienda - Punk Medallo',
     description:
-      'Camisetas, parches, pins y accesorios punk. Merch oficial de Punk Medallo.',
+      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
     images: [`${SITE_URL}/logo_punk_medallo.jpg`],
   },
   robots: {
@@ -102,6 +102,12 @@ export default async function TiendaPage({ searchParams }: PageProps) {
       break;
     case 'nombre-desc':
       productos.sort((a, b) => b.nombre.localeCompare(a.nombre, 'es'));
+      break;
+    default:
+      productos.sort((a, b) => {
+        if (a.destacado !== b.destacado) return a.destacado ? -1 : 1
+        return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+      })
       break;
   }
 

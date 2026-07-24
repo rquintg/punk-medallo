@@ -1,19 +1,38 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Producto, Talla } from '../types';
-import type { CartItem } from '../types';
+import type { Producto, Talla, CartItem, Variante } from '../types';
+
+const MAX_QUANTITY = 10
+
+function findVariantId(
+  producto: Producto,
+  talla: Talla | null,
+  color: string | null,
+): string | null {
+  if (!producto.variantes || producto.variantes.length === 0) return null
+
+  const variant = producto.variantes.find((v: Variante) => {
+    if (talla && v.talla !== talla) return false
+    if (color && v.color !== color) return false
+    return true
+  })
+
+  return variant?.id ?? null
+}
 
 function createCartItem(
   producto: Producto,
+  variantId: string | null,
   tallaSeleccionada: Talla | null,
   colorSeleccionado: string | null,
   cantidad: number,
 ): CartItem {
-  return { ...producto, tallaSeleccionada, colorSeleccionado, cantidad };
+  return { ...producto, variantId, tallaSeleccionada, colorSeleccionado, cantidad };
 }
 
-function itemKey(productoId: string, talla: Talla | null, color: string | null): string {
-  return `${productoId}::${talla ?? 'notalla'}::${color ?? 'nocolor'}`;
+function itemKey(productoId: string, variantId: string | null, talla: Talla | null, color: string | null): string {
+  if (variantId) return `${productoId}::variant::${variantId}`
+  return `${productoId}::notalla::${talla ?? 'notalla'}::${color ?? 'nocolor'}`;
 }
 
 interface CartState {
@@ -37,12 +56,15 @@ export const useCart = create<CartState>()(
       setDrawerOpen: (open) => set({ drawerOpen: open }),
 
       addItem: (producto, tallaSeleccionada = null, colorSeleccionado = null, cantidad = 1) => {
-        if (cantidad < 1) return;
+        const qty = Math.min(Math.max(1, cantidad), MAX_QUANTITY);
+        if (qty < 1) return;
+
+        const variantId = findVariantId(producto, tallaSeleccionada, colorSeleccionado)
 
         set((state) => {
-          const key = itemKey(producto.id, tallaSeleccionada, colorSeleccionado);
+          const key = itemKey(producto.id, variantId, tallaSeleccionada, colorSeleccionado);
           const existingIndex = state.items.findIndex(
-            (item) => itemKey(item.id, item.tallaSeleccionada, item.colorSeleccionado) === key,
+            (item) => itemKey(item.id, item.variantId, item.tallaSeleccionada, item.colorSeleccionado) === key,
           );
 
           if (existingIndex >= 0) {
@@ -50,24 +72,27 @@ export const useCart = create<CartState>()(
             const current = updated[existingIndex];
             updated[existingIndex] = {
               ...current,
-              cantidad: current.cantidad + cantidad,
+              cantidad: Math.min(current.cantidad + qty, MAX_QUANTITY),
             };
             return { items: updated, drawerOpen: true };
           }
 
           return {
-            items: [...state.items, createCartItem(producto, tallaSeleccionada, colorSeleccionado, cantidad)],
+            items: [...state.items, createCartItem(producto, variantId, tallaSeleccionada, colorSeleccionado, qty)],
             drawerOpen: true,
           };
         });
       },
 
       removeItem: (productoId, tallaSeleccionada = null, colorSeleccionado = null) => {
-        const key = itemKey(productoId, tallaSeleccionada, colorSeleccionado);
         set((state) => ({
-          items: state.items.filter(
-            (item) => itemKey(item.id, item.tallaSeleccionada, item.colorSeleccionado) !== key,
-          ),
+          items: state.items.filter((item) => {
+            return !(
+              item.id === productoId &&
+              item.tallaSeleccionada === tallaSeleccionada &&
+              item.colorSeleccionado === colorSeleccionado
+            )
+          }),
         }));
       },
 
@@ -76,12 +101,14 @@ export const useCart = create<CartState>()(
           get().removeItem(productoId, tallaSeleccionada, colorSeleccionado);
           return;
         }
+        const qty = Math.min(cantidad, MAX_QUANTITY);
 
-        const key = itemKey(productoId, tallaSeleccionada, colorSeleccionado);
         set((state) => ({
           items: state.items.map((item) =>
-            itemKey(item.id, item.tallaSeleccionada, item.colorSeleccionado) === key
-              ? { ...item, cantidad }
+            item.id === productoId &&
+            item.tallaSeleccionada === tallaSeleccionada &&
+            item.colorSeleccionado === colorSeleccionado
+              ? { ...item, cantidad: qty }
               : item,
           ),
         }));
@@ -96,7 +123,31 @@ export const useCart = create<CartState>()(
     }),
     {
       name: 'punk-medallo-cart',
+      version: 2,
       partialize: (state) => ({ items: state.items }),
+      migrate: (persisted) => {
+        const state = persisted as { items?: unknown[] }
+        if (!state.items || !Array.isArray(state.items)) {
+          return { items: [] }
+        }
+        return { items: state.items.filter((i): i is CartItem => {
+          if (!i || typeof i !== 'object') return false
+          const item = i as Record<string, unknown>
+          const valid =
+            typeof item.id === 'string' &&
+            typeof item.nombre === 'string' &&
+            typeof item.precio === 'number' &&
+            typeof item.cantidad === 'number'
+
+          if (!valid) return false
+
+          if (!('variantId' in item)) {
+            (item as Record<string, unknown>).variantId = null
+          }
+
+          return true
+        })}
+      },
     },
   ),
 );

@@ -11,6 +11,14 @@ export interface ProductImage {
   height: number;
 }
 
+export interface Variante {
+  id: string;
+  talla: Talla | null;
+  color: string | null;
+  stock: number;
+  sku: string | null;
+}
+
 export interface Producto {
   id: string;
   slug: string;
@@ -23,12 +31,23 @@ export interface Producto {
   tallasDisponibles: Talla[];
   coloresDisponibles: string[];
   stock: number;
+  variantes?: Variante[];
   fechaCreacion: string;
   destacado: boolean;
 }
 
 export interface CartItem extends Producto {
+  variantId: string | null;
   tallaSeleccionada: Talla | null;
   colorSeleccionado: string | null;
   cantidad: number;
+}
+
+export interface PedidoItem {
+  nombre: string;
+  precio: number;
+  talla: string | null;
+  color: string | null;
+  cantidad: number;
+  imagen_url: string | null;
 }

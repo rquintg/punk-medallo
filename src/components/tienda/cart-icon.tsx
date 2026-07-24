@@ -24,7 +24,6 @@ export default function CartIcon({ onClick }: CartIconProps) {
           {count > 99 ? '99+' : count}
         </span>
       )}
-      <span className="hidden sm:inline">Carrito</span>
     </button>
   );
 }

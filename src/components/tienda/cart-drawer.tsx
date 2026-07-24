@@ -7,6 +7,7 @@ import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from './price';
 import CartIcon from './cart-icon';
+import AuthButton from '@/components/AuthButton';
 import type { CartItem, Talla } from '@/features/tienda/types';
 
 export default function CartDrawer() {
@@ -35,7 +36,10 @@ export default function CartDrawer() {
 
   return (
     <>
-      <CartIcon onClick={open} />
+      <div className="flex items-center gap-2">
+        <AuthButton />
+        <CartIcon onClick={open} />
+      </div>
 
       <div
         className={`fixed inset-0 z-[9999] transition-all duration-300 ${

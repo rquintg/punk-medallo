@@ -1,56 +1,71 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, Package, CreditCard, MapPin, Calendar } from 'lucide-react';
-import { toast } from 'sonner';
-import { useCart } from '@/features/tienda/store/use-cart';
-import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
-import Price from '@/components/tienda/price';
-import type { CartItem } from '@/features/tienda/types';
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useCart } from '@/features/tienda/store/use-cart'
+import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
+import Price from '@/components/tienda/price'
 
-interface OrderDetails {
-  orderNumber: string;
-  date: string;
-  items: CartItem[];
-  subtotal: number;
-  shipping: {
-    nombre: string;
-    email: string;
-    telefono: string;
-    direccion: string;
-    ciudad: string;
-  };
-  estimatedDelivery: string;
-}
-
-function generateOrderNumber(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = 'PM-';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+declare global {
+  interface Window {
+    WidgetCheckout: new (config: WidgetCheckoutConfig) => { open: (cb: (result: WidgetCheckoutResult) => void) => void }
   }
-  return result;
 }
 
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('es-CO', {
-    dateStyle: 'long',
-    timeStyle: 'short',
-  }).format(date);
+interface WidgetCheckoutConfig {
+  currency: string
+  amountInCents: number
+  reference: string
+  publicKey: string
+  signature: { integrity: string }
+  redirectUrl?: string
+  customerData?: {
+    email?: string
+    fullName?: string
+    phoneNumber?: string
+    phoneNumberPrefix?: string
+  }
+  shippingAddress?: {
+    addressLine1?: string
+    city?: string
+    phoneNumber?: string
+    region?: string
+    country?: string
+  }
 }
 
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
+interface WidgetCheckoutResult {
+  transaction: {
+    id: string
+    status: string
+  }
+}
+
+
+
+function loadWompiScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src*="checkout.wompi.co/widget.js"]')) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.wompi.co/widget.js'
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('No se pudo cargar Wompi'))
+    document.head.appendChild(script)
+  })
 }
 
 export default function CheckoutPage() {
-  const { items, updateQuantity, removeItem, totalPrecio, totalItems, clearCart } = useCart();
-  const [submitted, setSubmitted] = useState(false);
-  const [order, setOrder] = useState<OrderDetails | null>(null);
+  const router = useRouter()
+  const { items, updateQuantity, removeItem, totalPrecio, totalItems, clearCart } = useCart()
+  const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
     nombre: '',
@@ -58,148 +73,84 @@ export default function CheckoutPage() {
     telefono: '',
     direccion: '',
     ciudad: '',
-  });
+  })
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
 
     if (items.length === 0) {
-      toast.error('El carrito está vacío');
-      return;
+      toast.error('El carrito está vacío')
+      return
     }
 
     if (!form.nombre || !form.email || !form.telefono || !form.direccion || !form.ciudad) {
-      toast.error('Completa todos los campos del formulario');
-      return;
+      toast.error('Completa todos los campos del formulario')
+      return
     }
 
-    const now = new Date();
-    const orderDetails: OrderDetails = {
-      orderNumber: generateOrderNumber(),
-      date: formatDate(now),
-      items: [...items],
-      subtotal: totalPrecio(),
-      shipping: { ...form },
-      estimatedDelivery: formatDate(addDays(now, 5)),
-    };
+    const phoneDigits = form.telefono.replace(/\D/g, '')
+    if (phoneDigits.length < 10) {
+      toast.error('El teléfono debe tener al menos 10 dígitos (ej: 3001234567)')
+      return
+    }
 
-    setOrder(orderDetails);
-    setSubmitted(true);
-    toast.success('¡Pedido realizado con éxito!');
-    clearCart();
-  }
+    setLoading(true)
 
-  if (submitted && order) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <Breadcrumbs
-            segments={[
-              { label: 'Tienda', href: '/tienda' },
-              { label: 'Checkout' },
-              { label: 'Pedido confirmado' },
-            ]}
-          />
-        </div>
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shipping: form,
+          items,
+        }),
+      })
 
-        <div className="rounded-lg border border-neutral-800 bg-[#111]">
-          <div className="border-b border-neutral-800 px-6 py-8 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-600">
-              <Package size={28} className="text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white">¡Pedido confirmado!</h1>
-            <p className="mt-1 text-sm text-neutral-400">{order.orderNumber}</p>
-          </div>
+      const data = await res.json()
 
-          <div className="space-y-5 px-6 py-6">
-            <div className="flex items-center gap-3 text-sm text-neutral-400">
-              <Calendar size={16} className="shrink-0 text-neutral-500" />
-              <span>
-                Pedido realizado el{' '}
-                <span className="text-neutral-300">{order.date.split(',')[0]}</span>
-              </span>
-            </div>
+      if (!res.ok) {
+        toast.error(data.error ?? 'Error al crear el pedido')
+        setLoading(false)
+        return
+      }
 
-            <div className="flex items-center gap-3 text-sm text-neutral-400">
-              <Package size={16} className="shrink-0 text-neutral-500" />
-              <span>
-                Llegada estimada:{' '}
-                <span className="text-neutral-300">{order.estimatedDelivery}</span>
-              </span>
-            </div>
+      await loadWompiScript()
 
-            <div className="flex items-start gap-3 text-sm text-neutral-400">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-neutral-500" />
-              <span>
-                Enviar a{' '}
-                <span className="text-neutral-300">
-                  {order.shipping.nombre}, {order.shipping.direccion}, {order.shipping.ciudad}
-                </span>
-              </span>
-            </div>
+      const checkout = new window.WidgetCheckout({
+        currency: data.wompi.currency,
+        amountInCents: data.wompi.amountInCents,
+        reference: data.wompi.reference,
+        publicKey: data.wompi.publicKey,
+        signature: data.wompi.signature,
+        ...(data.wompi.redirectUrl ? { redirectUrl: data.wompi.redirectUrl } : {}),
+        customerData: {
+          email: form.email,
+          fullName: form.nombre,
+          phoneNumber: phoneDigits,
+          phoneNumberPrefix: '+57',
+        },
+        shippingAddress: {
+          addressLine1: form.direccion,
+          city: form.ciudad,
+          phoneNumber: phoneDigits,
+          region: 'Antioquia',
+          country: 'CO',
+        },
+      })
 
-            <div className="flex items-center gap-3 text-sm text-neutral-400">
-              <CreditCard size={16} className="shrink-0 text-neutral-500" />
-              <span>
-                Pagas con{' '}
-                <span className="text-neutral-300">Pago contra entrega</span>
-              </span>
-            </div>
-          </div>
+      const closeGuard = setTimeout(() => setLoading(false), 30000)
 
-          <div className="border-t border-neutral-800 px-6 py-6">
-            <h3 className="mb-4 text-sm font-semibold text-white">
-              Productos ({order.items.length})
-            </h3>
-            <ul className="divide-y divide-neutral-800">
-              {order.items.map((item) => (
-                <li key={`${item.id}-${item.tallaSeleccionada}-${item.colorSeleccionado}`} className="flex gap-3 py-3">
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-neutral-800">
-                    <Image
-                      src={item.imagenes[0]?.url ?? ''}
-                      alt={item.nombre}
-                      fill
-                      className="object-cover"
-                      sizes="56px"
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col justify-center">
-                    <p className="text-sm font-medium text-white">{item.nombre}</p>
-                    <div className="flex gap-3 text-xs text-neutral-500">
-                      {item.tallaSeleccionada && <span>Talla: {item.tallaSeleccionada}</span>}
-                      {item.colorSeleccionado && <span>Color: {item.colorSeleccionado}</span>}
-                      <span>Cant: {item.cantidad}</span>
-                    </div>
-                  </div>
-                  <span className="self-center text-sm font-medium text-white">
-                    <Price amount={item.precio * item.cantidad} />
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="border-t border-neutral-800 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-400">Total</span>
-              <span className="text-lg font-bold text-[#dc2626]">
-                <Price amount={order.subtotal} />
-              </span>
-            </div>
-          </div>
-
-          <div className="border-t border-neutral-800 px-6 py-5 text-center">
-            <Link
-              href="/tienda"
-              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-            >
-              <ArrowLeft size={16} />
-              Seguir comprando
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+      checkout.open((result) => {
+        clearTimeout(closeGuard)
+        setLoading(false)
+        const transactionId = result.transaction.id
+        clearCart()
+        router.push(`/tienda/compra?id=${transactionId}`)
+      })
+    } catch {
+      toast.error('Error de conexión. Intentá de nuevo.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -294,10 +245,11 @@ export default function CheckoutPage() {
 
             <button
               type="submit"
-              disabled={items.length === 0}
-              className="mt-4 w-full rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              disabled={loading || items.length === 0}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
-              Realizar pedido
+              {loading && <Loader2 size={16} className="animate-spin" />}
+              {loading ? 'Procesando...' : 'Ir a pagar'}
             </button>
           </form>
         </div>
@@ -439,5 +391,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

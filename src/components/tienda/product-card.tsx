@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, X, Check } from 'lucide-react';
@@ -33,10 +33,55 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const isOutOfStock = product.stock === 0;
-  const isLowStock = product.stock > 0 && product.stock < 5;
+  const needsSize = product.tallasDisponibles.length > 0
+  const needsColor = product.coloresDisponibles.length > 0
+  const needsCustomization = needsSize || needsColor
+  const hasVariants = !!product.variantes && product.variantes.length > 0
+
+  const fullySelected = (!needsSize || selectedSize) && (!needsColor || selectedColor)
+
+  const getVariantStock = useCallback(
+    (talla: Talla | null, color: string | null): number => {
+      if (!hasVariants) return product.stock
+      const v = product.variantes!.find(
+        (v) => v.talla === talla && v.color === color,
+      )
+      return v?.stock ?? 0
+    },
+    [hasVariants, product.variantes, product.stock],
+  )
+
+  const isColorAvailable = useCallback(
+    (color: string): boolean => {
+      if (!hasVariants) return true
+      if (selectedSize) return getVariantStock(selectedSize, color) > 0
+      return product.variantes!.some((v) => v.color === color && v.stock > 0)
+    },
+    [hasVariants, selectedSize, getVariantStock, product.variantes],
+  )
+
+  const isTallaAvailable = useCallback(
+    (talla: Talla): boolean => {
+      if (!hasVariants) return true
+      if (selectedColor) return getVariantStock(talla, selectedColor) > 0
+      return product.variantes!.some((v) => v.talla === talla && v.stock > 0)
+    },
+    [hasVariants, selectedColor, getVariantStock, product.variantes],
+  )
+
+  const variantStock = fullySelected && hasVariants
+    ? getVariantStock(selectedSize, selectedColor)
+    : null
+  const variantAgotado = variantStock !== null && variantStock === 0
+
+  const lowStockVariant = variantStock !== null && variantStock > 0 && variantStock < 5
+  const totalStock = hasVariants
+    ? product.variantes!.reduce((s, v) => s + v.stock, 0)
+    : product.stock
+  const isOutOfStock = totalStock === 0
+  const isLowStock = totalStock > 0 && totalStock < 5
+
   const primaryImage = product.imagenes[0];
-  const needsCustomization = product.tallasDisponibles.length > 0 || product.coloresDisponibles.length > 0;
 
   useEffect(() => {
     if (!showPopover) return;
@@ -54,8 +99,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   }, [showPopover]);
 
   function canAdd(): boolean {
-    if (product.tallasDisponibles.length > 0 && !selectedSize) return false;
-    if (product.coloresDisponibles.length > 0 && !selectedColor) return false;
+    if (needsSize && !selectedSize) return false;
+    if (needsColor && !selectedColor) return false;
+    if (variantAgotado) return false;
     return true;
   }
 
@@ -77,6 +123,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!canAdd()) return;
     addItem(product, selectedSize, selectedColor, 1);
     resetPopover();
+  }
+
+  function handleColorClick(color: string) {
+    setSelectedColor(color)
+    if (selectedSize && getVariantStock(selectedSize, color) === 0) {
+      setSelectedSize(null)
+    }
   }
 
   return (
@@ -108,7 +161,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {isLowStock && (
           <span className="absolute right-2 top-2 rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-semibold text-black shadow-sm">
-            ¡Últimas {product.stock}!
+            ¡Últimas {totalStock}!
           </span>
         )}
 
@@ -145,9 +198,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-neutral-400">
-                {product.coloresDisponibles.length > 0 && product.tallasDisponibles.length > 0
+                {needsColor && needsSize
                   ? 'Color y talla'
-                  : product.coloresDisponibles.length > 0
+                  : needsColor
                     ? 'Seleccionar color'
                     : 'Seleccionar talla'}
               </span>
@@ -160,7 +213,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </button>
             </div>
 
-            {product.coloresDisponibles.length > 0 && (
+            {needsColor && (
               <div>
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                   Color
@@ -168,24 +221,31 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <div className="flex flex-wrap gap-1.5">
                   {product.coloresDisponibles.map((color) => {
                     const isSelected = selectedColor === color;
+                    const available = isColorAvailable(color);
                     const swatch = COLOR_SWATCHES[color] ?? '#666';
                     return (
                       <button
                         key={color}
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => handleColorClick(color)}
+                        disabled={!available}
                         className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
                           isSelected
                             ? 'border-red-600 bg-red-600/10 text-white'
-                            : 'border-neutral-600 text-neutral-300 hover:border-neutral-400'
+                            : available
+                              ? 'border-neutral-600 text-neutral-300 hover:border-neutral-400'
+                              : 'border-neutral-800 text-neutral-600 cursor-not-allowed line-through'
                         }`}
-                        aria-label={`Color ${color}`}
+                        aria-label={`Color ${color}${!available ? ' — Agotado' : ''}`}
                         aria-pressed={isSelected}
                       >
                         <span
-                          className="h-3.5 w-3.5 rounded-full border border-neutral-500"
+                          className={`h-3.5 w-3.5 rounded-full border ${
+                            available ? 'border-neutral-500' : 'border-neutral-700'
+                          }`}
                           style={{ backgroundColor: swatch }}
                         />
                         {color}
+                        {!available && <span className="text-[10px] text-neutral-600">Agotado</span>}
                         {isSelected && <Check size={10} className="text-red-500" />}
                       </button>
                     );
@@ -194,27 +254,34 @@ export default function ProductCard({ product }: ProductCardProps) {
               </div>
             )}
 
-            {product.tallasDisponibles.length > 0 && (
+            {needsSize && (
               <div>
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                   Talla
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {product.tallasDisponibles.map((talla) => (
-                    <button
-                      key={talla}
-                      onClick={() => setSelectedSize(talla)}
-                      className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-all ${
-                        selectedSize === talla
-                          ? 'border-red-600 bg-red-600 text-white'
-                          : 'border-neutral-600 text-neutral-300 hover:border-neutral-400'
-                      }`}
-                      aria-label={`Talla ${TALLA_LABELS[talla]}`}
-                      aria-pressed={selectedSize === talla}
-                    >
-                      {TALLA_LABELS[talla]}
-                    </button>
-                  ))}
+                  {product.tallasDisponibles.map((talla) => {
+                    const isSelected = selectedSize === talla;
+                    const available = isTallaAvailable(talla);
+                    return (
+                      <button
+                        key={talla}
+                        onClick={() => { if (available) setSelectedSize(talla) }}
+                        disabled={!available}
+                        className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium transition-all ${
+                          isSelected
+                            ? 'border-red-600 bg-red-600 text-white'
+                            : available
+                              ? 'border-neutral-600 text-neutral-300 hover:border-neutral-400'
+                              : 'border-neutral-800 text-neutral-600 cursor-not-allowed line-through'
+                        }`}
+                        aria-label={`Talla ${TALLA_LABELS[talla]}${!available ? ' — Agotado' : ''}`}
+                        aria-pressed={isSelected}
+                      >
+                        {TALLA_LABELS[talla]}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -224,7 +291,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               disabled={!canAdd()}
               className="w-full rounded-md bg-red-600 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Agregar
+              {variantAgotado ? 'Agotado' : 'Agregar'}
             </button>
           </div>
         ) : (
