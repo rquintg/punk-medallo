@@ -11,7 +11,7 @@ import { ProductFiltersSkeleton } from '@/components/tienda/skeletons';
 import ProductCard from '@/components/tienda/product-card';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
-export const revalidate = 600;
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Tienda - Punk Medallo',

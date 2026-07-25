@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 import {
   verifyEventSignature,
   getTransaction,
@@ -209,9 +210,19 @@ export async function POST(request: NextRequest) {
             throw new Error(`Error actualizando estado: ${pedido.id}`)
           }
 
+          const { data: productosAfectados } = await getSupabaseAdmin()
+            .from('productos')
+            .select('slug')
+            .in('id', items.map(i => i.producto_id))
+
+          for (const p of productosAfectados ?? []) {
+            revalidatePath(`/tienda/${p.slug}`)
+          }
+          revalidatePath('/tienda')
+
           logger.info('Stock descontado y pedido aprobado', {
             requestId: rid,
-            data: { reference, items: deductedItems.length },
+            data: { reference, items: deductedItems.length, revalidados: productosAfectados?.length },
           })
         } catch (err) {
           await rollbackStock(deductedItems)
