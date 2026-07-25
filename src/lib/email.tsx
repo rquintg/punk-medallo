@@ -49,7 +49,18 @@ export interface CartAbandonedData {
   total: number
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resendClient: Resend | null = null
+
+function getResend(): Resend {
+  if (!resendClient) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY no está configurada')
+    }
+    resendClient = new Resend(apiKey)
+  }
+  return resendClient
+}
 
 const emailFrom = process.env.EMAIL_FROM ?? 'Punk Medallo <info@punkmedallo.com>'
 
@@ -68,6 +79,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
     />,
   )
 
+  const resend = getResend()
   const { error } = await resend.emails.send({
     from: emailFrom,
     to: data.email,
@@ -90,6 +102,7 @@ export async function sendOrderApproved(data: OrderApprovedData) {
     />,
   )
 
+  const resend = getResend()
   const { error } = await resend.emails.send({
     from: emailFrom,
     to: data.email,
@@ -113,6 +126,7 @@ export async function sendOrderDeclined(data: OrderDeclinedData) {
     />,
   )
 
+  const resend = getResend()
   const { error } = await resend.emails.send({
     from: emailFrom,
     to: data.email,
@@ -140,6 +154,7 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
     />,
   )
 
+  const resend = getResend()
   const { error } = await resend.emails.send({
     from: emailFrom,
     to: data.email,

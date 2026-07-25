@@ -131,13 +131,6 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
         {isPending && (
           <PollTransaction transactionId={transactionId} />
         )}
-
-        <Link
-          href="/tienda"
-          className="mt-4 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-        >
-          {linkText}
-        </Link>
       </div>
     </div>
   )

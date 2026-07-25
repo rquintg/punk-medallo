@@ -8,7 +8,7 @@ interface RedirectTimerProps {
   seconds?: number
 }
 
-export default function RedirectTimer({ targetUrl, seconds = 5 }: RedirectTimerProps) {
+export default function RedirectTimer({ targetUrl, seconds = 8 }: RedirectTimerProps) {
   const router = useRouter()
   const [countdown, setCountdown] = useState(seconds)
 
@@ -22,8 +22,8 @@ export default function RedirectTimer({ targetUrl, seconds = 5 }: RedirectTimerP
   }, [countdown, router, targetUrl])
 
   return (
-    <p className="text-xs text-neutral-500" aria-live="polite">
-      Redirigiendo a tu pedido en {countdown} segundos...
+    <p className="text-xs text-neutral-300" aria-live="polite">
+      Redirigiendo a tu pedido en <span className="font-bold text-base text-white">{countdown}</span> segundos...
     </p>
   )
 }
