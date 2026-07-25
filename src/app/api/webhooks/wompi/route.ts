@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import {
   verifyEventSignature,
   getTransaction,
@@ -9,11 +9,18 @@ import {
 import { sendOrderConfirmation, sendOrderApproved, sendOrderDeclined } from '@/lib/email'
 import { logger, generateRequestId } from '@/lib/logger'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } },
-)
+let supabaseAdminClient: SupabaseClient | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdminClient) {
+    supabaseAdminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    )
+  }
+  return supabaseAdminClient!
+}
 
 async function retryOnNetworkError<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -42,9 +49,9 @@ type DeductedItem = {
 async function rollbackStock(deductedItems: DeductedItem[]) {
   for (const d of deductedItems) {
     if ('variante_id' in d) {
-      await supabaseAdmin.from('producto_variantes').update({ stock: d.stockBefore }).eq('id', d.variante_id)
+      await getSupabaseAdmin().from('producto_variantes').update({ stock: d.stockBefore }).eq('id', d.variante_id)
     } else {
-      await supabaseAdmin.from('productos').update({ stock: d.stockBefore }).eq('id', d.producto_id)
+      await getSupabaseAdmin().from('productos').update({ stock: d.stockBefore }).eq('id', d.producto_id)
     }
   }
 }
@@ -77,7 +84,7 @@ export async function POST(request: NextRequest) {
       data: { transactionId, reference, wompiStatus, newEstado },
     })
 
-    const { data: pedido, error: pedidoError } = await supabaseAdmin
+    const { data: pedido, error: pedidoError } = await getSupabaseAdmin()
       .from('pedidos')
       .select('id, estado, total, email, nombre_entrega, telefono, direccion, ciudad, created_at')
       .eq('numero_pedido', reference)
@@ -116,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (verifiedEstado === 'aprobado') {
-      const { data: items, error: itemsError } = await supabaseAdmin
+      const { data: items, error: itemsError } = await getSupabaseAdmin()
         .from('pedido_items')
         .select('producto_id, variante_id, cantidad')
         .eq('pedido_id', pedido.id)
@@ -132,7 +139,7 @@ export async function POST(request: NextRequest) {
         try {
           for (const item of items) {
             if (item.variante_id) {
-              const { data: variant, error: variantError } = await supabaseAdmin
+              const { data: variant, error: variantError } = await getSupabaseAdmin()
                 .from('producto_variantes')
                 .select('stock')
                 .eq('id', item.variante_id)
@@ -149,7 +156,7 @@ export async function POST(request: NextRequest) {
               }
 
               const stockBefore = variant.stock
-              const { error: updateError } = await supabaseAdmin
+              const { error: updateError } = await getSupabaseAdmin()
                 .from('producto_variantes')
                 .update({ stock: Math.max(0, stockBefore - item.cantidad) })
                 .eq('id', item.variante_id)
@@ -161,7 +168,7 @@ export async function POST(request: NextRequest) {
 
               deductedItems.push({ variante_id: item.variante_id, stockBefore })
             } else {
-              const { data: product, error: productError } = await supabaseAdmin
+              const { data: product, error: productError } = await getSupabaseAdmin()
                 .from('productos')
                 .select('stock')
                 .eq('id', item.producto_id)
@@ -178,7 +185,7 @@ export async function POST(request: NextRequest) {
               }
 
               const stockBefore = product.stock
-              const { error: updateError } = await supabaseAdmin
+              const { error: updateError } = await getSupabaseAdmin()
                 .from('productos')
                 .update({ stock: Math.max(0, stockBefore - item.cantidad) })
                 .eq('id', item.producto_id)
@@ -192,7 +199,7 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          const { error: estadoError } = await supabaseAdmin
+          const { error: estadoError } = await getSupabaseAdmin()
             .from('pedidos')
             .update({ estado: verifiedEstado })
             .eq('id', pedido.id)
@@ -217,7 +224,7 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await getSupabaseAdmin()
         .from('pedidos')
         .update({ estado: verifiedEstado })
         .eq('id', pedido.id)
@@ -235,7 +242,7 @@ export async function POST(request: NextRequest) {
     ).toLocaleDateString('es-CO', { dateStyle: 'long' })
 
     if (verifiedEstado === 'aprobado') {
-      const { data: pedidoItems } = await supabaseAdmin
+      const { data: pedidoItems } = await getSupabaseAdmin()
         .from('pedido_items')
         .select('nombre, precio, talla, color, cantidad, imagen_url')
         .eq('pedido_id', pedido.id)

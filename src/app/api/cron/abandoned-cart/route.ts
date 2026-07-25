@@ -1,15 +1,22 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { sendCartAbandoned } from '@/lib/email'
 import { logger, generateRequestId } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } },
-)
+let supabaseAdminClient: SupabaseClient | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdminClient) {
+    supabaseAdminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    )
+  }
+  return supabaseAdminClient!
+}
 
 export async function GET(request: NextRequest) {
   const rid = generateRequestId()
@@ -24,7 +31,7 @@ export async function GET(request: NextRequest) {
   try {
     const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
 
-    const { data: pedidos, error: pedidosError } = await supabaseAdmin
+    const { data: pedidos, error: pedidosError } = await getSupabaseAdmin()
       .from('pedidos')
       .select('id, numero_pedido, email, nombre_entrega, total')
       .eq('estado', 'pendiente')
@@ -46,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     for (const pedido of pedidos) {
       try {
-        const { data: items } = await supabaseAdmin
+        const { data: items } = await getSupabaseAdmin()
           .from('pedido_items')
           .select('nombre, cantidad, precio')
           .eq('pedido_id', pedido.id)
@@ -68,7 +75,7 @@ export async function GET(request: NextRequest) {
           continue
         }
 
-        const { error: updateError } = await supabaseAdmin
+        const { error: updateError } = await getSupabaseAdmin()
           .from('pedidos')
           .update({ estado: 'cancelado' })
           .eq('id', pedido.id)

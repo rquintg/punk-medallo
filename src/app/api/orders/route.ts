@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { sendOrderConfirmation } from '@/lib/email'
 import { verifyCsrf } from '@/lib/csrf'
 import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
@@ -33,13 +34,18 @@ function addDays(date: Date, days: number): Date {
   return result
 }
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: { persistSession: false },
-  },
-)
+let supabaseAdminClient: SupabaseClient | null = null
+
+function getSupabaseAdmin() {
+  if (!supabaseAdminClient) {
+    supabaseAdminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    )
+  }
+  return supabaseAdminClient!
+}
 
 export async function POST(request: NextRequest) {
   const rid = generateRequestId()
@@ -115,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     for (const item of items) {
       if (item.variantId) {
-        const { data: variant, error: variantError } = await supabaseAdmin
+        const { data: variant, error: variantError } = await getSupabaseAdmin()
           .from('producto_variantes')
           .select('stock')
           .eq('id', item.variantId)
@@ -135,7 +141,7 @@ export async function POST(request: NextRequest) {
           stockUpdates.push({ id: item.variantId, variantId: item.variantId, nuevoStock: variant.stock - item.cantidad, productId: item.id })
         }
       } else {
-        const { data: product, error: productError } = await supabaseAdmin
+        const { data: product, error: productError } = await getSupabaseAdmin()
           .from('productos')
           .select('id, stock')
           .eq('id', item.id)
@@ -166,7 +172,7 @@ export async function POST(request: NextRequest) {
     // 2. Descontar stock (con service_role, bypass RLS)
     for (const update of stockUpdates) {
       if (update.variantId) {
-        const { error: updateError } = await supabaseAdmin
+        const { error: updateError } = await getSupabaseAdmin()
           .from('producto_variantes')
           .update({ stock: update.nuevoStock })
           .eq('id', update.id)
@@ -179,7 +185,7 @@ export async function POST(request: NextRequest) {
           )
         }
       } else {
-        const { error: updateError } = await supabaseAdmin
+        const { error: updateError } = await getSupabaseAdmin()
           .from('productos')
           .update({ stock: update.nuevoStock })
           .eq('id', update.id)
@@ -218,7 +224,7 @@ export async function POST(request: NextRequest) {
       for (const update of stockUpdates) {
         const cantidad = items.find((i) => i.id === update.productId)?.cantidad ?? 0
         const table = update.variantId ? 'producto_variantes' : 'productos'
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from(table)
           .update({ stock: update.nuevoStock + cantidad })
           .eq('id', update.id)
@@ -254,7 +260,7 @@ export async function POST(request: NextRequest) {
       for (const update of stockUpdates) {
         const cantidad = items.find((i) => i.id === update.productId)?.cantidad ?? 0
         const table = update.variantId ? 'producto_variantes' : 'productos'
-        await supabaseAdmin
+        await getSupabaseAdmin()
           .from(table)
           .update({ stock: update.nuevoStock + cantidad })
           .eq('id', update.id)
