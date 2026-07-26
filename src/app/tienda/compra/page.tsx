@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle, XCircle, Clock, Loader2, AlertCircle } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getTransaction } from '@/lib/wompi'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'

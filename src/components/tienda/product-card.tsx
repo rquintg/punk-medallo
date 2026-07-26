@@ -73,8 +73,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? getVariantStock(selectedSize, selectedColor)
     : null
   const variantAgotado = variantStock !== null && variantStock === 0
-
-  const lowStockVariant = variantStock !== null && variantStock > 0 && variantStock < 5
   const totalStock = hasVariants
     ? product.variantes!.reduce((s, v) => s + v.stock, 0)
     : product.stock

@@ -128,17 +128,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 1. Verificar stock y obtener precios reales desde DB
+    // 1. Verificar stock y obtener precios reales desde DB (batch queries)
+    const productIds = items.map((i) => i.id)
+    const { data: products, error: productsError } = await supabase
+      .from('productos')
+      .select('id, stock, precio')
+      .in('id', productIds)
+
+    if (productsError || !products) {
+      return respond(
+        { error: 'Error verificando productos' },
+        { status: 500 },
+      )
+    }
+
+    const productMap = new Map(products.map((p) => [p.id, p]))
+    const variantIds = items.filter((i) => i.variantId).map((i) => i.variantId!)
+    let variantMap = new Map<string, { id: string; producto_id: string; stock: number }>()
+
+    if (variantIds.length > 0) {
+      const { data: variants, error: variantsError } = await supabase
+        .from('producto_variantes')
+        .select('id, producto_id, stock')
+        .in('id', variantIds)
+
+      if (variantsError) {
+        return respond(
+          { error: 'Error verificando variantes' },
+          { status: 500 },
+        )
+      }
+
+      variantMap = new Map((variants ?? []).map((v) => [v.id, v]))
+    }
+
     const productPrices = new Map<string, number>()
 
     for (const item of items) {
-      const { data: product, error: productError } = await supabase
-        .from('productos')
-        .select('id, stock, precio')
-        .eq('id', item.id)
-        .single()
+      const product = productMap.get(item.id)
 
-      if (productError || !product) {
+      if (!product) {
         return respond(
           { error: `Producto no encontrado: ${item.nombre}` },
           { status: 404 },
@@ -146,14 +175,9 @@ export async function POST(request: NextRequest) {
       }
 
       if (item.variantId) {
-        const { data: variant, error: variantError } = await supabase
-          .from('producto_variantes')
-          .select('stock')
-          .eq('id', item.variantId)
-          .eq('producto_id', item.id)
-          .single()
+        const variant = variantMap.get(item.variantId)
 
-        if (variantError || !variant) {
+        if (!variant || variant.producto_id !== item.id) {
           return respond(
             { error: `Variante no encontrada para: ${item.nombre}` },
             { status: 404 },
