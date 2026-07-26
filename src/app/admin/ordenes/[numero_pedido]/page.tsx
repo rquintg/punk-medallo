@@ -148,11 +148,26 @@ export default async function OrdenDetallePage({ params }: Props) {
                 <dd className="text-[var(--admin-text)]">{orden.direccion}</dd>
               </div>
               <div>
+                <dt className="text-[var(--admin-text-dim)]">Barrio</dt>
+                <dd className="text-[var(--admin-text)]">{orden.barrio || '—'}</dd>
+              </div>
+              <div>
                 <dt className="text-[var(--admin-text-dim)]">Ciudad</dt>
                 <dd className="text-[var(--admin-text)]">{orden.ciudad}</dd>
               </div>
+              <div>
+                <dt className="text-[var(--admin-text-dim)]">Departamento</dt>
+                <dd className="text-[var(--admin-text)]">{orden.departamento}</dd>
+              </div>
             </dl>
           </div>
+
+          {orden.notas && (
+            <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-4">Notas del cliente</h2>
+              <p className="text-sm text-[var(--admin-text)]">{orden.notas}</p>
+            </div>
+          )}
 
 
         </div>

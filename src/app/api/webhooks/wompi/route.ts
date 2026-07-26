@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     const { data: pedido, error: pedidoError } = await getSupabaseAdmin()
       .from('pedidos')
-      .select('id, estado, total, email, nombre_entrega, telefono, direccion, ciudad, created_at')
+      .select('id, estado, total, email, nombre_entrega, telefono, direccion, ciudad, departamento, barrio, notas, created_at')
       .eq('numero_pedido', reference)
       .single()
 
@@ -264,7 +264,10 @@ export async function POST(request: NextRequest) {
         email: pedido.email,
         phone: pedido.telefono ?? '',
         address: pedido.direccion ?? '',
+        departamento: pedido.departamento ?? '',
         city: pedido.ciudad ?? '',
+        barrio: pedido.barrio ?? '',
+        notes: pedido.notas ?? '',
         items: (pedidoItems ?? []).map((i) => ({
           name: i.nombre,
           quantity: i.cantidad,

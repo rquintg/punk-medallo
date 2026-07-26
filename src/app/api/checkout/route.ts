@@ -14,7 +14,10 @@ interface CheckoutRequest {
     email: string
     telefono: string
     direccion: string
+    departamento: string
     ciudad: string
+    barrio: string
+    notas: string
   }
   items: CartItem[]
 }
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!rawShipping.nombre || !rawShipping.email || !rawShipping.telefono || !rawShipping.direccion || !rawShipping.ciudad) {
+    if (!rawShipping.nombre || !rawShipping.email || !rawShipping.telefono || !rawShipping.direccion || !rawShipping.departamento || !rawShipping.ciudad) {
       return respond(
         { error: 'Completa todos los campos del formulario' },
         { status: 400 },
@@ -190,7 +193,10 @@ export async function POST(request: NextRequest) {
         email: shipping.email,
         telefono: shipping.telefono,
         direccion: shipping.direccion,
+        departamento: shipping.departamento,
         ciudad: shipping.ciudad,
+        barrio: shipping.barrio,
+        notas: shipping.notas,
         total,
         estado: 'pendiente',
       })

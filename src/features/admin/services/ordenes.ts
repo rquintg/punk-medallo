@@ -13,7 +13,10 @@ export interface OrdenRow {
 export interface OrdenDetalle extends OrdenRow {
   telefono: string
   direccion: string
+  departamento: string
   ciudad: string
+  barrio: string
+  notas: string
   usuario_id: string | null
   pedido_items: {
     id: string

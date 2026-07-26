@@ -14,7 +14,10 @@ export interface OrderConfirmationData {
   email: string
   phone: string
   address: string
+  departamento: string
   city: string
+  barrio: string
+  notes: string
   items: Array<{
     name: string
     quantity: number
@@ -81,7 +84,10 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
       email={data.email}
       phone={data.phone}
       address={data.address}
+      departamento={data.departamento}
       city={data.city}
+      barrio={data.barrio}
+      notes={data.notes}
       items={data.items}
       total={data.total}
       estimatedDelivery={data.estimatedDelivery}

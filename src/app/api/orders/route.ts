@@ -14,7 +14,10 @@ interface OrderRequest {
     email: string
     telefono: string
     direccion: string
+    departamento: string
     ciudad: string
+    barrio: string
+    notas: string
   }
   items: CartItem[]
 }
@@ -210,7 +213,10 @@ export async function POST(request: NextRequest) {
         email: shipping.email,
         telefono: shipping.telefono,
         direccion: shipping.direccion,
+        departamento: shipping.departamento ?? '',
         ciudad: shipping.ciudad,
+        barrio: shipping.barrio ?? '',
+        notas: shipping.notas ?? '',
         total,
         estado: 'pendiente',
       })
@@ -283,7 +289,10 @@ export async function POST(request: NextRequest) {
       email: shipping.email,
       phone: shipping.telefono,
       address: shipping.direccion,
+      departamento: shipping.departamento ?? '',
       city: shipping.ciudad,
+      barrio: shipping.barrio ?? '',
+      notes: shipping.notas ?? '',
       items: items.map((item) => ({
         name: item.nombre,
         quantity: item.cantidad,

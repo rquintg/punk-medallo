@@ -27,7 +27,10 @@ interface OrderConfirmationProps {
   email: string
   phone: string
   address: string
+  departamento: string
   city: string
+  barrio: string
+  notes: string
   items: OrderItemProps[]
   total: number
   estimatedDelivery: string
@@ -43,7 +46,10 @@ export default function OrderConfirmation({
   email,
   phone,
   address,
+  departamento,
   city,
+  barrio,
+  notes,
   items,
   total,
   estimatedDelivery,
@@ -146,9 +152,17 @@ export default function OrderConfirmation({
             {/* Shipping */}
             <Heading as="h3" style={sectionTitle}>Datos de envío</Heading>
             <Text style={infoLine}>{address}</Text>
-            <Text style={infoLine}>{city}</Text>
+            {barrio && <Text style={infoLine}>Barrio: {barrio}</Text>}
+            <Text style={infoLine}>{city}, {departamento}</Text>
             <Text style={infoLine}>{email}</Text>
             <Text style={infoLine}>{phone}</Text>
+            {notes && (
+              <>
+                <Hr style={divider} />
+                <Heading as="h3" style={sectionTitle}>Notas del cliente</Heading>
+                <Text style={infoLine}>{notes}</Text>
+              </>
+            )}
           </Section>
 
           {/* Footer */}

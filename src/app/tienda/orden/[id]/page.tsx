@@ -35,7 +35,10 @@ export default async function OrderPage({ params }: OrderPageProps) {
       email,
       telefono,
       direccion,
+      departamento,
       ciudad,
+      barrio,
+      notas,
       total,
       estado,
       created_at,
@@ -159,10 +162,22 @@ export default async function OrderPage({ params }: OrderPageProps) {
             <span>
               Enviar a{' '}
               <span className="text-neutral-300">
-                {pedido.nombre_entrega}, {pedido.direccion}, {pedido.ciudad}
+                {pedido.nombre_entrega}, {pedido.direccion}
+                {pedido.barrio ? `, ${pedido.barrio}` : ''}, {pedido.ciudad}
+                {pedido.departamento ? `, ${pedido.departamento}` : ''}
               </span>
             </span>
           </div>
+
+          {pedido.notas && (
+            <div className="flex items-start gap-3 text-sm text-neutral-400">
+              <span className="mt-0.5 shrink-0 text-neutral-500">📝</span>
+              <span>
+                Notas:{' '}
+                <span className="text-neutral-300">{pedido.notas}</span>
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center gap-3 text-sm text-neutral-400">
             <span className={`text-xs font-semibold uppercase ${estadoColors[pedido.estado] ?? 'text-neutral-400'}`}>

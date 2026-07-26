@@ -8,6 +8,7 @@ import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCart } from '@/features/tienda/store/use-cart'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
+import CiudadDepartamentoSelect from '@/components/tienda/ciudad-departamento-select'
 import Price from '@/components/tienda/price'
 
 declare global {
@@ -72,7 +73,10 @@ export default function CheckoutPage() {
     email: '',
     telefono: '',
     direccion: '',
+    departamento: '',
     ciudad: '',
+    barrio: '',
+    notas: '',
   })
 
   async function handleSubmit(e: React.FormEvent) {
@@ -83,7 +87,7 @@ export default function CheckoutPage() {
       return
     }
 
-    if (!form.nombre || !form.email || !form.telefono || !form.direccion || !form.ciudad) {
+    if (!form.nombre || !form.email || !form.telefono || !form.direccion || !form.departamento || !form.ciudad) {
       toast.error('Completa todos los campos del formulario')
       return
     }
@@ -97,11 +101,21 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
+      const body = {
+        nombre: form.nombre,
+        email: form.email,
+        telefono: form.telefono,
+        direccion: form.direccion,
+        departamento: form.departamento,
+        ciudad: form.ciudad,
+        barrio: form.barrio,
+        notas: form.notas,
+      }
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          shipping: form,
+          shipping: body,
           items,
         }),
       })
@@ -133,7 +147,7 @@ export default function CheckoutPage() {
           addressLine1: form.direccion,
           city: form.ciudad,
           phoneNumber: phoneDigits,
-          region: 'Antioquia',
+          region: form.departamento,
           country: 'CO',
         },
       })
@@ -200,33 +214,39 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="telefono" className="mb-1.5 block text-sm text-neutral-300">
-                  Teléfono *
-                </label>
-                <input
-                  id="telefono"
-                  type="tel"
-                  value={form.telefono}
-                  onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                  placeholder="300 123 4567"
-                />
-              </div>
-              <div>
-                <label htmlFor="ciudad" className="mb-1.5 block text-sm text-neutral-300">
-                  Ciudad *
-                </label>
-                <input
-                  id="ciudad"
-                  type="text"
-                  value={form.ciudad}
-                  onChange={(e) => setForm({ ...form, ciudad: e.target.value })}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                  placeholder="Medellín"
-                />
-              </div>
+            <div>
+              <label htmlFor="telefono" className="mb-1.5 block text-sm text-neutral-300">
+                Teléfono *
+              </label>
+              <input
+                id="telefono"
+                type="tel"
+                value={form.telefono}
+                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
+                placeholder="300 123 4567"
+              />
+            </div>
+
+            <CiudadDepartamentoSelect
+              departamento={form.departamento}
+              ciudad={form.ciudad}
+              onDepartamentoChange={(value) => setForm((prev) => ({ ...prev, departamento: value, ciudad: '' }))}
+              onCiudadChange={(value) => setForm((prev) => ({ ...prev, ciudad: value }))}
+            />
+
+            <div>
+              <label htmlFor="barrio" className="mb-1.5 block text-sm text-neutral-300">
+                Barrio
+              </label>
+              <input
+                id="barrio"
+                type="text"
+                value={form.barrio}
+                onChange={(e) => setForm({ ...form, barrio: e.target.value })}
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
+                placeholder="Opcional"
+              />
             </div>
 
             <div>
@@ -240,6 +260,20 @@ export default function CheckoutPage() {
                 onChange={(e) => setForm({ ...form, direccion: e.target.value })}
                 className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
                 placeholder="Cra 1 # 2-3"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="notas" className="mb-1.5 block text-sm text-neutral-300">
+                Notas adicionales
+              </label>
+              <textarea
+                id="notas"
+                rows={3}
+                value={form.notas}
+                onChange={(e) => setForm({ ...form, notas: e.target.value })}
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
+                placeholder="Instrucciones de entrega, referencia, etc. (opcional)"
               />
             </div>
 
