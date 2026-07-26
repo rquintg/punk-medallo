@@ -5,6 +5,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import WebPlayer from "@/components/WebPlayer";
 import FloatingWhatsAppWrapper from "@/components/FloatingWhatsAppWrapper";
+import { HideOnAdmin } from "@/components/hide-on-admin";
 import QueryProvider from "@/components/QueryProvider";
 import { Toaster } from "sonner";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -138,12 +139,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://a3.asurahosting.com" />
       </head>
       <body className="min-h-full flex flex-col bg-[#181818] text-white">
-        <NavBar />
+        <HideOnAdmin><NavBar /></HideOnAdmin>
         <main className="flex-1">
           <QueryProvider>{children}</QueryProvider>
         </main>
-        <Footer />
-        <WebPlayer />
+        <HideOnAdmin><Footer /></HideOnAdmin>
+        <HideOnAdmin><WebPlayer /></HideOnAdmin>
 
         <Toaster
           position="top-right"
@@ -153,7 +154,7 @@ export default function RootLayout({
           }}
         />
 
-        <FloatingWhatsAppWrapper />
+        <HideOnAdmin><FloatingWhatsAppWrapper /></HideOnAdmin>
 
         <SpeedInsights />
 
