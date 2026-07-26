@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getProductosByQuery } from '@/features/tienda/services/products';
+import { getProductosFiltrados } from '@/features/tienda/services/products';
 import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
 import { SearchBar } from '@/components/tienda/search-bar';
@@ -46,7 +46,7 @@ export default async function BuscarPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const q = (typeof params.q === 'string' ? params.q : '').trim();
 
-  const productos = q ? await getProductosByQuery(q) : [];
+  const productos = q ? await getProductosFiltrados({ q }) : [];
 
   const breadcrumbSegments = [
     { label: 'Tienda', href: '/tienda' },

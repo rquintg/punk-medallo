@@ -1,4 +1,4 @@
-import type { Producto, ProductImage, Variante, Talla } from '../types';
+import type { Producto, ProductImage, Variante, Talla, CategoriaInfo } from '../types';
 
 interface DbProductImage {
   id: string;
@@ -17,13 +17,20 @@ interface DbProductVariant {
   sku: string | null;
 }
 
+interface DbCategoria {
+  id: string
+  nombre: string
+  slug: string
+}
+
 interface DbProduct {
   id: string;
   slug: string;
   nombre: string;
   descripcion: string;
   precio: number;
-  categoria: string;
+  categoria_id: string | null;
+  categorias: DbCategoria | null;
   genero: string;
   tallas_disponibles: string[];
   colores_disponibles: string[];
@@ -56,6 +63,15 @@ function uniqueSorted<T>(arr: T[]): T[] {
   return [...new Set(arr)].sort();
 }
 
+function mapCategoria(db: DbProduct): CategoriaInfo | null {
+  if (!db.categorias) return null
+  return {
+    id: db.categorias.id,
+    nombre: db.categorias.nombre,
+    slug: db.categorias.slug,
+  }
+}
+
 export function mapDbProductoToProducto(db: DbProduct): Producto {
   const imagenes: ProductImage[] = (db.producto_imagenes ?? [])
     .sort((a, b) => a.orden - b.orden)
@@ -67,6 +83,7 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
     }));
 
   const variantes = mapVariantes(db.producto_variantes);
+  const categoria = mapCategoria(db)
 
   if (variantes) {
     const tallas = uniqueSorted(
@@ -89,7 +106,8 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
       nombre: db.nombre,
       descripcion: db.descripcion,
       precio: db.precio,
-      categoria: db.categoria as Producto['categoria'],
+      categoria_id: db.categoria_id,
+      categoria,
       genero: db.genero as Producto['genero'],
       tallasDisponibles: tallas,
       coloresDisponibles: colores,
@@ -107,7 +125,8 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
     nombre: db.nombre,
     descripcion: db.descripcion,
     precio: db.precio,
-    categoria: db.categoria as Producto['categoria'],
+    categoria_id: db.categoria_id,
+    categoria,
     genero: db.genero as Producto['genero'],
     tallasDisponibles: db.tallas_disponibles as Producto['tallasDisponibles'],
     coloresDisponibles: db.colores_disponibles,

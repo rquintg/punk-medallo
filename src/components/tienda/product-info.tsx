@@ -116,7 +116,7 @@ export function ProductInfo({ producto }: ProductInfoProps) {
         <p className="mt-2 text-sm text-neutral-400">
           {producto.genero === 'hombre' ? 'Hombre' : producto.genero === 'mujer' ? 'Mujer' : 'Unisex'}
           {' / '}
-          {producto.categoria === 'camisetas' ? 'Camisetas' : 'Accesorios'}
+          {producto.categoria?.nombre ?? 'Categoría'}
         </p>
       </div>
 

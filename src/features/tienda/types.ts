@@ -1,8 +1,12 @@
-export type Categoria = 'camisetas' | 'accesorios';
-
 export type Talla = 'S' | 'M' | 'L' | 'XL';
 
 export type Genero = 'hombre' | 'mujer' | 'unisex';
+
+export type CategoriaInfo = {
+  id: string
+  nombre: string
+  slug: string
+}
 
 export interface ProductImage {
   url: string;
@@ -26,7 +30,8 @@ export interface Producto {
   descripcion: string;
   precio: number;
   imagenes: ProductImage[];
-  categoria: Categoria;
+  categoria_id: string | null;
+  categoria: CategoriaInfo | null;
   genero: Genero;
   tallasDisponibles: Talla[];
   coloresDisponibles: string[];
@@ -50,4 +55,13 @@ export interface PedidoItem {
   color: string | null;
   cantidad: number;
   imagen_url: string | null;
+}
+
+export type ProductoFilters = {
+  categoria_id?: string
+  genero?: Genero
+  talla?: Talla
+  precio_min?: number
+  precio_max?: number
+  q?: string
 }

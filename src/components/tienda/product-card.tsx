@@ -153,7 +153,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {product.categoria === 'accesorios' && (
+        {product.categoria?.slug === 'accesorios' && (
           <span className="absolute left-2 top-2 rounded-full bg-[#a40202] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm">
             Accesorio
           </span>
@@ -188,7 +188,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-xs text-neutral-500">
           {product.genero === 'hombre' ? 'Hombre' : product.genero === 'mujer' ? 'Mujer' : 'Unisex'}
           {' · '}
-          {product.categoria === 'camisetas' ? 'Camiseta' : 'Accesorio'}
+          {product.categoria?.slug === 'camisetas' ? 'Camiseta' : 'Accesorio'}
         </p>
 
         {showPopover && needsCustomization ? (

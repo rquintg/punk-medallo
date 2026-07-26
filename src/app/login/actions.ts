@@ -23,6 +23,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     return { error: error.message }
   }
 
-  revalidatePath(DEFAULT_AUTH_REDIRECT, 'layout')
-  redirect(DEFAULT_AUTH_REDIRECT)
+  const redirectTo = (formData.get('redirect') as string) || DEFAULT_AUTH_REDIRECT
+  revalidatePath(redirectTo, 'layout')
+  redirect(redirectTo)
 }

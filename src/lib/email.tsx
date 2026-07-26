@@ -4,6 +4,9 @@ import OrderConfirmation from '@/emails/order-confirmation'
 import OrderApproved from '@/emails/order-approved'
 import OrderDeclined from '@/emails/order-declined'
 import CartAbandoned from '@/emails/cart-abandoned'
+import OrderPreparing from '@/emails/order-preparing'
+import OrderShipped from '@/emails/order-shipped'
+import OrderDelivered from '@/emails/order-delivered'
 
 export interface OrderConfirmationData {
   orderNumber: string
@@ -35,6 +38,12 @@ export interface OrderDeclinedData {
   customerName: string
   email: string
   reason: string
+}
+
+export interface OrderStatusEmailData {
+  orderNumber: string
+  customerName: string
+  email: string
 }
 
 export interface CartAbandonedData {
@@ -164,6 +173,75 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
 
   if (error) {
     console.error('sendCartAbandoned error:', error)
+  }
+
+  return { error }
+}
+
+export async function sendOrderPreparing(data: OrderStatusEmailData) {
+  const html = await render(
+    <OrderPreparing
+      orderNumber={data.orderNumber}
+      customerName={data.customerName}
+    />,
+  )
+
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: data.email,
+    subject: `Estamos preparando tu pedido — ${data.orderNumber}`,
+    html,
+  })
+
+  if (error) {
+    console.error('sendOrderPreparing error:', error)
+  }
+
+  return { error }
+}
+
+export async function sendOrderShipped(data: OrderStatusEmailData) {
+  const html = await render(
+    <OrderShipped
+      orderNumber={data.orderNumber}
+      customerName={data.customerName}
+    />,
+  )
+
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: data.email,
+    subject: `Tu pedido ${data.orderNumber} ha sido enviado`,
+    html,
+  })
+
+  if (error) {
+    console.error('sendOrderShipped error:', error)
+  }
+
+  return { error }
+}
+
+export async function sendOrderDelivered(data: OrderStatusEmailData) {
+  const html = await render(
+    <OrderDelivered
+      orderNumber={data.orderNumber}
+      customerName={data.customerName}
+    />,
+  )
+
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: data.email,
+    subject: `Tu pedido ${data.orderNumber} fue entregado`,
+    html,
+  })
+
+  if (error) {
+    console.error('sendOrderDelivered error:', error)
   }
 
   return { error }

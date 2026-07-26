@@ -1,5 +1,3 @@
-import type { Categoria } from '../types';
-
 export const SITE_URL = 'https://punkmedallo.com';
 export const TIENDA_URL = `${SITE_URL}/tienda`;
 
@@ -28,7 +26,7 @@ export function productJsonLd(product: {
   precio: number;
   stock: number;
   imagenes: { url: string }[];
-  categoria: Categoria;
+  categoria: { nombre: string } | null;
   genero: string;
 }) {
   return {

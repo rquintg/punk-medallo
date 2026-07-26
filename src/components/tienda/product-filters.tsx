@@ -3,13 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import { X } from 'lucide-react';
-import type { Categoria, Talla, Genero } from '@/features/tienda/types';
-
-const CATEGORIES: { label: string; value: Categoria | 'all' }[] = [
-  { label: 'Todo', value: 'all' },
-  { label: 'Camisetas', value: 'camisetas' },
-  { label: 'Accesorios', value: 'accesorios' },
-];
+import type { Talla, Genero, CategoriaInfo } from '@/features/tienda/types';
 
 const SIZES: { label: string; value: Talla | 'all' }[] = [
   { label: 'Todas', value: 'all' },
@@ -33,37 +27,31 @@ const PRICE_RANGES: Record<string, { label: string; min: number; max: number }> 
 };
 
 type ActiveFilter =
-  | { type: 'categoria'; value: string }
+  | { type: 'categoria_id'; value: string }
   | { type: 'genero'; value: string }
   | { type: 'talla'; value: string }
   | { type: 'precio'; value: string };
 
-const FILTER_LABELS: Record<string, Record<string, string>> = {
-  categoria: { camisetas: 'Camisetas', accesorios: 'Accesorios' },
-  genero: { hombre: 'Hombre', mujer: 'Mujer', unisex: 'Unisex' },
-  talla: { S: 'S', M: 'M', L: 'L', XL: 'XL' },
-  precio: { barato: 'Menos de $50K', medio: '$50K - $80K', caro: 'Más de $80K' },
-};
-
 interface ProductFiltersProps {
   orientation: 'sidebar' | 'drawer';
+  categorias: CategoriaInfo[];
 }
 
-export function ProductFilters({ orientation }: ProductFiltersProps) {
+export function ProductFilters({ orientation, categorias }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const activeCategoria = searchParams.get('categoria') ?? 'all';
-  const activeGenero = searchParams.get('genero') ?? 'all';
-  const activeTalla = searchParams.get('talla') ?? 'all';
-  const activePrecio = searchParams.get('precio') ?? 'all';
+  const activeCategoria = searchParams.get('categoria_id') ?? '';
+  const activeGenero = searchParams.get('genero') ?? '';
+  const activeTalla = searchParams.get('talla') ?? '';
+  const activePrecio = searchParams.get('precio') ?? '';
 
-  const hasActiveFilters = activeCategoria !== 'all' || activeGenero !== 'all' || activeTalla !== 'all' || activePrecio !== 'all';
+  const hasActiveFilters = !!activeCategoria || !!activeGenero || !!activeTalla || !!activePrecio;
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value === 'all' || value === '') {
+      if (!value || value === 'all') {
         params.delete(key);
       } else {
         params.set(key, value);
@@ -78,26 +66,39 @@ export function ProductFilters({ orientation }: ProductFiltersProps) {
   }
 
   const activeFilters: ActiveFilter[] = [];
-  if (activeCategoria !== 'all') activeFilters.push({ type: 'categoria', value: activeCategoria });
-  if (activeGenero !== 'all') activeFilters.push({ type: 'genero', value: activeGenero });
-  if (activeTalla !== 'all') activeFilters.push({ type: 'talla', value: activeTalla });
-  if (activePrecio !== 'all') activeFilters.push({ type: 'precio', value: activePrecio });
+  if (activeCategoria) activeFilters.push({ type: 'categoria_id', value: activeCategoria });
+  if (activeGenero) activeFilters.push({ type: 'genero', value: activeGenero });
+  if (activeTalla) activeFilters.push({ type: 'talla', value: activeTalla });
+  if (activePrecio) activeFilters.push({ type: 'precio', value: activePrecio });
+
+  const activeCategoriaLabel = categorias.find(c => c.id === activeCategoria)?.nombre ?? activeCategoria;
+
+  const FILTER_LABELS: Record<string, Record<string, string>> = {
+    genero: { hombre: 'Hombre', mujer: 'Mujer', unisex: 'Unisex' },
+    talla: { S: 'S', M: 'M', L: 'L', XL: 'XL' },
+    precio: { barato: 'Menos de $50K', medio: '$50K - $80K', caro: 'Más de $80K' },
+  };
 
   function removeFilter(filter: ActiveFilter) {
     switch (filter.type) {
-      case 'categoria':
-        updateFilter('categoria', 'all');
+      case 'categoria_id':
+        updateFilter('categoria_id', '');
         break;
       case 'genero':
-        updateFilter('genero', 'all');
+        updateFilter('genero', '');
         break;
       case 'talla':
-        updateFilter('talla', 'all');
+        updateFilter('talla', '');
         break;
       case 'precio':
-        updateFilter('precio', 'all');
+        updateFilter('precio', '');
         break;
     }
+  }
+
+  function filterLabel(filter: ActiveFilter): string {
+    if (filter.type === 'categoria_id') return activeCategoriaLabel;
+    return FILTER_LABELS[filter.type]?.[filter.value] ?? filter.value;
   }
 
   const sectionClass = orientation === 'sidebar' ? 'mb-6' : 'mb-5';
@@ -134,12 +135,18 @@ export function ProductFilters({ orientation }: ProductFiltersProps) {
       <div className={sectionClass}>
         <p className={labelClass}>Categoría</p>
         <div className={`flex ${orientation === 'sidebar' ? 'flex-col' : 'flex-wrap'} gap-1.5`}>
-          {CATEGORIES.map((cat) => (
+          <FilterButton
+            isActive={!activeCategoria}
+            onClick={() => updateFilter('categoria_id', '')}
+            label="Todo"
+            fullWidth
+          />
+          {categorias.map((cat) => (
             <FilterButton
-              key={cat.value}
-              isActive={activeCategoria === cat.value}
-              onClick={() => updateFilter('categoria', cat.value)}
-              label={cat.label}
+              key={cat.id}
+              isActive={activeCategoria === cat.id}
+              onClick={() => updateFilter('categoria_id', cat.id)}
+              label={cat.nombre}
               fullWidth
             />
           ))}
@@ -180,8 +187,8 @@ export function ProductFilters({ orientation }: ProductFiltersProps) {
         <p className={labelClass}>Precio</p>
         <div className={`flex ${orientation === 'sidebar' ? 'flex-col' : 'flex-wrap'} gap-1.5`}>
           <FilterButton
-            isActive={activePrecio === 'all'}
-            onClick={() => updateFilter('precio', 'all')}
+            isActive={!activePrecio}
+            onClick={() => updateFilter('precio', '')}
             label="Todos"
             fullWidth
           />
@@ -206,7 +213,7 @@ export function ProductFilters({ orientation }: ProductFiltersProps) {
                 key={`${filter.type}-${filter.value}`}
                 className="inline-flex items-center gap-1 rounded-full bg-neutral-800 px-3 py-1 text-xs text-neutral-300"
               >
-                {FILTER_LABELS[filter.type]?.[filter.value] ?? filter.value}
+                {filterLabel(filter)}
                 <button
                   onClick={() => removeFilter(filter)}
                   className="ml-0.5 text-neutral-500 hover:text-white"

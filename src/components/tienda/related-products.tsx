@@ -1,14 +1,15 @@
-import { getProductosByCategoria } from '@/features/tienda/services/products';
-import type { Categoria } from '@/features/tienda/types';
+import { getProductosFiltrados } from '@/features/tienda/services/products';
 import ProductCard from '@/components/tienda/product-card';
 
 interface RelatedProductsProps {
-  categoria: Categoria;
+  categoriaId: string | null;
   excludeId: string;
 }
 
-export async function RelatedProducts({ categoria, excludeId }: RelatedProductsProps) {
-  const productos = await getProductosByCategoria(categoria);
+export async function RelatedProducts({ categoriaId, excludeId }: RelatedProductsProps) {
+  if (!categoriaId) return null;
+
+  const productos = await getProductosFiltrados({ categoria_id: categoriaId });
   const relacionados = productos.filter((p) => p.id !== excludeId).slice(0, 4);
 
   if (relacionados.length === 0) return null;

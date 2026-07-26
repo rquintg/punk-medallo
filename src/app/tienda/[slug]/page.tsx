@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { getProductoBySlug, getProductos } from '@/features/tienda/services/products';
+import { getProductoBySlug, getProductosFiltrados } from '@/features/tienda/services/products';
 
 export const revalidate = 60
 import { breadcrumbListJsonLd, productJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
@@ -17,7 +17,7 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const productos = await getProductos();
+  const productos = await getProductosFiltrados();
   return productos.map((p) => ({ slug: p.slug }));
 }
 
@@ -74,10 +74,12 @@ export default async function ProductPage({ params }: PageProps) {
 
   const breadcrumbSegments = [
     { label: 'Tienda', href: '/tienda' },
-    {
-      label: producto.categoria === 'camisetas' ? 'Camisetas' : 'Accesorios',
-      href: `/tienda?categoria=${producto.categoria}`,
-    },
+    ...(producto.categoria
+      ? [{
+          label: producto.categoria.nombre,
+          href: `/tienda?categoria_id=${producto.categoria_id}`,
+        }]
+      : []),
     { label: producto.nombre },
   ];
 
@@ -113,7 +115,7 @@ export default async function ProductPage({ params }: PageProps) {
 
       <Suspense fallback={<RelatedProductsSkeleton />}>
         <RelatedProducts
-          categoria={producto.categoria}
+          categoriaId={producto.categoria_id}
           excludeId={producto.id}
         />
       </Suspense>

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import type { Categoria, Talla, Genero } from '@/features/tienda/types';
-import { getProductos } from '@/features/tienda/services/products';
+import type { Genero, Talla } from '@/features/tienda/types';
+import { getProductosFiltrados } from '@/features/tienda/services/products';
+import { getCategorias } from '@/features/tienda/services/categorias';
 import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { SearchBar } from '@/components/tienda/search-bar';
 import { ProductFilters } from '@/components/tienda/product-filters';
@@ -59,57 +60,40 @@ interface PageProps {
 
 export default async function TiendaPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const categoria = (params.categoria as string) ?? 'all';
-  const genero = (params.genero as string) ?? 'all';
-  const talla = (params.talla as string) ?? 'all';
-  const precio = (params.precio as string) ?? 'all';
+  const categoriaId = (params.categoria_id as string) ?? '';
+  const genero = (params.genero as string) ?? '';
+  const talla = (params.talla as string) ?? '';
+  const precioKey = (params.precio as string) ?? '';
   const sort = (params.sort as string) ?? 'relevancia';
 
-  let productos = await getProductos();
-
-  if (categoria !== 'all') {
-    productos = productos.filter((p) => p.categoria === (categoria as Categoria));
-  }
-
-  if (genero !== 'all') {
-    productos = productos.filter((p) => p.genero === (genero as Genero));
-  }
-
-  if (talla !== 'all') {
-    productos = productos.filter((p) =>
-      p.tallasDisponibles.includes(talla as Talla),
-    );
-  }
-
-  if (precio !== 'all') {
-    const range = PRICE_RANGES[precio];
-    if (range) {
-      productos = productos.filter(
-        (p) => p.precio >= range.min && p.precio <= range.max,
-      );
+  const filters: Record<string, unknown> = {}
+  if (categoriaId) filters.categoria_id = categoriaId
+  if (genero) filters.genero = genero as Genero
+  if (talla) filters.talla = talla as Talla
+  if (precioKey && PRICE_RANGES[precioKey]) {
+    filters.precio_min = PRICE_RANGES[precioKey].min
+    if (PRICE_RANGES[precioKey].max !== Infinity) {
+      filters.precio_max = PRICE_RANGES[precioKey].max
     }
   }
 
-  switch (sort) {
-    case 'precio-asc':
-      productos.sort((a, b) => a.precio - b.precio);
-      break;
-    case 'precio-desc':
-      productos.sort((a, b) => b.precio - a.precio);
-      break;
-    case 'nombre-asc':
-      productos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-      break;
-    case 'nombre-desc':
-      productos.sort((a, b) => b.nombre.localeCompare(a.nombre, 'es'));
-      break;
-    default:
-      productos.sort((a, b) => {
+  const [productos, categorias] = await Promise.all([
+    getProductosFiltrados(filters),
+    getCategorias(),
+  ])
+
+  const sortFn = (a: typeof productos[number], b: typeof productos[number]) => {
+    switch (sort) {
+      case 'precio-asc': return a.precio - b.precio
+      case 'precio-desc': return b.precio - a.precio
+      case 'nombre-asc': return a.nombre.localeCompare(b.nombre, 'es')
+      case 'nombre-desc': return b.nombre.localeCompare(a.nombre, 'es')
+      default:
         if (a.destacado !== b.destacado) return a.destacado ? -1 : 1
         return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
-      })
-      break;
+    }
   }
+  const sorted = [...productos].sort(sortFn)
 
   const breadcrumbSegments = [{ label: 'Tienda' }];
 
@@ -135,7 +119,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
           <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <Suspense fallback={<ProductFiltersSkeleton />}>
               <SearchBar className="mb-6" />
-              <ProductFilters orientation="sidebar" />
+              <ProductFilters orientation="sidebar" categorias={categorias} />
             </Suspense>
           </div>
         </aside>
@@ -151,7 +135,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
             <div className="lg:hidden">
               <Suspense fallback={null}>
                 <FilterDrawer>
-                  <ProductFilters orientation="drawer" />
+                  <ProductFilters orientation="drawer" categorias={categorias} />
                 </FilterDrawer>
               </Suspense>
             </div>
@@ -161,11 +145,11 @@ export default async function TiendaPage({ searchParams }: PageProps) {
             </Suspense>
 
             <p className="text-sm text-neutral-400">
-              {productos.length} resultado{productos.length !== 1 ? 's' : ''}
+              {sorted.length} resultado{sorted.length !== 1 ? 's' : ''}
             </p>
           </div>
 
-          {productos.length === 0 ? (
+          {sorted.length === 0 ? (
             <div className="flex min-h-[40vh] items-center justify-center">
               <p className="text-lg text-neutral-500">
                 No hay productos que coincidan con los filtros seleccionados.
@@ -173,7 +157,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {productos.map((producto) => (
+              {sorted.map((producto) => (
                 <ProductCard key={producto.id} product={producto} />
               ))}
             </div>
