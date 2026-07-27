@@ -104,7 +104,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd(breadcrumbSegments)) }}
       />
 
-      <div className="mb-10 flex items-start justify-between gap-4">
+      <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white md:text-4xl">Tienda</h1>
           <p className="mt-2 text-neutral-400">
