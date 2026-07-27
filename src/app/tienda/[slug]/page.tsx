@@ -6,10 +6,9 @@ import { getProductoBySlug, getProductosFiltrados } from '@/features/tienda/serv
 export const revalidate = 60
 import { breadcrumbListJsonLd, productJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
-import { ProductGallery } from '@/components/tienda/product-gallery';
-import { ProductInfo } from '@/components/tienda/product-info';
+import ProductClient from './product-client';
 import { RelatedProducts } from '@/components/tienda/related-products';
-import { ProductGallerySkeleton, ProductInfoSkeleton, RelatedProductsSkeleton } from '@/components/tienda/skeletons';
+import { RelatedProductsSkeleton } from '@/components/tienda/skeletons';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
 interface PageProps {
@@ -99,19 +98,7 @@ export default async function ProductPage({ params }: PageProps) {
         <CartDrawer />
       </div>
 
-      <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-        <div className="w-full lg:w-3/5">
-          <Suspense fallback={<ProductGallerySkeleton />}>
-            <ProductGallery imagenes={producto.imagenes} nombre={producto.nombre} />
-          </Suspense>
-        </div>
-
-        <div className="w-full lg:w-2/5">
-          <Suspense fallback={<ProductInfoSkeleton />}>
-            <ProductInfo producto={producto} />
-          </Suspense>
-        </div>
-      </div>
+      <ProductClient producto={producto} />
 
       <Suspense fallback={<RelatedProductsSkeleton />}>
         <RelatedProducts

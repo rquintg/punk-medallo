@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,18 +19,31 @@ export default function ProductoForm({ categorias, producto }: Props) {
   const router = useRouter()
   const isEdit = !!producto
   const [saving, setSaving] = useState(false)
+  const [nombre, setNombre] = useState(producto?.nombre ?? '')
+  const [slugField, setSlugField] = useState(producto?.slug ?? '')
+
+  const slugPreview = useMemo(() => {
+    if (slugField) return null
+    if (!nombre.trim()) return null
+    return nombre
+      .toLowerCase()
+      .replace(/[^a-z0-9áéíóúüñ]+/g, '-')
+      .replace(/^-|-$/g, '')
+  }, [nombre, slugField])
 
   async function action(formData: FormData) {
     setSaving(true)
     try {
       if (isEdit) {
         await updateProducto(producto!.id, formData)
+        toast.success('Producto actualizado')
+        router.refresh()
       } else {
-        await createProducto(formData)
+        const id = await createProducto(formData)
+        toast.success('Producto creado')
+        router.refresh()
+        router.push(`/admin/productos/${id}`)
       }
-      toast.success(isEdit ? 'Producto actualizado' : 'Producto creado')
-      router.refresh()
-      router.push('/admin/productos')
     } catch (e) {
       setSaving(false)
       toast.error(e instanceof Error ? e.message : 'Error al guardar')
@@ -43,13 +56,14 @@ export default function ProductoForm({ categorias, producto }: Props) {
   }
 
   return (
-    <form action={action} className="max-w-2xl space-y-6">
+    <form action={action} className="space-y-6">
       <Section title="Información básica">
         <InputField
           label="Nombre *"
           name="nombre"
           required
           defaultValue={producto?.nombre ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNombre(e.target.value)}
         />
         <InputField
           label={
@@ -59,7 +73,13 @@ export default function ProductoForm({ categorias, producto }: Props) {
           }
           name="slug"
           defaultValue={producto?.slug ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlugField(e.target.value)}
         />
+        {slugPreview && (
+          <p className="text-xs text-[var(--admin-text-dim)] mt-1">
+            Slug autogenerado: <span className="text-[var(--admin-text-muted)] font-mono">{slugPreview}</span>
+          </p>
+        )}
         <InputField label="Descripción" name="descripcion" tag="textarea" rows={5} defaultValue={producto?.descripcion ?? ''} />
       </Section>
 

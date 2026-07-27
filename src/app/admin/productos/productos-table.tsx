@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ImageIcon, Pencil } from 'lucide-react'
 import DataTable from '@/components/admin/data-table'
 import type { Column } from '@/components/admin/data-table'
@@ -17,11 +18,24 @@ const columns: Column<ProductoRow>[] = [
   {
     key: 'imagen',
     header: '',
-    cell: () => (
-      <div className="w-10 h-10 rounded-lg bg-[var(--admin-hover)] flex items-center justify-center">
-        <ImageIcon size={16} className="text-[var(--admin-text-dim)]" />
-      </div>
-    ),
+    cell: (item) => {
+      const firstImg = item.producto_imagenes?.[0]
+      return (
+        <div className="w-10 h-10 rounded-lg bg-[var(--admin-hover)] flex items-center justify-center overflow-hidden">
+          {firstImg ? (
+            <Image
+              src={firstImg.url}
+              alt={firstImg.alt}
+              width={40}
+              height={40}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <ImageIcon size={16} className="text-[var(--admin-text-dim)]" />
+          )}
+        </div>
+      )
+    },
     className: 'w-12',
   },
   {

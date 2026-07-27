@@ -5,6 +5,10 @@ ALTER TABLE public.pedidos
   ADD COLUMN IF NOT EXISTS notas text NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS recordatorio_abandono boolean NOT NULL DEFAULT false;
 
+-- Agregar columna color a producto_imagenes para asociar imágenes con colores
+ALTER TABLE public.producto_imagenes
+  ADD COLUMN IF NOT EXISTS color text;
+
 -- Actualizamos registros existentes para que tengan el departamento correcto
 -- basado en el valor hardcodeado que se usaba antes (Antioquia)
 UPDATE public.pedidos

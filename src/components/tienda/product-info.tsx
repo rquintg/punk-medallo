@@ -3,12 +3,15 @@
 import { useState, useCallback } from 'react';
 import { ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getColorHex } from '@/lib/color-swatch';
 import type { Producto, Talla } from '@/features/tienda/types';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from '@/components/tienda/price';
 
 interface ProductInfoProps {
   producto: Producto;
+  selectedColor: string | null;
+  onColorChange: (color: string | null) => void;
 }
 
 const TALLA_LABELS: Record<Talla, string> = {
@@ -18,16 +21,8 @@ const TALLA_LABELS: Record<Talla, string> = {
   XL: 'XL',
 };
 
-const COLOR_SWATCHES: Record<string, string> = {
-  Negro: '#1a1a1a',
-  Blanco: '#f0f0f0',
-  Rojo: '#dc2626',
-  'Azul marino': '#1e3a5f',
-};
-
-export function ProductInfo({ producto }: ProductInfoProps) {
+export function ProductInfo({ producto, selectedColor, onColorChange }: ProductInfoProps) {
   const [selectedSize, setSelectedSize] = useState<Talla | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCart((s) => s.addItem);
@@ -99,7 +94,7 @@ export function ProductInfo({ producto }: ProductInfoProps) {
   }
 
   function handleColorClick(color: string) {
-    setSelectedColor(color)
+    onColorChange(color)
     if (selectedSize && getVariantStock(selectedSize, color) === 0) {
       setSelectedSize(null)
     }
@@ -152,7 +147,7 @@ export function ProductInfo({ producto }: ProductInfoProps) {
             {producto.coloresDisponibles.map((color) => {
               const isSelected = selectedColor === color;
               const available = isColorAvailable(color);
-              const swatch = COLOR_SWATCHES[color] ?? '#666';
+              const swatch = getColorHex(color);
               return (
                 <button
                   key={color}

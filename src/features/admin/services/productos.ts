@@ -1,6 +1,14 @@
 import { getSupabaseAdmin } from './supabase-admin'
 import { getVariantesAggregated } from './variantes'
 
+export interface ProductoImagen {
+  id: string
+  url: string
+  alt: string
+  orden: number
+  color: string | null
+}
+
 export interface ProductoRow {
   id: string
   slug: string
@@ -17,6 +25,7 @@ export interface ProductoRow {
   categoria_id: string | null
   fecha_creacion: string
   categorias?: { nombre: string; slug: string } | null
+  producto_imagenes?: ProductoImagen[]
 }
 
 export interface ProductosResponse {
@@ -47,7 +56,7 @@ export async function getProductos(
   const to = from + pageSize - 1
 
   let query = (supabase.from('productos') as any)
-    .select('*, categorias(nombre, slug)', { count: 'exact' })
+    .select('*, categorias(nombre, slug), producto_imagenes(*)', { count: 'exact' })
 
   if (search) {
     query = query.ilike('nombre', `%${search}%`)
@@ -58,6 +67,11 @@ export async function getProductos(
     .range(from, to)
 
   const productos = (data ?? []) as ProductoRow[]
+  productos.forEach((p) => {
+    if (p.producto_imagenes) {
+      p.producto_imagenes.sort((a, b) => a.orden - b.orden)
+    }
+  })
   const ids = productos.map((p) => p.id)
   const variantesMap = await getVariantesAggregated(ids)
   const dataWithStock = mergeStock(productos, variantesMap)
@@ -71,13 +85,16 @@ export async function getProductos(
 export async function getProductoById(id: string) {
   const supabase = getSupabaseAdmin()
   const { data } = await (supabase.from('productos') as any)
-    .select('*, categorias(nombre, slug)')
+    .select('*, categorias(nombre, slug), producto_imagenes(*)')
     .eq('id', id)
     .single()
 
   if (!data) return null
 
   const producto = data as ProductoRow
+  if (producto.producto_imagenes) {
+    producto.producto_imagenes.sort((a, b) => a.orden - b.orden)
+  }
   const variantesMap = await getVariantesAggregated([id])
   const merged = mergeStock([producto], variantesMap)
   return merged[0] ?? null

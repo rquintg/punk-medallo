@@ -12,7 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Skull,
+  Radio,
 } from 'lucide-react'
 import { can, type AdminRol } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -72,7 +72,7 @@ export default function Sidebar({ rol, userEmail }: SidebarProps) {
   return (
     <aside className="fixed top-0 left-0 z-40 h-screen w-64 flex flex-col bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)]">
       <div className="flex items-center gap-3 px-6 h-16 border-b border-[var(--admin-sidebar-border)]">
-        <Skull size={24} className="text-[var(--admin-accent)]" />
+        <Radio size={24} className="text-[var(--admin-accent)]" />
         <span className="font-bold text-[var(--admin-text)]">Punk Medallo</span>
       </div>
 
