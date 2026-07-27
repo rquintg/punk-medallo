@@ -13,6 +13,7 @@ export interface ProductImage {
   alt: string;
   width: number;
   height: number;
+  color?: string | null;
 }
 
 export interface Variante {

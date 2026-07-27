@@ -6,6 +6,7 @@ interface DbProductImage {
   url: string;
   alt: string;
   orden: number;
+  color: string | null;
 }
 
 interface DbProductVariant {
@@ -80,6 +81,7 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
       alt: img.alt,
       width: 800,
       height: 800,
+      color: img.color ?? null,
     }));
 
   const variantes = mapVariantes(db.producto_variantes);

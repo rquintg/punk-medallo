@@ -29,13 +29,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString()
-
     const { data: pedidos, error: pedidosError } = await getSupabaseAdmin()
       .from('pedidos')
       .select('id, numero_pedido, email, nombre_entrega, total')
       .eq('estado', 'pendiente')
-      .lt('created_at', cutoff)
+      .eq('recordatorio_abandono', false)
       .order('created_at', { ascending: true })
 
     if (pedidosError) {
@@ -77,7 +75,7 @@ export async function GET(request: NextRequest) {
 
         const { error: updateError } = await getSupabaseAdmin()
           .from('pedidos')
-          .update({ estado: 'cancelado' })
+          .update({ recordatorio_abandono: true })
           .eq('id', pedido.id)
 
         if (updateError) {
@@ -86,7 +84,7 @@ export async function GET(request: NextRequest) {
         }
 
         processed++
-        logger.info('Cron: pedido cancelado por abandono', {
+        logger.info('Cron: recordatorio enviado para pedido pendiente', {
           requestId: rid,
           data: { orderNumber: pedido.numero_pedido },
         })

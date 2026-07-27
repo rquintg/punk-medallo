@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ShoppingCart, X, Check } from 'lucide-react';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from './price';
+import { getColorHex } from '@/lib/color-swatch';
 import type { Producto, Talla } from '@/features/tienda/types';
 
 interface ProductCardProps {
@@ -17,13 +18,6 @@ const TALLA_LABELS: Record<Talla, string> = {
   M: 'M',
   L: 'L',
   XL: 'XL',
-};
-
-const COLOR_SWATCHES: Record<string, string> = {
-  Negro: '#1a1a1a',
-  Blanco: '#f0f0f0',
-  Rojo: '#dc2626',
-  'Azul marino': '#1e3a5f',
 };
 
 export default function ProductCard({ product }: ProductCardProps) {
@@ -220,7 +214,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   {product.coloresDisponibles.map((color) => {
                     const isSelected = selectedColor === color;
                     const available = isColorAvailable(color);
-                    const swatch = COLOR_SWATCHES[color] ?? '#666';
+                    const swatch = getColorHex(color);
                     return (
                       <button
                         key={color}

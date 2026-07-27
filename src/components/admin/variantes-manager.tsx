@@ -9,6 +9,7 @@ import type { VarianteRow } from '@/features/admin/services/variantes'
 interface Props {
   productoId: string
   initialVariants: VarianteRow[]
+  coloresDisponibles: string[]
 }
 
 const TALLAS = ['S', 'M', 'L', 'XL']
@@ -18,7 +19,7 @@ type Action =
   | { type: 'update'; id: string; data: Partial<VarianteRow> }
   | { type: 'delete'; id: string }
 
-export default function VariantesManager({ productoId, initialVariants }: Props) {
+export default function VariantesManager({ productoId, initialVariants, coloresDisponibles }: Props) {
   const [optimisticVariants, dispatch] = useOptimistic(initialVariants, (state, action: Action) => {
     switch (action.type) {
       case 'add':
@@ -120,6 +121,7 @@ export default function VariantesManager({ productoId, initialVariants }: Props)
                 variant={v}
                 onSave={handleUpdate}
                 onDelete={handleDelete}
+                coloresDisponibles={coloresDisponibles}
               />
             ))}
           </tbody>
@@ -127,11 +129,12 @@ export default function VariantesManager({ productoId, initialVariants }: Props)
       </div>
 
       <form ref={formRef} action={handleAdd} className="flex items-end gap-3 flex-wrap">
-        <input
-          name="color"
-          placeholder="Color"
-          className="input max-w-[140px]"
-        />
+        <select name="color" className="input max-w-[140px]" defaultValue="">
+          <option value="">Color</option>
+          {coloresDisponibles.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
         <select name="talla" className="input max-w-[100px]" defaultValue="">
           <option value="">Talla</option>
           {TALLAS.map((t) => (
@@ -163,10 +166,12 @@ function VarianteRow({
   variant,
   onSave,
   onDelete,
+  coloresDisponibles,
 }: {
   variant: VarianteRow
   onSave: (id: string, formData: FormData) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  coloresDisponibles: string[]
 }) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -176,11 +181,16 @@ function VarianteRow({
     return (
       <tr className="border-b border-[var(--admin-card-border)]">
         <td className="px-3 py-1.5">
-          <input
+          <select
             name="color"
             defaultValue={variant.color ?? ''}
             className="input text-xs py-1.5 px-2"
-          />
+          >
+            <option value="">—</option>
+            {coloresDisponibles.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </td>
         <td className="px-3 py-1.5">
           <select
