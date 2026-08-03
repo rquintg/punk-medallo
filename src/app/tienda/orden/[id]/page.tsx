@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import type { Metadata } from 'next'
 import {
   ArrowLeft,
   Calendar,
@@ -20,6 +21,49 @@ import type { PedidoItem } from '@/features/tienda/types'
 
 interface OrderPageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({
+  params,
+}: OrderPageProps): Promise<Metadata> {
+  const { id } = await params
+  const url = `/tienda/orden/${id}`
+  return {
+    title: 'Tu Orden - Punk Medallo',
+    description:
+      'Sigue el estado de tu pedido en la tienda Punk Medallo.',
+    robots: {
+      index: false,
+      follow: false,
+    },
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title: 'Tu Orden - Punk Medallo',
+      description:
+        'Sigue el estado de tu pedido en la tienda Punk Medallo.',
+      url,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: 'https://punkmedallo.com/logo_punk_medallo.jpg',
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Tu Orden - Punk Medallo',
+      description:
+        'Sigue el estado de tu pedido en la tienda Punk Medallo.',
+      images: ['https://punkmedallo.com/logo_punk_medallo.jpg'],
+    },
+  }
 }
 
 export default async function OrderPage({ params }: OrderPageProps) {

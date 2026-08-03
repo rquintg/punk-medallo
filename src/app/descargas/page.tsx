@@ -6,26 +6,42 @@ import {
   getArchiveYears,
 } from "@/features/descargas/services/albums";
 import { getArchive } from "@/features/descargas/services/archivo";
+import { albumUrl } from "@/features/descargas/utils/seo";
 import type { Album, BandInfo } from "@/features/descargas/types";
 
 export const revalidate = 600;
+
+const PAGE_URL = "https://punkmedallo.com/descargas";
+const OG_IMAGE = {
+  url: "https://punkmedallo.com/logo_punk_medallo.jpg",
+  width: 1200,
+  height: 630,
+  type: "image/jpeg",
+} as const;
 
 export const metadata: Metadata = {
   title: "El Blog - Punk Medallo",
   description:
     "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
+  alternates: {
+    canonical: PAGE_URL,
+  },
   openGraph: {
     title: "El Blog - Punk Medallo",
     description:
       "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
-    images: [
-      {
-        url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
-      },
-    ],
+    url: PAGE_URL,
+    type: "website",
+    siteName: "Punk Medallo",
+    locale: "es_CO",
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "El Blog - Punk Medallo",
+    description:
+      "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
+    images: [OG_IMAGE.url],
   },
 };
 
@@ -57,14 +73,35 @@ export default async function Descargas() {
   }
 
   return (
-    <DescargasContent
-      initialAlbums={albums}
-      initialNextPageToken={nextPageToken}
-      totalItems={totalItems}
-      totalBands={totalBands}
-      bands={bands}
-      latestPublished={latestPublished}
-      years={years}
-    />
+    <>
+      {albums.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              name: "Archivo del punk de Medellín",
+              numberOfItems: totalItems,
+              itemListElement: albums.map((album, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                url: albumUrl(album.slug),
+                name: `${album.band} — ${album.title}`,
+              })),
+            }),
+          }}
+        />
+      )}
+      <DescargasContent
+        initialAlbums={albums}
+        initialNextPageToken={nextPageToken}
+        totalItems={totalItems}
+        totalBands={totalBands}
+        bands={bands}
+        latestPublished={latestPublished}
+        years={years}
+      />
+    </>
   );
 }

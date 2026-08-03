@@ -33,11 +33,29 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
     },
     openGraph: {
       title,
+      description: q
+        ? `Resultados de búsqueda para "${q}" en la tienda Punk Medallo.`
+        : 'Busca productos en la tienda Punk Medallo.',
       url: `${TIENDA_URL}/buscar`,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: `${SITE_URL}/logo_punk_medallo.jpg`,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
+      description: q
+        ? `Resultados de búsqueda para "${q}" en la tienda Punk Medallo.`
+        : 'Busca productos en la tienda Punk Medallo.',
+      images: [`${SITE_URL}/logo_punk_medallo.jpg`],
     },
   };
 }

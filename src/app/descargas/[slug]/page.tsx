@@ -9,6 +9,7 @@ import {
   albumDescription,
   albumSchema,
   albumTitle,
+  albumUrl,
 } from "@/features/descargas/utils/seo";
 
 export const revalidate = 600;
@@ -35,6 +36,7 @@ export async function generateMetadata({
     };
   }
   const title = albumTitle(album);
+  const url = albumUrl(album.slug);
   return {
     title,
     description: albumDescription(album),
@@ -42,13 +44,21 @@ export async function generateMetadata({
       title,
       description: albumDescription(album),
       type: "music.album",
-      url: `https://punkmedallo.com/descargas/${album.slug}`,
+      url,
+      siteName: "Punk Medallo",
+      locale: "es_CO",
       images: album.coverUrl
         ? [{ url: album.coverUrl, width: 1200, height: 1200 }]
         : [FALLBACK_IMAGE],
     },
     alternates: {
-      canonical: album.postUrl,
+      canonical: url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: albumDescription(album),
+      images: album.coverUrl ? [album.coverUrl] : [FALLBACK_IMAGE.url],
     },
   };
 }
@@ -60,11 +70,42 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
 
   const related = await getRelatedAlbums(album.band, album.postId, 4);
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Inicio",
+        item: "https://punkmedallo.com/",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "El Blog",
+        item: "https://punkmedallo.com/descargas",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${album.band} — ${album.title}`,
+        item: albumUrl(album.slug),
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(albumSchema(album)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
       />
       <AlbumDetail album={album} related={related} />
     </>

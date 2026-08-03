@@ -9,10 +9,17 @@ export const metadata: Metadata = {
   title: "Próximos Toques - Punk Medallo",
   description:
     "Mantente actualizado con los próximos eventos y toques punk en Medellín. Síguenos en Punk Medallo",
+  alternates: {
+    canonical: "/eventos",
+  },
   openGraph: {
     title: "Próximos Toques - Punk Medallo",
     description:
       "Mantente actualizado con los próximos eventos y toques punk en Medellín.",
+    url: "/eventos",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",

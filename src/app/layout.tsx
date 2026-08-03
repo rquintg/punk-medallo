@@ -5,6 +5,7 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import WebPlayer from "@/components/WebPlayer";
 import FloatingWhatsAppWrapper from "@/components/FloatingWhatsAppWrapper";
+import InstallPrompt from "@/components/install-prompt";
 import { HideOnAdmin } from "@/components/hide-on-admin";
 import QueryProvider from "@/components/QueryProvider";
 import { Toaster } from "sonner";
@@ -33,9 +34,6 @@ export const metadata: Metadata = {
   authors: [{ name: "Ricardo Q" }],
   creator: "Ricardo Q",
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: siteUrl,
-  },
   openGraph: {
     type: "website",
     locale: "es_CO",
@@ -58,16 +56,14 @@ export const metadata: Metadata = {
     description,
     images: [ogImage],
   },
-  robots: {
-    index: true,
-    follow: true,
-    "max-image-preview": "large",
-    "max-snippet": -1,
-    "max-video-preview": -1,
-  },
   icons: {
     icon: "/favicon.ico",
-    apple: "/logo_punk_medallo.jpg",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: siteName,
+    statusBarStyle: "black-translucent",
   },
   manifest: "/manifest.json",
   other: {
@@ -123,6 +119,22 @@ const navigationSchema = {
   ],
 };
 
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteName,
+  url: siteUrl,
+  inLanguage: "es-CO",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${siteUrl}/tienda/buscar?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -134,6 +146,7 @@ export default function RootLayout({
       className={`${krub.variable} h-full antialiased`}
     >
       <head>
+        <meta name="theme-color" content="#181818" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="dns-prefetch" href="https://a3.asurahosting.com" />
@@ -155,6 +168,7 @@ export default function RootLayout({
         />
 
         <HideOnAdmin><FloatingWhatsAppWrapper /></HideOnAdmin>
+        <HideOnAdmin><InstallPrompt /></HideOnAdmin>
 
         <SpeedInsights />
 
@@ -174,6 +188,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(navigationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
           }}
         />
 

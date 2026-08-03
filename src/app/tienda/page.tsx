@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     description:
       'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
     url: TIENDA_URL,
+    type: 'website',
+    locale: 'es_CO',
+    siteName: 'Punk Medallo',
     images: [
       {
         url: `${SITE_URL}/logo_punk_medallo.jpg`,

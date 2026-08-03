@@ -7,10 +7,17 @@ export const metadata: Metadata = {
   title: "Páginas Amigas - Punk Medallo",
   description:
     "Conecta con nuestras páginas amigas: proyectos independientes y alternativos de Medellín que comparten nuestra filosofía punk.",
+  alternates: {
+    canonical: "/amigos",
+  },
   openGraph: {
     title: "Páginas Amigas - Punk Medallo",
     description:
       "Conecta con nuestras páginas amigas: proyectos independientes y alternativos de Medellín.",
+    url: "/amigos",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",

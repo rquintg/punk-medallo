@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getTransaction } from '@/lib/wompi'
@@ -10,6 +11,43 @@ import PollTransaction from './poll-transaction'
 
 interface CompraPageProps {
   searchParams: Promise<{ id?: string }>
+}
+
+export const metadata: Metadata = {
+  title: 'Compra - Punk Medallo',
+  description:
+    'Estado de tu compra en la tienda Punk Medallo.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+  alternates: {
+    canonical: '/tienda/compra',
+  },
+  openGraph: {
+    title: 'Compra - Punk Medallo',
+    description:
+      'Estado de tu compra en la tienda Punk Medallo.',
+    url: '/tienda/compra',
+    type: 'website',
+    locale: 'es_CO',
+    siteName: 'Punk Medallo',
+    images: [
+      {
+        url: 'https://punkmedallo.com/logo_punk_medallo.jpg',
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Compra - Punk Medallo',
+    description:
+      'Estado de tu compra en la tienda Punk Medallo.',
+    images: ['https://punkmedallo.com/logo_punk_medallo.jpg'],
+  },
 }
 
 export default async function CompraPage({ searchParams }: CompraPageProps) {
