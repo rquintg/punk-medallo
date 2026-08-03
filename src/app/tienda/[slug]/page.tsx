@@ -36,6 +36,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description: producto.descripcion.slice(0, 160),
       url: `${TIENDA_URL}/${producto.slug}`,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
       images: [
         {
           url: imageUrl,

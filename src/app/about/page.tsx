@@ -7,10 +7,17 @@ export const metadata: Metadata = {
   title: "Acerca de Punk Medallo",
   description:
     "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín. Autenticidad, libertad, comunidad y rebeldía.",
+  alternates: {
+    canonical: "/about",
+  },
   openGraph: {
     title: "Acerca de Punk Medallo",
     description:
       "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín.",
+    url: "/about",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",

@@ -6,10 +6,17 @@ export const metadata: Metadata = {
   title: "Contacto - Punk Medallo",
   description:
     "Ponte en contacto con el equipo de Punk Medallo. Envía tus sugerencias, comentarios o consultas sobre nuestra radio punk.",
+  alternates: {
+    canonical: "/contacto",
+  },
   openGraph: {
     title: "Contacto - Punk Medallo",
     description:
       "Ponte en contacto con el equipo de Punk Medallo.",
+    url: "/contacto",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",

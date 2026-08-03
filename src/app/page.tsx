@@ -8,10 +8,17 @@ export const metadata: Metadata = {
   title: "Punk Medallo - Radio 24/7 de puro punk",
   description:
     "Lo más grotesco, viejo, perdido en el tiempo y nuevo del punk local en un solo lugar",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Punk Medallo - Radio 24/7 de puro punk",
     description:
       "Lo más grotesco, viejo, perdido en el tiempo y nuevo del punk local en un solo lugar",
+    url: "/",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",

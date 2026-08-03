@@ -32,6 +32,9 @@ export function albumSchema(album: Album): Record<string, unknown> {
     url: albumUrl(album.slug),
     numTracks: album.trackList.length,
   };
+  if (album.postUrl) {
+    schema.sameAs = [album.postUrl];
+  }
   if (album.published) {
     schema.datePublished = album.published.slice(0, 10);
   }

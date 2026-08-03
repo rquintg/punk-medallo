@@ -9,10 +9,17 @@ export const metadata: Metadata = {
   title: "Registro Fotográfico - Punk Medallo",
   description:
     "Galería de fotos y eventos de Punk Medallo. Revive los mejores momentos del punk en Medellín a través de nuestro registro fotográfico.",
+  alternates: {
+    canonical: "/fotos",
+  },
   openGraph: {
     title: "Registro Fotográfico - Punk Medallo",
     description:
       "Galería de fotos y eventos de Punk Medallo.",
+    url: "/fotos",
+    type: "website",
+    locale: "es_CO",
+    siteName: "Punk Medallo",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",
