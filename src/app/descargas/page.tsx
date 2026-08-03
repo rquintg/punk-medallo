@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 import DescargasContent from "./DescargasContent";
-import { fetchBlogPosts } from "@/lib/axiosBlog";
-import type { BlogPost } from "@/lib/axiosBlog";
+import { getBlogInfo } from "@/features/descargas/services/blogger";
+import {
+  getAlbumsPage,
+  getArchiveYears,
+} from "@/features/descargas/services/albums";
+import { getArchive } from "@/features/descargas/services/archivo";
+import type { Album, BandInfo } from "@/features/descargas/types";
 
 export const revalidate = 600;
+
 export const metadata: Metadata = {
-  title: "Descargar Música - Punk Medallo",
+  title: "El Blog - Punk Medallo",
   description:
-    "Descarga y disfruta de la mejor música punk de Medellín. Accede a nuestro catálogo completo de artistas locales y bandas underground.",
+    "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
   openGraph: {
-    title: "Descargar Música - Punk Medallo",
+    title: "El Blog - Punk Medallo",
     description:
-      "Descarga y disfruta de la mejor música punk de Medellín.",
+      "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
     images: [
       {
         url: "https://punkmedallo.com/logo_punk_medallo.jpg",
@@ -24,16 +30,41 @@ export const metadata: Metadata = {
 };
 
 export default async function Descargas() {
-  let posts: BlogPost[] = [];
+  let albums: Album[] = [];
   let nextPageToken: string | null = null;
+  let totalItems = 0;
+  let totalBands = 0;
+  let bands: BandInfo[] = [];
+  let latestPublished: string | null = null;
+  let years: string[] = [];
 
   try {
-    const data = await fetchBlogPosts();
-    posts = data.items ?? [];
-    nextPageToken = data.nextPageToken ?? null;
+    const [blogInfo, page, archive, archiveYears] = await Promise.all([
+      getBlogInfo(),
+      getAlbumsPage({}),
+      getArchive(),
+      getArchiveYears(),
+    ]);
+    albums = page.albums;
+    nextPageToken = page.nextPageToken;
+    totalItems = archive.totalPosts || blogInfo.totalPosts;
+    totalBands = archive.bands.length;
+    bands = archive.bands;
+    latestPublished = page.albums[0]?.published ?? null;
+    years = archiveYears;
   } catch (error) {
-    console.error("Error fetching initial blog posts:", error);
+    console.error("Error fetching blog posts:", error);
   }
 
-  return <DescargasContent initialPosts={posts} initialNextPageToken={nextPageToken} />;
+  return (
+    <DescargasContent
+      initialAlbums={albums}
+      initialNextPageToken={nextPageToken}
+      totalItems={totalItems}
+      totalBands={totalBands}
+      bands={bands}
+      latestPublished={latestPublished}
+      years={years}
+    />
+  );
 }

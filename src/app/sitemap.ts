@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
+import { getArchive } from "@/features/descargas/services/archivo";
+import { qualifiedSlugBase } from "@/features/descargas/utils/slug";
 
 const SITE_URL = "https://punkmedallo.com";
 
-const routes: Array<{
+const staticRoutes: Array<{
   url: string;
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority: number;
@@ -16,11 +18,37 @@ const routes: Array<{
   { url: "/contacto", changeFrequency: "monthly", priority: 0.7 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  return routes.map((route) => ({
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const entries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${SITE_URL}${route.url}`,
     lastModified: new Date(),
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
+
+  try {
+    const archive = await getArchive();
+    const albumEntries: MetadataRoute.Sitemap = archive.posts
+      .filter((post) => post.id && post.url)
+      .map((post) => {
+        let pathname = "";
+        try {
+          pathname = new URL(post.url as string).pathname;
+        } catch {
+          pathname = "";
+        }
+        const slug = qualifiedSlugBase(pathname, archive.duplicatedBases);
+        if (!slug) return null;
+        return {
+          url: `${SITE_URL}/descargas/${slug}`,
+          lastModified: post.updated ? new Date(post.updated) : new Date(),
+          changeFrequency: "monthly" as const,
+          priority: 0.5,
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    return [...entries, ...albumEntries];
+  } catch {
+    return entries;
+  }
 }
