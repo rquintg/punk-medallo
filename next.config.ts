@@ -55,6 +55,16 @@ const nextConfig: NextConfig = {
         hostname: "**.supabase.co",
         pathname: "/storage/v1/object/public/productos/**",
       },
+      {
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.bp.blogspot.com",
+        pathname: "/**",
+      },
     ],
   },
 };
