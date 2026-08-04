@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
+import { coverAtSize } from "@/features/descargas/utils/album";
 import { CoverImage } from "./cover-image";
 import { AlbumCard } from "./album-card";
 import { DownloadActions } from "./download-actions";
@@ -40,7 +41,7 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
         <aside className="flex flex-col gap-6">
           <div className="relative aspect-square overflow-hidden rounded-lg border border-neutral-800 shadow-[0_0_40px_rgba(220,38,38,0.15)]">
             <CoverImage
-              src={album.coverUrl}
+              src={coverAtSize(album.coverUrl, 1200)}
               alt={`Portada de ${album.title} — ${album.band}`}
               sizes="(min-width: 1024px) 420px, 100vw"
               className="object-cover"

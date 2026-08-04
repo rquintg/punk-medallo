@@ -33,6 +33,7 @@ export function CoverImage({
       sizes={sizes}
       className={className}
       priority={priority}
+      unoptimized
       onError={() => setFailed(true)}
     />
   );
