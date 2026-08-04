@@ -65,6 +65,21 @@ const nextConfig: NextConfig = {
         hostname: "**.bp.blogspot.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "i.imgur.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "f4.bcbits.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.mediafire.com",
+        pathname: "/**",
+      },
     ],
   },
 };

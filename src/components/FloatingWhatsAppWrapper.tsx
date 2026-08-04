@@ -19,7 +19,6 @@ export default function FloatingWhatsAppWrapper() {
       avatar="/logo_punk_medallo.jpg"
       darkMode
       allowEsc
-      allowClickAway
       notification
       notificationDelay={10}
       buttonStyle={{
