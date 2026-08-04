@@ -46,6 +46,14 @@ const friendPages = [
   },
   {
     id: 3,
+    name: "Resinordie",
+    image: "/images/amigos/resin.jpg",
+    url: "https://linktr.ee/Resinordie",
+    description:
+      "Emprendimiento DIY. Fabricamos productos personalizados combinando resina epóxica, luz Neon Flex y tecnología NFC. Réplicas en MicroCDs NFC.",
+  },
+  {
+    id: 4,
     name: "El Sótano Fanzine",
     image: "/images/amigos/sotano.png",
     url: "https://archive.org/details/@el_s_tano_fanzine",

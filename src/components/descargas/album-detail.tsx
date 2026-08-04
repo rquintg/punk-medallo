@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
-import { AlbumCoverPlaceholder } from "./album-cover-placeholder";
+import { coverAtSize } from "@/features/descargas/utils/album";
+import { CoverImage } from "./cover-image";
 import { AlbumCard } from "./album-card";
 import { DownloadActions } from "./download-actions";
 import { TrackList } from "./track-list";
@@ -39,21 +39,13 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,420px)_1fr]">
         <aside className="flex flex-col gap-6">
-          <div className="overflow-hidden rounded-lg border border-neutral-800 shadow-[0_0_40px_rgba(220,38,38,0.15)]">
-            {album.coverUrl ? (
-              <Image
-                src={album.coverUrl}
-                alt={`Portada de ${album.title} — ${album.band}`}
-                width={1200}
-                height={1200}
-                sizes="(min-width: 1024px) 420px, 100vw"
-                className="h-auto w-full object-cover"
-              />
-            ) : (
-              <div className="aspect-square">
-                <AlbumCoverPlaceholder />
-              </div>
-            )}
+          <div className="relative aspect-square overflow-hidden rounded-lg border border-neutral-800 shadow-[0_0_40px_rgba(220,38,38,0.15)]">
+            <CoverImage
+              src={coverAtSize(album.coverUrl, 1200)}
+              alt={`Portada de ${album.title} — ${album.band}`}
+              sizes="(min-width: 1024px) 420px, 100vw"
+              className="object-cover"
+            />
           </div>
           <DownloadActions album={album} />
         </aside>

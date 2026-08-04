@@ -16,54 +16,16 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    deviceSizes: [640, 750, 1080],
+    imageSizes: [128, 256, 512],
+    formats: ["image/webp"],
+    qualities: [60, 75],
+    minimumCacheTTL: 2678400,
     remotePatterns: [
-      {
-        protocol: "https",
-        // Facebook CDN common pattern
-        hostname: "**.fbcdn.net",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "platform-lookaside.fbsbx.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "graph.facebook.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        // Instagram CDN (example: scontent.cdninstagram.com and subdomains)
-        hostname: "**.cdninstagram.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        // direct scontent host
-        hostname: "scontent.cdninstagram.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
       {
         protocol: "https",
         hostname: "**.supabase.co",
         pathname: "/storage/v1/object/public/productos/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**.googleusercontent.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**.bp.blogspot.com",
-        pathname: "/**",
       },
     ],
   },

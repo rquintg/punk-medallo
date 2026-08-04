@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Download } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
+import { coverAtSize } from "@/features/descargas/utils/album";
 import { FormatBadge } from "./format-badge";
-import { AlbumCoverPlaceholder } from "./album-cover-placeholder";
+import { CoverImage } from "./cover-image";
 
 interface AlbumCardProps {
   album: Album;
@@ -17,17 +17,12 @@ export function AlbumCard({ album, position }: AlbumCardProps) {
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60">
       <div className="relative block aspect-square overflow-hidden">
-        {album.coverUrl ? (
-          <Image
-            src={album.coverUrl}
-            alt={`Portada de ${album.title} — ${album.band}`}
-            fill
-            sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover transition duration-300 ease-in-out group-hover:scale-105"
-          />
-        ) : (
-          <AlbumCoverPlaceholder />
-        )}
+        <CoverImage
+          src={coverAtSize(album.coverUrl, 1200)}
+          alt={`Portada de ${album.title} — ${album.band}`}
+          sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition duration-300 ease-in-out group-hover:scale-105"
+        />
 
         <Link
           href={detailHref}

@@ -16,18 +16,49 @@ import { normalizeBand, qualifiedSlugBase } from "./slug";
 
 const EMPTY_DUPLICATED_BASES: ReadonlySet<string> = new Set();
 
-const ANCHOR_RE = /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+const ANCHOR_RE = /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;  
 const IMG_RE = /<img[^>]*src=["']([^"']+)["'][^>]*>/gi;
 const YEAR_RE = /\(?\b(19|20)\d{2}\b\)?/;
 const TRACK_MARKER_RE = /track\s*list|lista\s*de\s*(?:canciones|temas)/i;
 const DOWNLOAD_CTA_RE = /\bdescargar\b|download|(?:https?:\/\/)?\S*mega\.\S*/i;
+const TRACK_NUMBER_START_RE = /^\d{1,2}(?:\s*[.)\-–—]|\s)/;
+const TRACK_NUMBER_SPLIT_RE = /(?=\d{1,2}\s*[.)\-–—])/;
+const SEPARATOR_ONLY_RE = /^[.·•\-–—_~=*]+$/;
 const RECENT_DAYS = 30;
+
+const DOWNLOAD_HOSTS = [
+  "mediafire.com",
+  "userscloud.com",
+  "mega.nz",
+  "mega.co",
+  "mega.io",
+  "ul.to",
+  "zippyshare",
+  "rapidshare",
+  "4shared",
+  "depositfiles",
+  "hotfile",
+  "yandex",
+  "googledrive",
+  "drive.google",
+  "krakenfiles",
+  "gofile.io",
+  "adf.ly",
+  "sh.st",
+  "skydrive.live.com",
+  "soundcloud.com",
+  "megaupload.com",
+  "msplinks.com",
+];
+
+const DOWNLOAD_LABEL_RE = /descargar|download|mega/i;
 
 interface AnchorMatch {
   href: string;
   label: string;
   start: number;
   end: number;
+  wrapsImage: boolean;
 }
 
 function decodeEntities(input: string): string {
@@ -54,11 +85,22 @@ function isSelfHost(url: string): boolean {
   try {
     const { hostname } = new URL(url);
     if (hostname.includes("blogger")) return true;
+    if (hostname.endsWith(".blogspot.com")) return true;
     if (hostname === "google.com" || hostname.endsWith(".google.com")) return true;
     return false;
   } catch {
     return true;
   }
+}
+
+function isChromeAnchor(anchor: AnchorMatch): boolean {
+  return isSelfHost(anchor.href) || anchor.wrapsImage;
+}
+
+function isDownloadAnchor(anchor: AnchorMatch): boolean {
+  if (isChromeAnchor(anchor)) return false;
+  if (DOWNLOAD_HOSTS.some((host) => anchor.href.includes(host))) return true;
+  return DOWNLOAD_LABEL_RE.test(anchor.label);
 }
 
 function findAnchors(content: string): AnchorMatch[] {
@@ -74,15 +116,22 @@ function findAnchors(content: string): AnchorMatch[] {
       label,
       start: match.index,
       end: match.index + match[0].length,
+      wrapsImage: /<img/i.test(match[2]),
     });
   }
   return anchors;
 }
 
-function isTrustedCoverHost(src: string): boolean {
-  return (
-    src.includes("googleusercontent.com") || src.includes("bp.blogspot.com")
-  );
+const BLOGGER_HOSTS = ["googleusercontent.com", "bp.blogspot.com"];
+
+const EXTERNAL_ALLOWED_HOSTS = ["i.imgur.com", "f4.bcbits.com", "www.mediafire.com"];
+
+function isBloggerHost(src: string): boolean {
+  return BLOGGER_HOSTS.some((host) => src.includes(host));
+}
+
+function isAllowedExternalHost(src: string): boolean {
+  return EXTERNAL_ALLOWED_HOSTS.some((host) => src.includes(host));
 }
 
 function extractCover(html: string): string | null {
@@ -93,7 +142,12 @@ function extractCover(html: string): string | null {
     const src = decodeEntities(match[1]).trim();
     if (src) sources.push(src);
   }
-  return sources.find((src) => isTrustedCoverHost(src)) ?? null;
+  const cover =
+    sources.find((src) => isBloggerHost(src)) ??
+    sources.find((src) => isAllowedExternalHost(src)) ??
+    null;
+  if (!cover) return null;
+  return cover.replace(/^http:\/\//, "https://");
 }
 
 function cleanTrackLine(line: string): string | null {
@@ -103,8 +157,16 @@ function cleanTrackLine(line: string): string | null {
     .trim();
   if (!cleaned) return null;
   if (/^(descargar|download)$/i.test(cleaned)) return null;
+  if (SEPARATOR_ONLY_RE.test(cleaned)) return null;
   if (cleaned.length > 120) return null;
   return cleaned;
+}
+
+function splitNumberedLine(line: string): string[] {
+  const trimmed = line.trim();
+  if (!TRACK_NUMBER_START_RE.test(trimmed)) return [line];
+  const pieces = trimmed.split(TRACK_NUMBER_SPLIT_RE).filter(Boolean);
+  return pieces.length > 1 ? pieces : [line];
 }
 
 function extractTrackList(text: string): string[] {
@@ -122,17 +184,21 @@ function extractTrackList(text: string): string[] {
   let started = false;
   for (const line of lines) {
     if (TRACK_MARKER_RE.test(line)) continue;
-    const isNumbered = /^\d{1,2}\s*[.)\-–—]/.test(line);
+    const isNumbered = TRACK_NUMBER_START_RE.test(line);
     if (marker !== -1) {
       if (!isNumbered && !started) continue;
-      const cleaned = cleanTrackLine(line);
-      if (cleaned) {
-        tracks.push(cleaned);
-        started = true;
+      for (const piece of splitNumberedLine(line)) {
+        const cleaned = cleanTrackLine(piece);
+        if (cleaned) {
+          tracks.push(cleaned);
+          started = true;
+        }
       }
     } else if (isNumbered) {
-      const cleaned = cleanTrackLine(line);
-      if (cleaned) tracks.push(cleaned);
+      for (const piece of splitNumberedLine(line)) {
+        const cleaned = cleanTrackLine(piece);
+        if (cleaned) tracks.push(cleaned);
+      }
     }
   }
   return tracks;
@@ -165,7 +231,15 @@ function resolveTitle(
   const candidate = pre
     .split("\n")
     .map((line) => line.trim())
-    .find((line) => line.length > 2 && !/^(img|image|separator)$/i.test(line));
+    .find(
+      (line) =>
+        line.length > 2 &&
+        line.length <= 150 &&
+        !/^(img|image|separator)$/i.test(line) &&
+        !/^\d{1,2}\s*[.)\-–—]/.test(line) &&
+        !/^track\s*list\s*:?/i.test(line) &&
+        !/^(descargar|download|leer\s+más)(\s|$)/i.test(line)
+    );
 
   const derived = stripYear(withoutBandPrefix(postTitle, band))
     .split(/\s+[-–—]\s+/)
@@ -203,13 +277,13 @@ function parseSegment(
     format = "compilado";
   }
   const band = cleanBandLabel(resolveBand(post, format));
-  const title = resolveTitle(text, post, band, isMulti);
+  const title = resolveTitle(textWithLines, post, band, isMulti);
   const year = extractYear(text, post.title ?? "");
   const coverUrl = upgradeCoverResolution(extractCover(segmentHtml));
   const trackList = extractTrackList(textWithLines);
 
   const downloadLinks: DownloadLink[] = anchors
-    .filter((anchor) => !isSelfHost(anchor.href))
+    .filter((anchor) => !isChromeAnchor(anchor))
     .map((anchor) => {
       let hostname = "link";
       try {
@@ -251,7 +325,7 @@ export function parsePostToAlbums(
 ): Album[] {
   const content = post.content ?? "";
   const anchors = findAnchors(content);
-  const downloadAnchors = anchors.filter((anchor) => !isSelfHost(anchor.href));
+  const downloadAnchors = anchors.filter((anchor) => isDownloadAnchor(anchor));
 
   let pathname = "";
   try {

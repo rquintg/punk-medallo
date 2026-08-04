@@ -61,12 +61,29 @@ export function bandSlug(band: string): string {
   return slugify(band);
 }
 
+const COVER_SIZE_RE = /\/s(\d{2,4})((?:-[a-z0-9]+)*)(\/[^/]+)$/;
+
+function resliceCoverSize(url: string, size: number): string {
+  return url.replace(
+    COVER_SIZE_RE,
+    (_match, _size, params, tail) => `/s${size}${params}${tail}`
+  );
+}
+
 export function upgradeCoverResolution(
   url: string | null,
   size = 1200
 ): string | null {
   if (!url) return null;
-  return url
-    .replace(/\/w\d+-h\d+(\/[^/]+)$/, `/s${size}$1`)
-    .replace(/\/s\d{2,4}(-c)?(\/[^/]+)$/, `/s${size}$2`);
+  const withSize = url.replace(
+    /\/w\d+-h\d+(?:-k(?:-no)?)?(\/[^/]+)$/,
+    `/s${size}$1`
+  );
+  return resliceCoverSize(withSize, size);
+}
+
+export function coverAtSize(url: string | null, size: number): string | null {
+  if (!url) return null;
+  if (!COVER_SIZE_RE.test(url)) return url;
+  return resliceCoverSize(url, size);
 }
