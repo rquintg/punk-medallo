@@ -119,7 +119,7 @@ export default function Amigos() {
                   <a
                     href={friend.url}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow"
                     className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300"
                   >
                     <span className="text-white text-lg font-semibold">
@@ -137,7 +137,7 @@ export default function Amigos() {
                   <a
                     href={friend.url}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow"
                     className="inline-flex items-center gap-2 text-[#a40202] font-semibold hover:text-[#ff6b6b] transition-colors"
                   >
                     <span>Ver Página</span>

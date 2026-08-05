@@ -16,8 +16,8 @@ export default function Footer() {
             Punk Medallo
           </h3>
           <p className="text-[#b0b0b0] text-[0.95rem] leading-relaxed m-0 max-md:text-sm">
-            Transmisión 24/7 de puro punk, hardcore y alternativo. Pirateamos el
-            sistema, una canción a la vez.
+            Transmisión 24/7 de puro punk, hardcore y alternativo. Somos el
+            archivo sonoro del punk en Medellín.
           </p>
         </div>
 
@@ -32,6 +32,7 @@ export default function Footer() {
               { href: "/about", label: "Acerca de" },
               { href: "/descargas", label: "Blog" },
               { href: "/contacto", label: "Contacto" },
+              { href: "/politica-de-privacidad", label: "Política de Privacidad" },
             ].map((link) => (
               <li key={link.href}>
                 <Link

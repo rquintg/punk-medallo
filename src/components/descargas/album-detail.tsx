@@ -103,6 +103,18 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           <div className="mt-8">
             <TrackList tracks={album.trackList} />
           </div>
+
+          <p className="mt-6 border-b border-neutral-800 pt-4 text-[11px] leading-relaxed text-neutral-400">
+            Material de la escena punk distribuido libremente por sus autores.
+            Si eres dueño del contenido y deseas retirarlo, contáctanos en{" "}
+            <Link
+              href="/contacto"
+              className="font-mono uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+            >
+              contacto
+            </Link>
+            .
+          </p>
         </div>
       </div>
 
