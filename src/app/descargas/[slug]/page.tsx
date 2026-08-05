@@ -68,7 +68,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   const album = await getAlbumBySlug(slug);
   if (!album) notFound();
 
-  const related = await getRelatedAlbums(album.band, album.postId, 4);
+  const related = await getRelatedAlbums(album, 16);
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",

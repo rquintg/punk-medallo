@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 interface Track {
   title: string;
   artist: string;
+  album?: string;
+  art?: string | null;
 }
 
 export default function useCurrentTrack() {
@@ -31,6 +33,8 @@ export default function useCurrentTrack() {
           setCurrentTrack({
             title: data.now_playing.song.title || "Canción desconocida",
             artist: data.now_playing.song.artist || "Artista desconocido",
+            album: data.now_playing.song.album || undefined,
+            art: data.now_playing.song.art || null,
           });
         }
 
@@ -38,6 +42,8 @@ export default function useCurrentTrack() {
           setNextTrack({
             title: data.playing_next.song.title || "Canción desconocida",
             artist: data.playing_next.song.artist || "Artista desconocido",
+            album: data.playing_next.song.album || undefined,
+            art: data.playing_next.song.art || null,
           });
         }
       } catch {

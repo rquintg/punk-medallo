@@ -71,13 +71,25 @@ export async function searchPosts(
   return (data.items ?? []) as BloggerRawPost[];
 }
 
+const POST_CACHE_TTL_MS = 10 * 60 * 1000;
+const postCache = new Map<
+  string,
+  { fetchedAt: number; post: BloggerRawPost }
+>();
+
 export async function getPostById(id: string): Promise<BloggerRawPost> {
   assertConfig();
+  const cached = postCache.get(id);
+  if (cached && Date.now() - cached.fetchedAt < POST_CACHE_TTL_MS) {
+    return cached.post;
+  }
   const { data } = await axios.get(
     `${BASE_URL}/blogs/${BLOG_ID}/posts/${id}`,
     { params: { key: API_KEY }, timeout: 15_000 }
   );
-  return data as BloggerRawPost;
+  const post = data as BloggerRawPost;
+  postCache.set(id, { fetchedAt: Date.now(), post });
+  return post;
 }
 
 const ARCHIVE_FIELDS =

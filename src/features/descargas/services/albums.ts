@@ -159,30 +159,61 @@ export async function getAlbumBySlug(slug: string): Promise<Album | null> {
 }
 
 export async function getRelatedAlbums(
-  band: string,
-  excludePostId: string,
-  limit = 4
+  album: Album,
+  limit = 16
 ): Promise<Album[]> {
   const archive = await getArchive();
-  const needle = normalizeSearch(band);
-  const candidates = archive.posts.filter(
-    (post) =>
-      post.id !== excludePostId &&
-      normalizeSearch(post.labels?.join(" ") ?? "").includes(needle)
-  );
+
+  const currentPost = archive.posts.find((post) => post.id === album.postId);
+
+  const needles = new Set<string>();
+  if (
+    album.band === "Varios Artistas" &&
+    (currentPost?.labels?.length ?? 0) > 0
+  ) {
+    for (const label of currentPost?.labels ?? []) {
+      const normalized = normalizeBand(label);
+      if (normalized) needles.add(normalized);
+    }
+  } else {
+    const normalized = normalizeBand(album.band);
+    if (normalized) needles.add(normalized);
+  }
+  if (needles.size === 0) return [];
+
+  const candidates = archive.posts.filter((post) => {
+    const labels = new Set(
+      (post.labels ?? [])
+        .map((label) => normalizeBand(label))
+        .filter(Boolean)
+    );
+    for (const needle of needles) {
+      if (labels.has(needle)) return true;
+    }
+    return false;
+  });
 
   const results: Album[] = [];
-  for (const post of candidates.slice(0, limit)) {
+  const seenSlugs = new Set<string>([album.slug]);
+
+  for (const post of candidates) {
+    if (results.length >= limit) break;
     try {
       const postWithContent = await getPostById(post.id);
       const albums = parsePostToAlbums(
         postWithContent,
         archive.duplicatedBases
       );
-      if (albums.length > 0) results.push(albums[0]);
+      for (const candidateAlbum of albums) {
+        if (seenSlugs.has(candidateAlbum.slug)) continue;
+        seenSlugs.add(candidateAlbum.slug);
+        results.push(candidateAlbum);
+        if (results.length >= limit) break;
+      }
     } catch {
       continue;
     }
   }
-  return results;
+
+  return results.slice(0, limit);
 }
