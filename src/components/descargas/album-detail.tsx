@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
 import { coverAtSize } from "@/features/descargas/utils/album";
 import { CoverImage } from "./cover-image";
@@ -103,16 +103,6 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           <div className="mt-8">
             <TrackList tracks={album.trackList} />
           </div>
-
-          <a
-            href={album.postUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
-          >
-            Ver publicación original en el blog
-            <ExternalLink size={12} aria-hidden="true" />
-          </a>
         </div>
       </div>
 
