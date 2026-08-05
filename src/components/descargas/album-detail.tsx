@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
 import { coverAtSize } from "@/features/descargas/utils/album";
 import { CoverImage } from "./cover-image";
-import { AlbumCard } from "./album-card";
 import { DownloadActions } from "./download-actions";
 import { TrackList } from "./track-list";
 import { FormatBadge } from "./format-badge";
+import { RelatedCarousel } from "./related-carousel";
 
 interface AlbumDetailProps {
   album: Album;
@@ -24,6 +24,10 @@ function formatDate(iso: string): string {
 
 export function AlbumDetail({ album, related }: AlbumDetailProps) {
   const publishedDate = formatDate(album.published);
+  const relatedTitle =
+    album.band === "Varios Artistas"
+      ? "Más de estas bandas"
+      : `Más de ${album.band}`;
 
   return (
     <main className="mx-auto max-w-6xl px-4 pt-24 pb-10">
@@ -99,30 +103,11 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           <div className="mt-8">
             <TrackList tracks={album.trackList} />
           </div>
-
-          <a
-            href={album.postUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
-          >
-            Ver publicación original en el blog
-            <ExternalLink size={12} aria-hidden="true" />
-          </a>
         </div>
       </div>
 
       {related.length > 0 && (
-        <section className="mt-16" aria-label="Más de la misma banda">
-          <h2 className="mb-6 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-neutral-500">
-            Más de {album.band}
-          </h2>
-          <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-            {related.map((relatedAlbum) => (
-              <AlbumCard key={relatedAlbum.slug} album={relatedAlbum} />
-            ))}
-          </div>
-        </section>
+        <RelatedCarousel title={relatedTitle} albums={related} />
       )}
     </main>
   );

@@ -72,6 +72,51 @@ export default function WebPlayer() {
     }
   };
 
+  const togglePlayRef = useRef(togglePlay);
+  useEffect(() => {
+    togglePlayRef.current = togglePlay;
+  }, [togglePlay]);
+
+  const lastMetaKeyRef = useRef("");
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
+      return;
+    }
+
+    const session = navigator.mediaSession;
+
+    session.setActionHandler("play", () => togglePlayRef.current());
+    session.setActionHandler("pause", () => togglePlayRef.current());
+
+    if (!currentTrack) return;
+
+    const metaKey = `${currentTrack.title}|${currentTrack.artist}|${
+      currentTrack.album ?? ""
+    }|${currentTrack.art ?? ""}`;
+    if (metaKey === lastMetaKeyRef.current) return;
+    lastMetaKeyRef.current = metaKey;
+
+    const artwork: MediaImage[] = [];
+    if (currentTrack.art) {
+      artwork.push({ src: currentTrack.art, sizes: "512x512" });
+    }
+    artwork.push({ src: "/icons/icon-512.png", sizes: "512x512" });
+
+    session.metadata = new MediaMetadata({
+      title: currentTrack.title,
+      artist: currentTrack.artist,
+      album: currentTrack.album ?? "Punk Medallo Radio",
+      artwork,
+    });
+  }, [currentTrack]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
+      return;
+    }
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+  }, [isPlaying]);
+
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value);
     setVolume(v);
