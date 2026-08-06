@@ -28,7 +28,7 @@ export const fetchInstagramPhotos = async (): Promise<InstagramPhoto[]> => {
       `https://graph.instagram.com/v24.0/${INSTAGRAM_BUSINESS_ACCOUNT_ID}/media`,
       {
         params: {
-          fields: "id,caption,media_type,media_url,permalink,timestamp",
+          fields: "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp",
           access_token: ACCESS_TOKEN,
           limit: 100,
         },
@@ -41,6 +41,7 @@ export const fetchInstagramPhotos = async (): Promise<InstagramPhoto[]> => {
       caption?: string;
       media_type?: string;
       media_url?: string;
+      thumbnail_url?: string;
       permalink?: string;
       timestamp?: string;
     };
@@ -48,15 +49,19 @@ export const fetchInstagramPhotos = async (): Promise<InstagramPhoto[]> => {
     const items: RawMedia[] = response.data?.data || [];
 
     const photos: InstagramPhoto[] = items
-      .filter((media) => media.media_type === "IMAGE" || media.media_type === "CAROUSEL_ALBUM")
+      .filter((media) =>
+        media.media_type === "IMAGE" ||
+        media.media_type === "CAROUSEL_ALBUM" ||
+        media.media_type === "VIDEO"
+      )
       .map((media) => ({
         id: media.id || "",
         caption: media.caption || undefined,
         media_type: media.media_type,
-        image_url: media.media_url,
+        image_url: media.media_url || media.thumbnail_url,
         permalink: media.permalink,
         timestamp: media.timestamp,
-        full_picture: media.media_url,
+        full_picture: media.media_url || media.thumbnail_url,
         permalink_url: media.permalink,
         message: media.caption,
       }));

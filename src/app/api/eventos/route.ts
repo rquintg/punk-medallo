@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { fetchInstagramPhotos } from "@/lib/axiosInstagram";
+import { parseCaptionEventos } from "@/features/eventos/parse-caption";
 
 export async function GET() {
   try {
     const photos = await fetchInstagramPhotos();
+    const eventos = parseCaptionEventos(photos);
 
     return NextResponse.json(
-      { photos },
+      { eventos },
       {
         status: 200,
         headers: {
@@ -19,4 +21,3 @@ export async function GET() {
     return NextResponse.json({ error: "Error fetching Instagram photos" }, { status: 500 });
   }
 }
-
