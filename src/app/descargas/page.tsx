@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DescargasContent from "./DescargasContent";
 import { getBlogInfo } from "@/features/descargas/services/blogger";
 import {
+  getAlbumBySlug,
   getAlbumsPage,
   getArchiveYears,
 } from "@/features/descargas/services/albums";
@@ -18,6 +19,15 @@ const OG_IMAGE = {
   height: 630,
   type: "image/jpeg",
 } as const;
+
+const DESTACADOS_SLUGS = [
+  "recopilas",
+  "los-restos",
+  "nadie-discografia",
+  "ixrxa-discografia-completa",
+  "gp-discografia-completa",
+  "los-suziox-discografia",
+];
 
 export const metadata: Metadata = {
   title: "El Blog - Punk Medallo",
@@ -53,14 +63,21 @@ export default async function Descargas() {
   let bands: BandInfo[] = [];
   let latestPublished: string | null = null;
   let years: string[] = [];
+  let destacados: Album[] = [];
 
   try {
-    const [blogInfo, page, archive, archiveYears] = await Promise.all([
-      getBlogInfo(),
-      getAlbumsPage({}),
-      getArchive(),
-      getArchiveYears(),
-    ]);
+    const [blogInfo, page, archive, archiveYears, featured] =
+      await Promise.all([
+        getBlogInfo(),
+        getAlbumsPage({}),
+        getArchive(),
+        getArchiveYears(),
+        Promise.all(
+          DESTACADOS_SLUGS.map((slug) =>
+            getAlbumBySlug(slug).catch(() => null)
+          )
+        ),
+      ]);
     albums = page.albums;
     nextPageToken = page.nextPageToken;
     totalItems = archive.totalPosts || blogInfo.totalPosts;
@@ -68,6 +85,9 @@ export default async function Descargas() {
     bands = archive.bands;
     latestPublished = page.albums[0]?.published ?? null;
     years = archiveYears;
+    destacados = featured.filter(
+      (album): album is Album => album !== null
+    );
   } catch (error) {
     console.error("Error fetching blog posts:", error);
   }
@@ -101,6 +121,7 @@ export default async function Descargas() {
         bands={bands}
         latestPublished={latestPublished}
         years={years}
+        destacados={destacados}
       />
     </>
   );

@@ -158,6 +158,28 @@ export async function getAlbumBySlug(slug: string): Promise<Album | null> {
   return albums[resolution.index] ?? null;
 }
 
+export async function getAlbumsByBand(bandName: string): Promise<Album[]> {
+  const archive = await getArchive();
+  const needle = normalizeBand(bandName);
+  if (!needle) return [];
+
+  const posts = (
+    await Promise.all(
+      archive.posts
+        .filter(
+          (post) =>
+            post.id && normalizeBand(resolveBandFromMeta(post)) === needle
+        )
+        .map((post) => getPostById(post.id).catch(() => null))
+    )
+  ).filter((post): post is BloggerRawPost => post !== null);
+
+  const ordered = sortByPublishedDesc(posts);
+  return ordered.flatMap((post) =>
+    parsePostToAlbums(post, archive.duplicatedBases)
+  );
+}
+
 export async function getRelatedAlbums(
   album: Album,
   limit = 16
