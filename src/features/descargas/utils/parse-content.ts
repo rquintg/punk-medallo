@@ -25,6 +25,10 @@ const TRACK_NUMBER_START_RE = /^\d{1,2}(?:\s*[.)\-–—]|\s)/;
 const TRACK_NUMBER_SPLIT_RE = /(?=\d{1,2}\s*[.)\-–—])/;
 const SEPARATOR_ONLY_RE = /^[.·•\-–—_~=*]+$/;
 const RECENT_DAYS = 30;
+const JUNK_TITLE_RE =
+  /^(compartir|comparte|sigue leyendo|publicado por|etiquetas|síguenos|más información|visita|fuente|leer más)\b/i;
+const SIZE_SUFFIX_RE = /\s*-\s*[\d.,]+\s*(?:mb|gb|kb)\s*$/i;
+const ARCHIVE_EXT_RE = /\.(?:rar|zip|7z|tgz|tar\.gz|exe)\s*$/i;
 
 const DOWNLOAD_HOSTS = [
   "mediafire.com",
@@ -215,11 +219,54 @@ function detectFormat(segmentText: string, postTitle: string): AlbumFormat {
   return detectFormatFromTitle(`${pre} ${postTitle}`.trim());
 }
 
+function cleanDownloadLabelTitle(
+  label: string,
+  band: string
+): string | null {
+  let cleaned = label
+    .replace(SIZE_SUFFIX_RE, "")
+    .replace(ARCHIVE_EXT_RE, "")
+    .trim();
+  cleaned = stripYear(cleaned).trim();
+  if (band !== "Varios Artistas" && cleaned) {
+    const stripped = withoutBandPrefix(cleaned, band).trim();
+    if (
+      stripped !== cleaned &&
+      stripped.length >= 2 &&
+      normalizeBand(stripped) !== normalizeBand(band)
+    ) {
+      cleaned = stripped;
+    } else {
+      const chars = [...band]
+        .filter((char) => /[a-z0-9]/i.test(char))
+        .map((char) => `${char.toLowerCase()}[\\s.]*`)
+        .join("");
+      if (chars.length >= 3) {
+        const tolerant = cleaned
+          .replace(new RegExp(`^\\s*${chars}[-–—:]?\\s*`, "i"), "")
+          .trim();
+        if (
+          tolerant.length >= 2 &&
+          normalizeBand(tolerant) !== normalizeBand(band)
+        ) {
+          cleaned = tolerant;
+        }
+      }
+    }
+  }
+  if (cleaned.length < 2) return null;
+  if (/^(descargar|download)(\s|$)/i.test(cleaned)) return null;
+  if (SEPARATOR_ONLY_RE.test(cleaned)) return null;
+  if (normalizeBand(cleaned) === normalizeBand(band)) return null;
+  return cleaned;
+}
+
 function resolveTitle(
   segmentText: string,
   post: BloggerRawPost,
   band: string,
-  isMulti: boolean
+  isMulti: boolean,
+  downloadLabels: string[]
 ): string {
   const postTitle = (post.title ?? "").trim();
   if (!isMulti && normalizeBand(postTitle) === normalizeBand(band)) {
@@ -238,18 +285,37 @@ function resolveTitle(
         !/^(img|image|separator)$/i.test(line) &&
         !/^\d{1,2}\s*[.)\-–—]/.test(line) &&
         !/^track\s*list\s*:?/i.test(line) &&
-        !/^(descargar|download|leer\s+más)(\s|$)/i.test(line)
+        !/^(descargar|download|leer\s+más)(\s|$)/i.test(line) &&
+        !JUNK_TITLE_RE.test(line)
     );
+
+  if (candidate) {
+    const withoutYear = stripYear(candidate);
+    if (withoutYear.length >= 3) {
+      const labelTitle = downloadLabels
+        .map((label) => cleanDownloadLabelTitle(label, band))
+        .find((title) => title && title.length >= 3);
+      if (
+        withoutYear.length < 15 &&
+        labelTitle &&
+        labelTitle.length > withoutYear.length
+      ) {
+        return labelTitle;
+      }
+      return withoutYear;
+    }
+  }
+
+  for (const label of downloadLabels) {
+    const fromLabel = cleanDownloadLabelTitle(label, band);
+    if (fromLabel && fromLabel.length >= 3) return fromLabel;
+  }
 
   const derived = stripYear(withoutBandPrefix(postTitle, band))
     .split(/\s+[-–—]\s+/)
     .pop() ?? "";
   if (derived.length >= 2 && normalizeBand(derived) !== normalizeBand(band)) {
     return derived;
-  }
-  if (candidate) {
-    const withoutYear = stripYear(candidate);
-    if (withoutYear.length >= 3) return withoutYear;
   }
   return postTitle;
 }
@@ -277,14 +343,14 @@ function parseSegment(
     format = "compilado";
   }
   const band = cleanBandLabel(resolveBand(post, format));
-  const title = resolveTitle(textWithLines, post, band, isMulti);
+  const downloadAnchors = anchors.filter((anchor) => !isChromeAnchor(anchor));
+  const downloadLabels = downloadAnchors.map((anchor) => anchor.label);
+  const title = resolveTitle(textWithLines, post, band, isMulti, downloadLabels);
   const year = extractYear(text, post.title ?? "");
   const coverUrl = upgradeCoverResolution(extractCover(segmentHtml));
   const trackList = extractTrackList(textWithLines);
 
-  const downloadLinks: DownloadLink[] = anchors
-    .filter((anchor) => !isChromeAnchor(anchor))
-    .map((anchor) => {
+  const downloadLinks: DownloadLink[] = downloadAnchors.map((anchor) => {
       let hostname = "link";
       try {
         hostname = new URL(anchor.href).hostname.replace(/^www\./, "");

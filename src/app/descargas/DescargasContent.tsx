@@ -7,6 +7,7 @@ import { useAlbums } from "@/hooks/useAlbums";
 import { DescargasHero } from "@/components/descargas/descargas-hero";
 import { BandTicker } from "@/components/descargas/band-ticker";
 import { BandIndex } from "@/components/descargas/band-index";
+import { DestacadosHero } from "@/components/descargas/destacados-hero";
 import { AlbumGrid } from "@/components/descargas/album-grid";
 import { AlbumCard } from "@/components/descargas/album-card";
 import { AlbumGridSkeleton } from "@/components/descargas/album-skeleton";
@@ -21,6 +22,7 @@ interface DescargasContentProps {
   bands: BandInfo[];
   latestPublished: string | null;
   years: string[];
+  destacados?: Album[];
 }
 
 export default function DescargasContent({
@@ -31,6 +33,7 @@ export default function DescargasContent({
   bands,
   latestPublished,
   years,
+  destacados = [],
 }: DescargasContentProps) {
   const {
     albums,
@@ -84,12 +87,13 @@ export default function DescargasContent({
         onLetterChange={(letter) =>
           setFilters((prev) => ({ ...prev, letra: letter }))
         }
-        onSelectBand={(band) =>
-          setFilters((prev) => ({ ...prev, banda: band }))
-        }
       />
 
       <main className="mx-auto max-w-6xl px-4 py-8">
+        {destacados.length > 0 && !hasFilters && (
+          <DestacadosHero albums={destacados} />
+        )}
+
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-4">
             <FormatFilter

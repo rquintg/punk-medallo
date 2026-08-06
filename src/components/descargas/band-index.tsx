@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ChevronDown, X } from "lucide-react";
 import type { BandInfo } from "@/features/descargas/types";
+import { bandSlug } from "@/features/descargas/utils/album";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -10,14 +12,12 @@ interface BandIndexProps {
   bands: BandInfo[];
   activeLetter: string | null;
   onLetterChange: (letter: string | null) => void;
-  onSelectBand: (bandName: string) => void;
 }
 
 export function BandIndex({
   bands,
   activeLetter,
   onLetterChange,
-  onSelectBand,
 }: BandIndexProps) {
   const [showAll, setShowAll] = useState(false);
   const presentLetters = new Set(bands.map((band) => band.letter));
@@ -88,9 +88,8 @@ export function BandIndex({
           <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3 md:grid-cols-4">
             {filteredBands.map((band) => (
               <li key={band.normalized}>
-                <button
-                  type="button"
-                  onClick={() => onSelectBand(band.name)}
+                <Link
+                  href={`/descargas/banda/${bandSlug(band.name)}`}
                   className="group flex w-full items-baseline justify-between gap-2 border-b border-neutral-800/60 pb-1 text-left"
                 >
                   <span className="truncate text-sm text-neutral-300 transition-colors group-hover:text-[#dc2626]">
@@ -99,7 +98,7 @@ export function BandIndex({
                   <span className="shrink-0 font-mono text-[10px] text-neutral-600">
                     {band.count}
                   </span>
-                </button>
+                </Link>
               </li>
             ))}
           </ul>

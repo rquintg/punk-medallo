@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getArchive } from "@/features/descargas/services/archivo";
 import { qualifiedSlugBase } from "@/features/descargas/utils/slug";
+import { bandSlug } from "@/features/descargas/utils/album";
 import { getProductosFiltrados } from "@/features/tienda/services/products";
 
 const SITE_URL = "https://punkmedallo.com";
@@ -50,6 +51,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
       .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 
+    let bandEntries: MetadataRoute.Sitemap = [];
+    try {
+      const seenSlugs = new Set<string>();
+      bandEntries = archive.bands
+        .map((band) => bandSlug(band.name))
+        .filter((slug) => {
+          if (seenSlugs.has(slug)) return false;
+          seenSlugs.add(slug);
+          return true;
+        })
+        .map((slug) => ({
+          url: `${SITE_URL}/descargas/banda/${slug}`,
+          lastModified: new Date(),
+          changeFrequency: "monthly" as const,
+          priority: 0.4,
+        }));
+    } catch {
+      bandEntries = [];
+    }
+
     let productEntries: MetadataRoute.Sitemap = [];
     try {
       const productos = await getProductosFiltrados();
@@ -63,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       productEntries = [];
     }
 
-    return [...entries, ...albumEntries, ...productEntries];
+    return [...entries, ...albumEntries, ...bandEntries, ...productEntries];
   } catch {
     return entries;
   }

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { Album } from "@/features/descargas/types";
-import { coverAtSize } from "@/features/descargas/utils/album";
+import { bandSlug, coverAtSize } from "@/features/descargas/utils/album";
 import { CoverImage } from "./cover-image";
 import { DownloadActions } from "./download-actions";
 import { TrackList } from "./track-list";
 import { FormatBadge } from "./format-badge";
 import { RelatedCarousel } from "./related-carousel";
+import { getResena } from "@/data/resenas";
 
 interface AlbumDetailProps {
   album: Album;
@@ -24,6 +25,7 @@ function formatDate(iso: string): string {
 
 export function AlbumDetail({ album, related }: AlbumDetailProps) {
   const publishedDate = formatDate(album.published);
+  const resena = getResena(album.slug);
   const relatedTitle =
     album.band === "Varios Artistas"
       ? "Más de estas bandas"
@@ -55,9 +57,18 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
         </aside>
 
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
-            {album.band}
-          </p>
+          {album.band !== "Varios Artistas" ? (
+            <Link
+              href={`/descargas/banda/${bandSlug(album.band)}`}
+              className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626] transition-colors hover:text-white"
+            >
+              {album.band}
+            </Link>
+          ) : (
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+              {album.band}
+            </p>
+          )}
           <h1 className="mt-2 text-3xl font-bold leading-tight text-white md:text-5xl">
             {album.title}
           </h1>
@@ -98,6 +109,17 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
             <p className="mt-2 font-mono text-[11px] text-neutral-600">
               Publicado el {publishedDate}
             </p>
+          )}
+
+          {resena && (
+            <div className="mt-8 rounded-lg border border-neutral-800 bg-[rgba(52,58,64,0.2)] p-5">
+              <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+                Reseña
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
+                {resena}
+              </p>
+            </div>
           )}
 
           <div className="mt-8">
