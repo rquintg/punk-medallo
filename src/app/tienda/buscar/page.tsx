@@ -16,8 +16,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
   const q = (typeof params.q === 'string' ? params.q : '').trim();
 
   const title = q
-    ? `"${q}" - Buscar en Tienda Punk Medallo`
-    : 'Buscar - Tienda Punk Medallo';
+    ? `"${q}" - Buscar en Tienda`
+    : 'Buscar en Tienda';
 
   return {
     title,

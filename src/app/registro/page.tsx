@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import RegisterForm from "./registro-form";
 
 export const metadata: Metadata = {
-  title: "Crear cuenta - Punk Medallo",
-  description:
-    "Crea tu cuenta en Punk Medallo para comprar en la tienda y seguir tus pedidos.",
+  title: "Crear cuenta",
   robots: {
     index: false,
     follow: false,

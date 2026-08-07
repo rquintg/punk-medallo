@@ -6,7 +6,7 @@ import type { FacebookPhoto } from "@/lib/axiosFacebook";
 // Revalidate every 600 seconds (10 minutes)
 export const revalidate = 600;
 export const metadata: Metadata = {
-  title: "Registro Fotográfico - Punk Medallo",
+  title: "Registro Fotográfico",
   description:
     "Galería de fotos y eventos de Punk Medallo. Revive los mejores momentos del punk en Medellín a través de nuestro registro fotográfico.",
   alternates: {

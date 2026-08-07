@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!producto) return {};
 
   const imageUrl = producto.imagenes[0]?.url ?? `${SITE_URL}/logo_punk_medallo.jpg`;
-  const title = `${producto.nombre} - Tienda Punk Medallo`;
+  const title = `${producto.nombre} - Tienda`;
 
   return {
     title,

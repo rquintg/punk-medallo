@@ -33,7 +33,7 @@ export async function generateMetadata({
   const name = resolveBandName(archive.bands, slug);
   if (!name) {
     return {
-      title: "Banda no encontrada - Punk Medallo",
+      title: "Banda no encontrada",
     };
   }
   const title = `${name} — Discografía`;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Páginas Amigas - Punk Medallo",
+  title: "Páginas Amigas",
   description:
     "Conecta con nuestras páginas amigas: proyectos independientes y alternativos de Medellín que comparten nuestra filosofía punk.",
   alternates: {

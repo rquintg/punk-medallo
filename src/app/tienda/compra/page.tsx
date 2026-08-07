@@ -14,7 +14,7 @@ interface CompraPageProps {
 }
 
 export const metadata: Metadata = {
-  title: 'Compra - Punk Medallo',
+  title: 'Compra',
   description:
     'Estado de tu compra en la tienda Punk Medallo.',
   robots: {

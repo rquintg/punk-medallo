@@ -32,7 +32,7 @@ export async function generateMetadata({
   const album = await getAlbumBySlug(slug);
   if (!album) {
     return {
-      title: "Lanzamiento no encontrado - Punk Medallo",
+      title: "Lanzamiento no encontrado",
     };
   }
   const title = albumTitle(album);

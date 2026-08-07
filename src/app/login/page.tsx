@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import LoginFormWrapper from "./login-form";
 
 export const metadata: Metadata = {
-  title: "Ingresar - Punk Medallo",
-  description:
-    "Ingresa a tu cuenta de Punk Medallo para comprar en la tienda y gestionar tus pedidos.",
+  title: "Ingresar",
   robots: {
     index: false,
     follow: false,

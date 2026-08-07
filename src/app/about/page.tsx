@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Guitar, Mic, Music, Zap, Radio, FileText } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Acerca de Punk Medallo",
+  title: "Acerca de",
   description:
     "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín. Autenticidad, libertad, comunidad y rebeldía.",
   alternates: {

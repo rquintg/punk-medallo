@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ShieldCheck, Cookie, FileText, Mail, Trash2 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad - Punk Medallo",
+  title: "Política de Privacidad",
   description:
     "Política de privacidad de Punk Medallo: qué datos recopilamos, uso de cookies, publicidad de terceros (Google AdSense), derechos del usuario y procedimiento de retiro de contenido.",
   alternates: {

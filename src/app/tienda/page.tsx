@@ -15,7 +15,7 @@ import CartDrawer from '@/components/tienda/cart-drawer';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Tienda - Punk Medallo',
+  title: 'Tienda',
   description:
     'Camisetas y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
   openGraph: {

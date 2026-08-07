@@ -30,7 +30,7 @@ const DESTACADOS_SLUGS = [
 ];
 
 export const metadata: Metadata = {
-  title: "El Blog - Punk Medallo",
+  title: "El Blog",
   description:
     "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
   alternates: {

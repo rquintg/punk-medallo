@@ -29,7 +29,7 @@ export async function generateMetadata({
   const { id } = await params
   const url = `/tienda/orden/${id}`
   return {
-    title: 'Tu Orden - Punk Medallo',
+    title: 'Tu Orden',
     description:
       'Sigue el estado de tu pedido en la tienda Punk Medallo.',
     robots: {

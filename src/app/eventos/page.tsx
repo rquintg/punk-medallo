@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
     : "Agenda de toques punk en Medellín: fechas, lugares, horarios y precios de los próximos conciertos.";
 
   return {
-    title: "Próximos Toques - Punk Medallo",
+    title: "Próximos Toques",
     description:
       "Agenda de toques punk en Medellín: fechas, lugares, horarios y precios de los próximos conciertos. Enterate del toque antes que nadie.",
     alternates: {

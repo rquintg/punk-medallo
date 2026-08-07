@@ -3,7 +3,7 @@ import ContactForm from "@/components/ContactForm";
 import StaffComponent from "@/components/StaffComponent";
 
 export const metadata: Metadata = {
-  title: "Contacto - Punk Medallo",
+  title: "Contacto",
   description:
     "Ponte en contacto con el equipo de Punk Medallo. Envía tus sugerencias, comentarios o consultas sobre nuestra radio punk.",
   alternates: {

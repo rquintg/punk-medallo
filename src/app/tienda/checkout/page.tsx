@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import CheckoutContent from './checkout-content';
 
 export const metadata: Metadata = {
-  title: 'Checkout - Punk Medallo',
+  title: 'Checkout',
   description:
     'Finaliza tu compra en la tienda Punk Medallo.',
   robots: {
