@@ -127,15 +127,12 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           </div>
 
           <p className="mt-6 border-b border-neutral-800 pt-4 text-[11px] leading-relaxed text-neutral-400">
-            Material de la escena punk distribuido libremente por sus autores.
-            Si eres dueño del contenido y deseas retirarlo, contáctanos en{" "}
+            Material de la escena punk distribuido libre y gratuitamente con autorización de sus autores. Si eres el dueño del contenido y deseas retirarlo,
             <Link
               href="/contacto"
               className="font-mono uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
-            >
-              contacto
+            > contáctanos.
             </Link>
-            .
           </p>
         </div>
       </div>
