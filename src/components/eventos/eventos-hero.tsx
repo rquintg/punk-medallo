@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { CalendarPlus, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { CalendarPlus, Check, ChevronLeft, ChevronRight, ExternalLink, MessageCircle, Share2 } from "lucide-react";
 import type { Evento } from "@/features/eventos/types";
 import {
   diasHasta,
@@ -12,6 +12,7 @@ import {
   formatearPrecio,
 } from "@/features/eventos/format";
 import { googleCalendarUrl } from "@/features/eventos/add-to-calendar";
+import { compartirEvento, whatsappUrl } from "@/features/eventos/share";
 
 const AUTOPLAY_MS = 6000;
 
@@ -22,9 +23,18 @@ interface EventosHeroProps {
 export function EventosHero({ eventos }: EventosHeroProps) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const count = eventos.length;
+
+  const handleCompartir = async (evento: Evento) => {
+    const resultado = await compartirEvento(evento);
+    if (resultado === "copied") {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  };
 
   const goTo = useCallback(
     (index: number) => {
@@ -199,6 +209,27 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                           Ver en Instagram
                         </a>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => handleCompartir(evento)}
+                        className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:hidden"
+                      >
+                        {copiado ? (
+                          <Check size={15} aria-hidden="true" />
+                        ) : (
+                          <Share2 size={15} aria-hidden="true" />
+                        )}
+                        {copiado ? "¡Copiado!" : "Compartir"}
+                      </button>
+                      <a
+                        href={whatsappUrl(evento)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:flex"
+                      >
+                        <MessageCircle size={15} aria-hidden="true" />
+                        WhatsApp
+                      </a>
                     </div>
                   </div>
                 </div>

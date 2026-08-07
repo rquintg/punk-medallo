@@ -161,7 +161,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
               <button
                 type="button"
                 onClick={handleCompartir}
-                className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:hidden"
               >
                 {copiado ? (
                   <Check size={13} aria-hidden="true" />
@@ -174,7 +174,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                 href={whatsappUrl(evento)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                className="hidden items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:flex"
               >
                 <MessageCircle size={13} aria-hidden="true" />
                 WhatsApp
