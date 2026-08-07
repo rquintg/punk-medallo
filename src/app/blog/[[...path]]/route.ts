@@ -1,5 +1,16 @@
 import { getArchive, resolveSlug } from "@/features/descargas/services/archivo";
 
+export const revalidate = 86400;
+
+const CACHE_HEADERS = { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=43200" };
+
+function redirectTo(url: string, request: Request, status: 301 | 308 = 301): Response {
+  return new Response(null, {
+    status,
+    headers: { Location: new URL(url, request.url).toString(), ...CACHE_HEADERS },
+  });
+}
+
 function blogPostBase(path: string[]): string | null {
   const [year, month, ...rest] = path;
   const file = rest.at(-1) ?? "";
@@ -17,7 +28,7 @@ export async function GET(
   const base = blogPostBase(path);
 
   if (!base) {
-    return Response.redirect(new URL("/descargas", request.url), 301);
+    return redirectTo("/descargas", request);
   }
 
   const archive = await getArchive();
@@ -30,15 +41,12 @@ export async function GET(
 
   const candidate = qualified ?? base;
   if (resolveSlug(candidate, archive.slugMap)) {
-    return Response.redirect(
-      new URL(`/descargas/${candidate}`, request.url),
-      301
-    );
+    return redirectTo(`/descargas/${candidate}`, request);
   }
 
   if (qualified && resolveSlug(base, archive.slugMap)) {
-    return Response.redirect(new URL(`/descargas/${base}`, request.url), 301);
+    return redirectTo(`/descargas/${base}`, request);
   }
 
-  return Response.redirect(new URL("/descargas", request.url), 301);
+  return redirectTo("/descargas", request);
 }
