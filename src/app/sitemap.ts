@@ -21,6 +21,8 @@ const staticRoutes: Array<{
   { url: "/contacto", changeFrequency: "monthly", priority: 0.7 },
 ];
 
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${SITE_URL}${route.url}`,
@@ -29,9 +31,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
+  let albumEntries: MetadataRoute.Sitemap = [];
   try {
     const archive = await getArchive();
-    const albumEntries: MetadataRoute.Sitemap = archive.posts
+    albumEntries = archive.posts
       .filter((post) => post.id && post.url)
       .map((post) => {
         let pathname = "";
@@ -50,42 +53,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         };
       })
       .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
-
-    let bandEntries: MetadataRoute.Sitemap = [];
-    try {
-      const seenSlugs = new Set<string>();
-      bandEntries = archive.bands
-        .map((band) => bandSlug(band.name))
-        .filter((slug) => {
-          if (seenSlugs.has(slug)) return false;
-          seenSlugs.add(slug);
-          return true;
-        })
-        .map((slug) => ({
-          url: `${SITE_URL}/descargas/banda/${slug}`,
-          lastModified: new Date(),
-          changeFrequency: "monthly" as const,
-          priority: 0.4,
-        }));
-    } catch {
-      bandEntries = [];
-    }
-
-    let productEntries: MetadataRoute.Sitemap = [];
-    try {
-      const productos = await getProductosFiltrados();
-      productEntries = productos.map((p) => ({
-        url: `${SITE_URL}/tienda/${p.slug}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-      }));
-    } catch {
-      productEntries = [];
-    }
-
-    return [...entries, ...albumEntries, ...bandEntries, ...productEntries];
   } catch {
-    return entries;
+    albumEntries = [];
   }
+
+  let bandEntries: MetadataRoute.Sitemap = [];
+  try {
+    const archive = await getArchive();
+    const seenSlugs = new Set<string>();
+    bandEntries = archive.bands
+      .map((band) => bandSlug(band.name))
+      .filter((slug) => {
+        if (seenSlugs.has(slug)) return false;
+        seenSlugs.add(slug);
+        return true;
+      })
+      .map((slug) => ({
+        url: `${SITE_URL}/descargas/banda/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
+      }));
+  } catch {
+    bandEntries = [];
+  }
+
+  let productEntries: MetadataRoute.Sitemap = [];
+  try {
+    const productos = await getProductosFiltrados();
+    productEntries = productos.map((p) => ({
+      url: `${SITE_URL}/tienda/${p.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    productEntries = [];
+  }
+
+  return [...entries, ...albumEntries, ...bandEntries, ...productEntries];
 }
