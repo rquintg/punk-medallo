@@ -5,7 +5,7 @@ import { parseCaptionEventos, esProximoEvento } from "@/features/eventos/parse-c
 import { formatearFecha, formatearPrecio } from "@/features/eventos/format";
 import type { Evento } from "@/features/eventos/types";
 
-export const revalidate = 600;
+export const revalidate = 120;
 
 const SITE_URL = "https://punkmedallo.com";
 const LOGO_OG = `${SITE_URL}/logo_punk_medallo.jpg`;

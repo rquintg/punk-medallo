@@ -64,23 +64,42 @@ interface FechaParseada {
 
 function parsearFecha(linea: string, referencia: Date): FechaParseada | null {
   const texto = normalizarTexto(linea);
-  const match = texto.match(
-    new RegExp(
-      `(${[...DIAS_SEMANA].join("|")})\\s+(\\d{1,2})\\s+(?:de\\s+)?([a-zñ]+)\\s*[-–—.,]?\\s*(\\d{4})?`,
-      "i"
-    )
-  );
-  if (!match) return null;
+  const dias = [...DIAS_SEMANA].join("|");
+  const meses = Object.keys(MESES).join("|");
+  const anioPatron = "(?:[-–—.,]?\\s*(\\d{4}))?";
 
-  const dia = parseInt(match[2], 10);
-  const mes = MESES[match[3]];
+  const patrones: {
+    re: RegExp;
+    idxDia: number;
+    idxMes: number;
+    idxAnio: number;
+  }[] = [
+    { re: new RegExp(`(${dias})\\s+(\\d{1,2})\\s+(?:de\\s+)?(${meses})\\s*${anioPatron}`, "i"), idxDia: 2, idxMes: 3, idxAnio: 4 },
+    { re: new RegExp(`fecha\\s*:?\\s*(\\d{1,2})\\s+(?:de\\s+)?(${meses})\\s*${anioPatron}`, "i"), idxDia: 1, idxMes: 2, idxAnio: 3 },
+    { re: new RegExp(`fecha\\s*:?\\s*(${meses})\\s+(\\d{1,2})\\s*${anioPatron}`, "i"), idxDia: 2, idxMes: 1, idxAnio: 3 },
+  ];
+
+  let match: RegExpMatchArray | null = null;
+  let pat: (typeof patrones)[number] | null = null;
+  for (const p of patrones) {
+    match = texto.match(p.re);
+    if (match) {
+      pat = p;
+      break;
+    }
+  }
+  if (!match || !pat) return null;
+
+  const dia = parseInt(match[pat.idxDia], 10);
+  const mes = MESES[match[pat.idxMes]];
   if (!mes || dia < 1 || dia > 31) return null;
 
-  let anio = match[4] ? parseInt(match[4], 10) : referencia.getFullYear();
+  const anioExplicito = match[pat.idxAnio];
+  let anio = anioExplicito ? parseInt(anioExplicito, 10) : referencia.getFullYear();
   if (anio < 100) anio += 2000;
 
   const fecha = new Date(anio, mes - 1, dia);
-  if (!match[4]) {
+  if (!anioExplicito) {
     const limite = new Date(referencia.getTime() - 45 * 24 * 60 * 60 * 1000);
     if (fecha.getTime() < limite.getTime()) {
       anio += 1;

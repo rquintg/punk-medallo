@@ -18,7 +18,7 @@ export default function useEventos(initialEventos: Evento[] = []) {
       const json = await res.json();
       return json.eventos || [];
     },
-    staleTime: 600_000,
+    staleTime: 120_000,
     initialData: initialEventos,
   });
 
