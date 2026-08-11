@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Trash2, Upload, Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { subirImagen, eliminarImagen, actualizarAltImagen, actualizarColorImagen } from '@/features/admin/actions/productos'
+import { confirmDialog } from '@/components/admin/confirm-dialog'
 import type { ProductoImagen } from '@/features/admin/services/productos'
 
 interface Props {
@@ -24,6 +25,16 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = e.currentTarget
+    const file = (form.elements.namedItem('file') as HTMLInputElement)?.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 5 MB')
+      return
+    }
     const fd = new FormData(form)
     setUploading(true)
     try {
@@ -40,26 +51,8 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
   }
 
   async function handleDelete(imagenId: string, url: string) {
-    const confirmed = await new Promise<boolean>((resolve) => {
-      toast.custom((t) => (
-        <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-4 shadow-xl">
-          <p className="text-sm text-[var(--admin-text)] mb-4">¿Eliminar esta imagen?</p>
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => { resolve(false); toast.dismiss(t) }}
-              className="btn-secondary text-xs"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={() => { resolve(true); toast.dismiss(t) }}
-              className="btn-primary text-xs"
-            >
-              Eliminar
-            </button>
-          </div>
-        </div>
-      ), { duration: Infinity })
+    const confirmed = await confirmDialog({
+      message: '¿Eliminar esta imagen? Esta acción no se puede deshacer.',
     })
     if (!confirmed) return
     try {

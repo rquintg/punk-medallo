@@ -13,6 +13,7 @@ export type Permission =
   | 'delete_products'
   | 'view_orders'
   | 'update_order_status'
+  | 'delete_orders'
   | 'view_users'
   | 'manage_users'
 
@@ -25,6 +26,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'delete_products',
     'view_orders',
     'update_order_status',
+    'delete_orders',
     'view_users',
     'manage_users',
   ],
@@ -36,6 +38,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'delete_products',
     'view_orders',
     'update_order_status',
+    'delete_orders',
   ],
   publicador: [
     'view_dashboard',

@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -10,6 +8,7 @@ import { toast } from 'sonner'
 import DataTable from '@/components/admin/data-table'
 import type { Column } from '@/components/admin/data-table'
 import StatusBadge from '@/components/admin/status-badge'
+import { confirmDialog } from '@/components/admin/confirm-dialog'
 import { deleteProducto } from '@/features/admin/actions/productos'
 import type { ProductoRow } from '@/features/admin/services/productos'
 
@@ -127,26 +126,8 @@ export default function ProductosTable({ data, total, page }: Props) {
   const router = useRouter()
 
   async function handleDelete(id: string) {
-    const confirmed = await new Promise<boolean>((resolve) => {
-      toast.custom((t) => (
-        <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-4 shadow-xl">
-          <p className="text-sm text-[var(--admin-text)] mb-4">¿Eliminar este producto? Esta acción no se puede deshacer.</p>
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => { resolve(false); toast.dismiss(t) }}
-              className="btn-secondary text-xs"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={() => { resolve(true); toast.dismiss(t) }}
-              className="btn-primary text-xs"
-            >
-              Eliminar
-            </button>
-          </div>
-        </div>
-      ), { duration: Infinity })
+    const confirmed = await confirmDialog({
+      message: '¿Eliminar este producto? Esta acción no se puede deshacer.',
     })
     if (!confirmed) return
     try {

@@ -3,11 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getSupabaseAdmin } from '../services/supabase-admin'
+import { requirePermissionAction } from '../utils/auth-server'
 import { sendOrderPreparing, sendOrderShipped, sendOrderDelivered } from '@/lib/email'
 
 const EMAIL_ESTADOS = ['preparando', 'enviado', 'entregado']
 
 export async function actualizarEstadoOrden(numeroPedido: string, estado: string) {
+  await requirePermissionAction('update_order_status')
   const supabase = getSupabaseAdmin()
 
   const estadoNormalized = estado.toLowerCase()
@@ -32,9 +34,13 @@ export async function actualizarEstadoOrden(numeroPedido: string, estado: string
         orderNumber: orden.numero_pedido,
       }
 
-      if (estadoNormalized === 'preparando') sendOrderPreparing(emailData)
-      else if (estadoNormalized === 'enviado') sendOrderShipped(emailData)
-      else if (estadoNormalized === 'entregado') sendOrderDelivered(emailData)
+      try {
+        if (estadoNormalized === 'preparando') await sendOrderPreparing(emailData)
+        else if (estadoNormalized === 'enviado') await sendOrderShipped(emailData)
+        else if (estadoNormalized === 'entregado') await sendOrderDelivered(emailData)
+      } catch (emailError) {
+        console.error('Error enviando email de orden:', emailError)
+      }
     }
   }
 
@@ -43,6 +49,7 @@ export async function actualizarEstadoOrden(numeroPedido: string, estado: string
 }
 
 export async function deleteOrden(numeroPedido: string) {
+  await requirePermissionAction('delete_orders')
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('pedidos') as any)

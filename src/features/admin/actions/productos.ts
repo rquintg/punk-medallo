@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
+import { requirePermissionAction } from '../utils/auth-server'
 
 function genSlug(text: string) {
   return text
@@ -11,6 +12,7 @@ function genSlug(text: string) {
 }
 
 export async function createProducto(formData: FormData) {
+  await requirePermissionAction('create_products')
   const supabase = getSupabaseAdmin()
 
   const nombre = formData.get('nombre') as string
@@ -45,10 +47,13 @@ export async function createProducto(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda', 'layout')
+  revalidatePath('/', 'layout')
   return data.id
 }
 
 export async function updateProducto(id: string, formData: FormData) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const nombre = formData.get('nombre') as string
@@ -85,9 +90,12 @@ export async function updateProducto(id: string, formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda', 'layout')
+  revalidatePath('/', 'layout')
 }
 
 export async function deleteProducto(id: string) {
+  await requirePermissionAction('delete_products')
   const supabase = getSupabaseAdmin()
 
   const { data: imagenes } = await (supabase.from('producto_imagenes') as any)
@@ -105,6 +113,8 @@ export async function deleteProducto(id: string) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda', 'layout')
+  revalidatePath('/', 'layout')
 }
 
 function storagePathFromUrl(url: string): string {
@@ -113,6 +123,7 @@ function storagePathFromUrl(url: string): string {
 }
 
 export async function subirImagen(productoId: string, slug: string, formData: FormData) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const file = formData.get('file') as File | null
@@ -120,6 +131,12 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
   const color = (formData.get('color') as string) || null
 
   if (!file || file.size === 0) throw new Error('Archivo requerido')
+  if (file.type && !file.type.startsWith('image/')) {
+    throw new Error('Solo se permiten archivos de imagen')
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('La imagen no puede superar 5 MB')
+  }
 
   const ext = file.name.split('.').pop()
   const path = `${slug}/${crypto.randomUUID()}.${ext}`
@@ -157,9 +174,12 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
 
   revalidatePath(`/admin/productos/${productoId}`)
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/', 'layout')
 }
 
 export async function eliminarImagen(imagenId: string, url: string) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const path = storagePathFromUrl(url)
@@ -174,9 +194,12 @@ export async function eliminarImagen(imagenId: string, url: string) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/', 'layout')
 }
 
 export async function actualizarAltImagen(imagenId: string, alt: string) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('producto_imagenes') as any)
@@ -186,9 +209,12 @@ export async function actualizarAltImagen(imagenId: string, alt: string) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/', 'layout')
 }
 
 export async function actualizarColorImagen(imagenId: string, color: string | null) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('producto_imagenes') as any)
@@ -198,4 +224,6 @@ export async function actualizarColorImagen(imagenId: string, color: string | nu
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/', 'layout')
 }

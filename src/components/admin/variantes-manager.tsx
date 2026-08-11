@@ -3,7 +3,7 @@
 import { useOptimistic, useRef, startTransition, useState } from 'react'
 import { Plus, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
-import { createVariante, updateVariante, deleteVariante } from '@/features/admin/actions/variantes'
+import { createVariante, updateVariante, deleteVariante, type VarianteInput } from '@/features/admin/actions/variantes'
 import type { VarianteRow } from '@/features/admin/services/variantes'
 
 interface Props {
@@ -18,6 +18,15 @@ type Action =
   | { type: 'add'; variant: VarianteRow }
   | { type: 'update'; id: string; data: Partial<VarianteRow> }
   | { type: 'delete'; id: string }
+
+function parseVariantInput(formData: FormData): VarianteInput {
+  return {
+    talla: (formData.get('talla') as string) || null,
+    color: (formData.get('color') as string) || null,
+    stock: Number(formData.get('stock')) || 0,
+    sku: (formData.get('sku') as string) || null,
+  }
+}
 
 export default function VariantesManager({ productoId, initialVariants, coloresDisponibles }: Props) {
   const [optimisticVariants, dispatch] = useOptimistic(initialVariants, (state, action: Action) => {
@@ -39,40 +48,32 @@ export default function VariantesManager({ productoId, initialVariants, coloresD
 
   async function handleAdd(formData: FormData) {
     const tempId = `temp-${Date.now()}`
-    const talla = (formData.get('talla') as string) || null
-    const color = (formData.get('color') as string) || null
-    const stock = Number(formData.get('stock')) || 0
-    const sku = (formData.get('sku') as string) || null
+    const data = parseVariantInput(formData)
 
     startTransition(() => {
       dispatch({
         type: 'add',
-        variant: { id: tempId, producto_id: productoId, talla, color, stock, sku },
+        variant: { id: tempId, producto_id: productoId, ...data },
       })
     })
 
     formRef.current?.reset()
 
     try {
-      await createVariante(productoId, formData)
+      await createVariante(productoId, data)
     } catch (e) {
       startTransition(() => dispatch({ type: 'delete', id: tempId }))
       toast.error(e instanceof Error ? e.message : 'Error al crear variante')
     }
   }
 
-  async function handleUpdate(id: string, formData: FormData) {
-    const talla = (formData.get('talla') as string) || null
-    const color = (formData.get('color') as string) || null
-    const stock = Number(formData.get('stock')) || 0
-    const sku = (formData.get('sku') as string) || null
-
+  async function handleUpdate(id: string, data: VarianteInput) {
     startTransition(() => {
-      dispatch({ type: 'update', id, data: { talla, color, stock, sku } })
+      dispatch({ type: 'update', id, data })
     })
 
     try {
-      await updateVariante(id, formData)
+      await updateVariante(id, data)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error al actualizar')
     }
@@ -169,21 +170,27 @@ function VarianteRow({
   coloresDisponibles,
 }: {
   variant: VarianteRow
-  onSave: (id: string, formData: FormData) => Promise<void>
+  onSave: (id: string, data: VarianteInput) => Promise<void>
   onDelete: (id: string) => Promise<void>
   coloresDisponibles: string[]
 }) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [form, setForm] = useState<VarianteInput>({
+    talla: variant.talla,
+    color: variant.color,
+    stock: variant.stock,
+    sku: variant.sku,
+  })
 
   if (editing) {
     return (
       <tr className="border-b border-[var(--admin-card-border)]">
         <td className="px-3 py-1.5">
           <select
-            name="color"
-            defaultValue={variant.color ?? ''}
+            aria-label="Color de la variante"
+            value={form.color ?? ''}
+            onChange={(e) => setForm({ ...form, color: e.target.value || null })}
             className="input text-xs py-1.5 px-2"
           >
             <option value="">—</option>
@@ -194,8 +201,9 @@ function VarianteRow({
         </td>
         <td className="px-3 py-1.5">
           <select
-            name="talla"
-            defaultValue={variant.talla ?? ''}
+            aria-label="Talla de la variante"
+            value={form.talla ?? ''}
+            onChange={(e) => setForm({ ...form, talla: e.target.value || null })}
             className="input text-xs py-1.5 px-2"
           >
             <option value="">—</option>
@@ -206,17 +214,19 @@ function VarianteRow({
         </td>
         <td className="px-3 py-1.5">
           <input
-            name="stock"
+            aria-label="Stock de la variante"
             type="number"
             min={0}
-            defaultValue={variant.stock}
+            value={form.stock}
+            onChange={(e) => setForm({ ...form, stock: Number(e.target.value) || 0 })}
             className="input text-xs py-1.5 px-2 w-20"
           />
         </td>
         <td className="px-3 py-1.5">
           <input
-            name="sku"
-            defaultValue={variant.sku ?? ''}
+            aria-label="SKU de la variante"
+            value={form.sku ?? ''}
+            onChange={(e) => setForm({ ...form, sku: e.target.value || null })}
             className="input text-xs py-1.5 px-2 w-24"
           />
         </td>
@@ -226,10 +236,12 @@ function VarianteRow({
               type="button"
               onClick={async () => {
                 setSaving(true)
-                const form = formRef.current!
-                await onSave(variant.id, new FormData(form))
-                setSaving(false)
-                setEditing(false)
+                try {
+                  await onSave(variant.id, form)
+                } finally {
+                  setSaving(false)
+                  setEditing(false)
+                }
               }}
               disabled={saving}
               className="text-xs text-[var(--admin-accent)] hover:underline"
@@ -264,6 +276,7 @@ function VarianteRow({
           <button
             type="button"
             onClick={() => setEditing(true)}
+            aria-label={`Editar variante ${variant.talla ?? 'sin talla'} ${variant.color ?? ''}`}
             className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors p-1"
           >
             <Pencil size={14} />
@@ -271,6 +284,7 @@ function VarianteRow({
           <button
             type="button"
             onClick={() => onDelete(variant.id)}
+            aria-label={`Eliminar variante ${variant.talla ?? 'sin talla'} ${variant.color ?? ''}`}
             className="text-[var(--admin-text-muted)] hover:text-red-400 transition-colors p-1"
           >
             <Trash2 size={14} />

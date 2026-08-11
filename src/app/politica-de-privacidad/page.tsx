@@ -229,7 +229,11 @@ export default function PoliticaDePrivacidad() {
       </div>
 
       <p className="mt-10 text-xs text-neutral-600">
-        Preguntas sobre esta política: usa nuestra página de{" "}
+        Consulta también nuestra{" "}
+        <Link href="/politica-de-cambios" className="text-[#dc2626] underline underline-offset-2">
+          política de cambios
+        </Link>
+        . Preguntas sobre esta política: usa nuestra página de{" "}
         <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
           contacto
         </Link>

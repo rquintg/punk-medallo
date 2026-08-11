@@ -6,6 +6,7 @@ import ImagenesManager from '@/components/admin/imagenes-manager'
 import { getProductoById } from '@/features/admin/services/productos'
 import { getCategorias } from '@/features/admin/services/categorias'
 import { getVariantesByProducto } from '@/features/admin/services/variantes'
+import { requirePermission } from '@/features/admin/utils/auth-server'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -13,6 +14,8 @@ interface Props {
 
 export default async function EditarProductoPage({ params }: Props) {
   const { id } = await params
+  await requirePermission('edit_products')
+
   const producto = await getProductoById(id)
   const categorias = await getCategorias()
 

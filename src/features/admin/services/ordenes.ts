@@ -87,19 +87,3 @@ export async function getOrdenByNumero(numero: string): Promise<OrdenDetalle | n
 
   return (data as OrdenDetalle) ?? null
 }
-
-export async function getEstadosDisponibles(): Promise<string[]> {
-  const supabase = getSupabaseAdmin()
-  const { data, error } = await supabase
-    .from('pedidos')
-    .select('estado')
-    .not('estado', 'eq', 'cancelado')
-
-  if (error) {
-    console.error('getEstadosDisponibles error:', error)
-    return []
-  }
-
-  const estados = [...new Set((data as unknown as { estado: string }[])?.map((d) => d.estado) ?? [])]
-  return estados.sort()
-}

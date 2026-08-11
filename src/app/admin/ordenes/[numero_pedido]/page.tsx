@@ -1,11 +1,13 @@
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import AdminHeader from '@/components/admin/admin-header'
 import StatusBadge from '@/components/admin/status-badge'
 import { getOrdenByNumero } from '@/features/admin/services/ordenes'
-import { actualizarEstadoOrden, deleteOrden } from '@/features/admin/actions/ordenes'
-import { getProductoImageUrl } from '@/lib/supabase-storage'
+import { actualizarEstadoOrden } from '@/features/admin/actions/ordenes'
+import { requirePermission } from '@/features/admin/utils/auth-server'
+import { can } from '@/features/admin/utils/permissions'
+import EliminarOrdenButton from './eliminar-orden-button'
 
 interface Props {
   params: Promise<{ numero_pedido: string }>
@@ -19,16 +21,20 @@ const TRANSICIONES: Record<string, string[]> = {
   entregado: [],
   rechazado: [],
   cancelado: [],
-  pagado: ['enviado'],
   anulado: [],
   error: [],
 }
 
 export default async function OrdenDetallePage({ params }: Props) {
   const { numero_pedido } = await params
+  const rol = await requirePermission('view_orders')
+
   const orden = await getOrdenByNumero(numero_pedido)
 
   if (!orden) notFound()
+
+  const puedeActualizarEstado = can(rol, 'update_order_status')
+  const puedeEliminar = can(rol, 'delete_orders')
 
   return (
     <>
@@ -57,17 +63,25 @@ export default async function OrdenDetallePage({ params }: Props) {
               )}
               {orden.pedido_items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4">
-                  <img
-                    src={getProductoImageUrl(item.productos?.slug ?? '')}
-                    alt={item.productos?.nombre ?? ''}
-                    className="w-14 h-14 rounded-lg object-cover bg-[var(--admin-hover)]"
-                  />
+                  {item.imagen_url ? (
+                    <img
+                      src={item.imagen_url}
+                      alt={item.nombre}
+                      className="w-14 h-14 rounded-lg object-cover bg-[var(--admin-hover)]"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-[var(--admin-hover)] flex items-center justify-center text-[var(--admin-text-dim)] text-xs">
+                      Sin img
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--admin-text)] truncate">
-                      {item.productos?.nombre ?? 'Producto eliminado'}
+                      {item.productos?.nombre ?? item.nombre}
                     </p>
                     <p className="text-xs text-[var(--admin-text-dim)]">
                       {item.cantidad} × ${item.precio.toLocaleString('es-CO')}
+                      {item.talla ? ` · Talla ${item.talla}` : ''}
+                      {item.color ? ` · ${item.color}` : ''}
                     </p>
                   </div>
                   <p className="text-sm font-medium text-[var(--admin-text)]">
@@ -104,10 +118,13 @@ export default async function OrdenDetallePage({ params }: Props) {
             <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-4">Actualizar estado</h2>
             <div className="flex items-center gap-3 flex-wrap">
               <StatusBadge status={orden.estado} />
-              {TRANSICIONES[orden.estado.toLowerCase()]?.length === 0 && (
+              {!puedeActualizarEstado && (
+                <span className="text-xs text-[var(--admin-text-dim)]">Sin permisos para cambiar estado</span>
+              )}
+              {TRANSICIONES[orden.estado.toLowerCase()]?.length === 0 && puedeActualizarEstado && (
                 <span className="text-sm text-[var(--admin-text-dim)]">Estado final</span>
               )}
-              {TRANSICIONES[orden.estado.toLowerCase()]?.map((estado) => (
+              {puedeActualizarEstado && TRANSICIONES[orden.estado.toLowerCase()]?.map((estado) => (
                 <form key={estado} action={async () => {
                   'use server'
                   await actualizarEstadoOrden(orden.numero_pedido, estado)
@@ -123,18 +140,7 @@ export default async function OrdenDetallePage({ params }: Props) {
             </div>
           </div>
 
-          <form action={async () => {
-            'use server'
-            await deleteOrden(orden.numero_pedido)
-          }}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors"
-            >
-              <Trash2 size={16} />
-              Eliminar orden
-            </button>
-          </form>
+          {puedeEliminar && <EliminarOrdenButton numeroPedido={orden.numero_pedido} />}
         </div>
 
         <div className="space-y-6">

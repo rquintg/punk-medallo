@@ -70,9 +70,9 @@ export default function DataTable<T extends { id?: string | number }>({
               </tr>
             )}
             {!loading &&
-              data.map((item) => (
+              data.map((item, index) => (
                 <tr
-                  key={item.id ?? Math.random()}
+                  key={item.id ?? index}
                   onClick={() => onRowClick?.(item)}
                   className={`border-b border-[var(--admin-card-border)] transition-colors ${
                     onRowClick ? 'cursor-pointer' : ''

@@ -19,6 +19,7 @@ interface CheckoutRequest {
     ciudad: string
     barrio: string
     notas: string
+    aceptaPoliticas?: boolean
   }
   items: CartItem[]
 }
@@ -99,6 +100,14 @@ export async function POST(request: NextRequest) {
     if (!rawShipping.nombre || !rawShipping.email || !rawShipping.telefono || !rawShipping.direccion || !rawShipping.departamento || !rawShipping.ciudad) {
       return respond(
         { error: 'Completa todos los campos del formulario' },
+        { status: 400 },
+      )
+    }
+
+    if (rawShipping.aceptaPoliticas !== true) {
+      logger.warn('Checkout: políticas no aceptadas', { requestId: rid })
+      return respond(
+        { error: 'Debes aceptar las políticas de cambios y privacidad' },
         { status: 400 },
       )
     }
@@ -228,6 +237,7 @@ export async function POST(request: NextRequest) {
         notas: shipping.notas,
         total: totalConEnvio,
         envio,
+        acepta_politicas: true,
         estado: 'pendiente',
       })
       .select('id, numero_pedido, created_at')

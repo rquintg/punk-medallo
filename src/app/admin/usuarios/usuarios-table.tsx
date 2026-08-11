@@ -3,6 +3,7 @@
 import DataTable from '@/components/admin/data-table'
 import type { Column } from '@/components/admin/data-table'
 import StatusBadge from '@/components/admin/status-badge'
+import { can } from '@/features/admin/utils/permissions'
 import type { UsuarioRow } from '@/features/admin/services/usuarios'
 import AccionesUsuario from './acciones-usuario'
 
@@ -49,9 +50,11 @@ const columns: Column<UsuarioRow>[] = [
 ]
 
 export default function UsuariosTable({ data, total, page, currentRol, userId }: Props) {
+  const puedeGestionar = can(currentRol, 'manage_users')
+
   const allColumns: Column<UsuarioRow>[] = [
     ...columns,
-    ...(currentRol === 'super_admin'
+    ...(puedeGestionar
       ? [
           {
             key: 'acciones' as const,

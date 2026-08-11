@@ -49,6 +49,38 @@ export function productJsonLd(product: {
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       url: `${TIENDA_URL}/${product.slug}`,
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'CO',
+        },
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: 10000,
+          currency: 'COP',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 2,
+            maxValue: 5,
+            unitCode: 'DAY',
+          },
+        },
+      },
+    },
+    merchantReturnPolicy: {
+      '@type': 'MerchantReturnPolicy',
+      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+      merchantReturnLink: `${SITE_URL}/politica-de-cambios`,
     },
   };
 }

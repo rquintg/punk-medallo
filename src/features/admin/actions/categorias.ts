@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
+import { requirePermissionAction } from '../utils/auth-server'
 
 function slugify(text: string) {
   return text
@@ -11,6 +12,7 @@ function slugify(text: string) {
 }
 
 export async function createCategoria(formData: FormData) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
   const slug = (formData.get('slug') as string) || slugify(nombre)
@@ -23,13 +25,19 @@ export async function createCategoria(formData: FormData) {
 }
 
 export async function updateCategoria(id: string, formData: FormData) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
-  const slug = slugify(nombre)
   const descripcion = (formData.get('descripcion') as string) || null
 
+  const patch: Record<string, unknown> = { nombre, descripcion }
+  const slug = ((formData.get('slug') as string) || '').trim()
+  if (slug) {
+    patch.slug = slug
+  }
+
   const { error } = await (supabase.from('categorias') as any)
-    .update({ nombre, slug, descripcion })
+    .update(patch)
     .eq('id', id)
   if (error) throw new Error(error.message)
 
@@ -37,6 +45,7 @@ export async function updateCategoria(id: string, formData: FormData) {
 }
 
 export async function deleteCategoria(id: string) {
+  await requirePermissionAction('delete_products')
   const supabase = getSupabaseAdmin()
 
   const { count } = await (supabase.from('productos') as any)

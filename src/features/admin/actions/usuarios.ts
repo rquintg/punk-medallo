@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
+import { requirePermissionAction } from '../utils/auth-server'
 
 export async function actualizarRolUsuario(userId: string, rol: string) {
+  await requirePermissionAction('manage_users')
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('perfiles') as any)
@@ -16,6 +18,7 @@ export async function actualizarRolUsuario(userId: string, rol: string) {
 }
 
 export async function eliminarUsuario(userId: string) {
+  await requirePermissionAction('manage_users')
   const supabase = getSupabaseAdmin()
 
   const { error } = await supabase.auth.admin.deleteUser(userId)

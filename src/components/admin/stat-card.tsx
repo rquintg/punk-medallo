@@ -5,6 +5,7 @@ interface StatCardProps {
   value: string | number
   icon: LucideIcon
   color: 'red' | 'blue' | 'amber' | 'green'
+  money?: boolean
 }
 
 const COLORS = {
@@ -14,14 +15,14 @@ const COLORS = {
   green: 'bg-green-500/10 text-green-400',
 }
 
-export default function StatCard({ label, value, icon: Icon, color }: StatCardProps) {
+export default function StatCard({ label, value, icon: Icon, color, money = false }: StatCardProps) {
   return (
     <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-[var(--admin-text-muted)]">{label}</p>
           <p className="text-3xl font-bold text-[var(--admin-text)] mt-1">
-            {typeof value === 'number' && label.toLowerCase().includes('ingreso')
+            {money && typeof value === 'number'
               ? `$${value.toLocaleString('es-CO')}`
               : value}
           </p>

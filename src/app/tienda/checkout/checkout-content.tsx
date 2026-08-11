@@ -79,6 +79,8 @@ export default function CheckoutContent() {
     barrio: '',
     notas: '',
   })
+  const [aceptaCambios, setAceptaCambios] = useState(false)
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -90,6 +92,11 @@ export default function CheckoutContent() {
 
     if (!form.nombre || !form.email || !form.telefono || !form.direccion || !form.departamento || !form.ciudad) {
       toast.error('Completa todos los campos del formulario')
+      return
+    }
+
+    if (!aceptaCambios || !aceptaPrivacidad) {
+      toast.error('Debes aceptar las políticas de cambios y privacidad')
       return
     }
 
@@ -111,6 +118,7 @@ export default function CheckoutContent() {
         ciudad: form.ciudad,
         barrio: form.barrio,
         notas: form.notas,
+        aceptaPoliticas: true,
       }
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -278,9 +286,53 @@ export default function CheckoutContent() {
               />
             </div>
 
+            <div className="flex flex-col gap-3">
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                <input
+                  type="checkbox"
+                  checked={aceptaCambios}
+                  onChange={(e) => setAceptaCambios(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                />
+                <span>
+                  Acepto la{" "}
+                  <Link
+                    href="/politica-de-cambios"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-500 underline underline-offset-2 hover:text-red-400"
+                  >
+                    política de cambios
+                  </Link>{" "}
+                  (cambio exclusivo por talla, sin devolución, plazo de 7 días, con
+                  envíos a cargo del comprador). *
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                <input
+                  type="checkbox"
+                  checked={aceptaPrivacidad}
+                  onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                />
+                <span>
+                  Acepto la{" "}
+                  <Link
+                    href="/politica-de-privacidad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-500 underline underline-offset-2 hover:text-red-400"
+                  >
+                    política de privacidad
+                  </Link>{" "}
+                  y el tratamiento de mis datos personales. *
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading || items.length === 0}
+              disabled={loading || items.length === 0 || !aceptaCambios || !aceptaPrivacidad}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Pencil, Trash2, Plus, X, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createCategoria, updateCategoria, deleteCategoria } from '@/features/admin/actions/categorias'
+import { confirmDialog } from '@/components/admin/confirm-dialog'
 import type { CategoriaRow } from '@/features/admin/services/categorias'
 
 export function NuevaCategoriaForm() {
@@ -74,7 +75,10 @@ export default function AccionesCategoria({ categoria }: { categoria: CategoriaR
   }
 
   async function handleDelete() {
-    if (!confirm(`¿Eliminar categoría "${categoria.nombre}"?`)) return
+    const confirmed = await confirmDialog({
+      message: `¿Eliminar la categoría "${categoria.nombre}"?`,
+    })
+    if (!confirmed) return
     try {
       await deleteCategoria(categoria.id)
       toast.success('Categoría eliminada')

@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { actualizarRolUsuario, eliminarUsuario } from '@/features/admin/actions/usuarios'
+import { confirmDialog } from '@/components/admin/confirm-dialog'
 import type { UsuarioRow } from '@/features/admin/services/usuarios'
 
 interface Props {
@@ -14,6 +16,7 @@ const ROLES = ['cliente', 'publicador', 'admin', 'super_admin']
 
 export default function AccionesUsuario({ usuario, isSelf }: Props) {
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   async function cambiarRol(e: React.ChangeEvent<HTMLSelectElement>) {
     setSaving(true)
@@ -28,12 +31,18 @@ export default function AccionesUsuario({ usuario, isSelf }: Props) {
   }
 
   async function eliminar() {
-    if (!confirm(`¿Eliminar usuario ${usuario.email}?`)) return
+    const confirmed = await confirmDialog({
+      message: `¿Eliminar el usuario ${usuario.email}? Esta acción no se puede deshacer.`,
+    })
+    if (!confirmed) return
+    setDeleting(true)
     try {
       await eliminarUsuario(usuario.id)
       toast.success('Usuario eliminado')
     } catch {
       toast.error('Error al eliminar usuario')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -54,8 +63,11 @@ export default function AccionesUsuario({ usuario, isSelf }: Props) {
       {!isSelf && (
         <button
           onClick={eliminar}
-          className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+          disabled={deleting}
+          className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors disabled:opacity-50"
+          aria-label={`Eliminar usuario ${usuario.email}`}
         >
+          {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
           Eliminar
         </button>
       )}

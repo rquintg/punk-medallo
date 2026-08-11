@@ -2,21 +2,25 @@
 
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
+import { requirePermissionAction } from '../utils/auth-server'
 
-export async function createVariante(productoId: string, formData: FormData) {
+export interface VarianteInput {
+  talla: string | null
+  color: string | null
+  stock: number
+  sku: string | null
+}
+
+export async function createVariante(productoId: string, data: VarianteInput) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
-
-  const talla = (formData.get('talla') as string) || null
-  const color = (formData.get('color') as string) || null
-  const stock = Number(formData.get('stock'))
-  const sku = (formData.get('sku') as string) || null
 
   const { error } = await (supabase.from('producto_variantes') as any).insert({
     producto_id: productoId,
-    talla,
-    color,
-    stock,
-    sku,
+    talla: data.talla,
+    color: data.color,
+    stock: data.stock,
+    sku: data.sku,
   })
 
   if (error) throw new Error(error.message)
@@ -24,16 +28,12 @@ export async function createVariante(productoId: string, formData: FormData) {
   revalidatePath(`/admin/productos/${productoId}`)
 }
 
-export async function updateVariante(id: string, formData: FormData) {
+export async function updateVariante(id: string, data: VarianteInput) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
-  const talla = (formData.get('talla') as string) || null
-  const color = (formData.get('color') as string) || null
-  const stock = Number(formData.get('stock'))
-  const sku = (formData.get('sku') as string) || null
-
   const { error } = await (supabase.from('producto_variantes') as any)
-    .update({ talla, color, stock, sku })
+    .update({ talla: data.talla, color: data.color, stock: data.stock, sku: data.sku })
     .eq('id', id)
 
   if (error) throw new Error(error.message)
@@ -47,6 +47,7 @@ export async function updateVariante(id: string, formData: FormData) {
 }
 
 export async function deleteVariante(id: string) {
+  await requirePermissionAction('edit_products')
   const supabase = getSupabaseAdmin()
 
   const { data: v } = await (supabase.from('producto_variantes') as any)

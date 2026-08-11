@@ -43,11 +43,15 @@ export async function getUsuarios(page: number, pageSize = 20): Promise<Usuarios
   }
 
   return {
-    data: rows.map((r) => ({
-      ...r,
-      email: emailMap.get(r.id) ?? '',
-      created_at: createdMap.get(r.id) ?? r.created_at ?? '',
-    })),
+    data: rows
+      .map((r) => ({
+        ...r,
+        email: emailMap.get(r.id) ?? '',
+        created_at: createdMap.get(r.id) ?? r.created_at ?? '',
+      }))
+      .sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
     total: count ?? 0,
   }
 }

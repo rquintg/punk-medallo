@@ -2,7 +2,20 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-const ESTADOS = ['', 'pendiente', 'aprobado', 'preparando', 'enviado', 'entregado', 'rechazado', 'cancelado']
+const ESTADOS = ['', 'pendiente', 'aprobado', 'preparando', 'enviado', 'entregado', 'rechazado', 'cancelado', 'anulado', 'error']
+
+const LABELS: Record<string, string> = {
+  '': 'Todas',
+  pendiente: 'Pendiente',
+  aprobado: 'Aprobado',
+  preparando: 'En preparación',
+  enviado: 'Enviado',
+  entregado: 'Entregado',
+  rechazado: 'Rechazado',
+  cancelado: 'Cancelado',
+  anulado: 'Anulado',
+  error: 'Error',
+}
 
 export default function FiltroEstado() {
   const pathname = usePathname()
@@ -27,13 +40,14 @@ export default function FiltroEstado() {
         <button
           key={estado}
           onClick={() => select(estado)}
+          aria-pressed={current === estado}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
             current === estado
               ? 'bg-[var(--admin-accent)] text-white'
               : 'bg-[var(--admin-card)] border border-[var(--admin-card-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-hover)]'
           }`}
         >
-          {estado || 'Todas'}
+          {LABELS[estado]}
         </button>
       ))}
     </div>

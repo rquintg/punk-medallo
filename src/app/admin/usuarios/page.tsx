@@ -1,5 +1,6 @@
 import AdminHeader from '@/components/admin/admin-header'
 import { getUsuarios } from '@/features/admin/services/usuarios'
+import { getRolActual, requirePermission } from '@/features/admin/utils/auth-server'
 import { createClient } from '@/lib/supabase/server'
 import UsuariosTable from './usuarios-table'
 
@@ -13,16 +14,12 @@ export default async function AdminUsuariosPage({ searchParams }: Props) {
   const { page: pageStr } = await searchParams
   const page = Math.max(1, Number(pageStr) || 1)
 
+  await requirePermission('view_users')
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: perfil } = await supabase
-    .from('perfiles')
-    .select('rol')
-    .eq('id', user?.id)
-    .single()
-
-  const currentRol = (perfil?.rol as string) ?? 'cliente'
+  const currentRol = await getRolActual()
 
   const { data, total } = await getUsuarios(page, PAGE_SIZE)
 

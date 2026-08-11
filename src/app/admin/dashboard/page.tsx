@@ -1,4 +1,4 @@
-import { DollarSign, ShoppingBag, Truck, AlertTriangle } from 'lucide-react'
+import { DollarSign, ShoppingBag, Truck, AlertTriangle, Ship, ShieldCheck } from 'lucide-react'
 import { getDashboardStats } from '@/features/admin/services/dashboard'
 import AdminHeader from '@/components/admin/admin-header'
 import StatCard from '@/components/admin/stat-card'
@@ -8,6 +8,10 @@ import Link from 'next/link'
 export default async function AdminDashboardPage() {
   const stats = await getDashboardStats()
 
+  const pctPoliticas = stats.totalPedidos > 0
+    ? Math.round((stats.politicasAceptadas / stats.totalPedidos) * 100)
+    : 0
+
   return (
     <>
       <AdminHeader
@@ -15,12 +19,13 @@ export default async function AdminDashboardPage() {
         description="Resumen general de la tienda"
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatCard
           label="Ingresos hoy"
           value={stats.ingresosHoy}
           icon={DollarSign}
           color="green"
+          money
         />
         <StatCard
           label="Órdenes hoy"
@@ -39,6 +44,19 @@ export default async function AdminDashboardPage() {
           value={stats.stockBajo}
           icon={AlertTriangle}
           color="red"
+        />
+        <StatCard
+          label="Envío recaudado hoy"
+          value={stats.envioHoy}
+          icon={Ship}
+          color="blue"
+          money
+        />
+        <StatCard
+          label="Políticas aceptadas"
+          value={`${pctPoliticas}%`}
+          icon={ShieldCheck}
+          color="green"
         />
       </div>
 
