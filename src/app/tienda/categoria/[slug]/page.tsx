@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import type { Genero, ProductoFilters, Talla } from '@/features/tienda/types';
 import {
   getProductosPage,
@@ -15,77 +15,77 @@ import CartDrawer from '@/components/tienda/cart-drawer';
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: 'Tienda',
-  description:
-    'Camisetas y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
-  openGraph: {
-    title: 'Tienda - Punk Medallo',
-    description:
-      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
-    url: TIENDA_URL,
-    type: 'website',
-    locale: 'es_CO',
-    siteName: 'Punk Medallo',
-    images: [
-      {
-        url: `${SITE_URL}/logo_punk_medallo.jpg`,
-        width: 1200,
-        height: 630,
-        type: 'image/jpeg',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Tienda - Punk Medallo',
-    description:
-      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
-    images: [`${SITE_URL}/logo_punk_medallo.jpg`],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: TIENDA_URL,
-  },
-};
-
-interface PageProps {
+interface CategoriaPageProps {
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function TiendaPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const categoriaId = (params.categoria_id as string) ?? '';
-  const genero = (params.genero as string) ?? '';
-  const talla = (params.talla as string) ?? '';
-  const precioKey = (params.precio as string) ?? '';
-  const sort = (params.sort as ProductoOrden) ?? 'relevancia';
-  const page = Math.max(1, Number(params.page) || 1);
-
+export async function generateStaticParams() {
   const categorias = await getCategorias();
+  return categorias.map((c) => ({ slug: c.slug }));
+}
 
-  if (categoriaId) {
-    const categoria = categorias.find((c) => c.id === categoriaId);
-    if (categoria) {
-      const url = new URL(`${TIENDA_URL}/categoria/${categoria.slug}`);
-      const keep = new URLSearchParams();
-      for (const [key, value] of Object.entries({
-        genero,
-        talla,
-        precio: precioKey,
-        sort,
-      })) {
-        if (value) keep.set(key, value);
-      }
-      const qs = keep.toString();
-      redirect(qs ? `${url.pathname}?${qs}` : url.pathname);
-    }
-  }
+export async function generateMetadata({
+  params,
+}: CategoriaPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const categorias = await getCategorias();
+  const categoria = categorias.find((c) => c.slug === slug);
+  if (!categoria) return {};
 
-  const filters: ProductoFilters = {}
+  const url = `${TIENDA_URL}/categoria/${categoria.slug}`;
+
+  return {
+    title: `${categoria.nombre} - Tienda`,
+    description: `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo. Merch oficial punk con envíos a toda Colombia.`,
+    openGraph: {
+      title: `${categoria.nombre} - Punk Medallo`,
+      description: `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo.`,
+      url,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: `${SITE_URL}/logo_punk_medallo.jpg`,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${categoria.nombre} - Punk Medallo`,
+      description: `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo.`,
+      images: [`${SITE_URL}/logo_punk_medallo.jpg`],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
+}
+
+export default async function CategoriaPage({
+  params,
+  searchParams,
+}: CategoriaPageProps) {
+  const [{ slug }, params2] = await Promise.all([params, searchParams]);
+  const categorias = await getCategorias();
+  const categoria = categorias.find((c) => c.slug === slug);
+  if (!categoria) notFound();
+
+  const genero = (params2.genero as string) ?? '';
+  const talla = (params2.talla as string) ?? '';
+  const precioKey = (params2.precio as string) ?? '';
+  const sort = (params2.sort as ProductoOrden) ?? 'relevancia';
+  const page = Math.max(1, Number(params2.page) || 1);
+
+  const filters: ProductoFilters = { categoria_id: categoria.id }
   if (genero) filters.genero = genero as Genero
   if (talla) filters.talla = talla as Talla
   const rangoPrecio = getRangoPrecio(precioKey)
@@ -105,7 +105,10 @@ export default async function TiendaPage({ searchParams }: PageProps) {
 
   const totalPages = Math.max(1, Math.ceil(pageData.total / PAGE_SIZE));
 
-  const breadcrumbSegments = [{ label: 'Tienda' }];
+  const breadcrumbSegments = [
+    { label: 'Tienda', href: TIENDA_URL },
+    { label: categoria.nombre },
+  ];
 
   const itemListJsonLd = {
     '@context': 'https://schema.org',
@@ -133,9 +136,12 @@ export default async function TiendaPage({ searchParams }: PageProps) {
 
       <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white md:text-4xl">Tienda</h1>
+          <h1 className="text-3xl font-bold text-white md:text-4xl">
+            {categoria.nombre}
+          </h1>
           <p className="mt-2 text-neutral-400">
-            Camisetas, accesorios y merch oficial de punk medallo.
+            {categoria.descripcion ||
+              `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo.`}
           </p>
         </div>
         <CartDrawer />
@@ -147,6 +153,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
         total={pageData.total}
         page={page}
         totalPages={totalPages}
+        activeCategoria={categoria.slug}
         hasFilters={hasFilters}
         destacados={destacados}
       />

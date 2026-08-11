@@ -32,13 +32,19 @@ export function NuevaCategoriaForm() {
   }
 
   return (
-    <form action={action} className="flex items-center gap-2">
+    <form action={action} className="flex flex-wrap items-center gap-2">
       <input
         name="nombre"
         placeholder="Nombre de la categoría"
         required
         className="input max-w-xs"
         autoFocus
+      />
+      <textarea
+        name="descripcion"
+        placeholder="Descripción (opcional)"
+        rows={1}
+        className="input max-w-xs"
       />
       <button type="submit" disabled={saving} className="btn-primary">
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
@@ -79,13 +85,20 @@ export default function AccionesCategoria({ categoria }: { categoria: CategoriaR
 
   if (editing) {
     return (
-      <form action={action} className="flex items-center gap-2 justify-end">
+      <form action={action} className="flex flex-wrap items-center gap-2 justify-end">
         <input
           name="nombre"
           defaultValue={categoria.nombre}
           required
           className="input text-xs py-1 px-2 max-w-[140px]"
           autoFocus
+        />
+        <textarea
+          name="descripcion"
+          defaultValue={categoria.descripcion ?? ''}
+          placeholder="Descripción (opcional)"
+          rows={1}
+          className="input text-xs py-1 px-2 max-w-[200px]"
         />
         <button type="submit" disabled={saving} className="text-xs text-[var(--admin-accent)] hover:underline">
           {saving ? '…' : 'Guardar'}

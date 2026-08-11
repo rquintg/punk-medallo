@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { departamentos, OTRO_DEPARTAMENTO, OTRA_CIUDAD } from '@/data/colombia'
 
 interface Props {
@@ -27,22 +27,30 @@ export default function CiudadDepartamentoSelect({
     [departamento],
   )
 
-  const isOtherDepto = !!departamento && !selectedDepto
-  const ciudades = selectedDepto ? selectedDepto.ciudades : []
-  const isOtherCiudad = !!ciudad && !ciudades.includes(ciudad)
+  const [deptoCustom, setDeptoCustom] = useState(false)
+  const [ciudadCustom, setCiudadCustom] = useState(false)
+
+  const ciudades = selectedDepto ? selectedDepto.ciudades : [OTRA_CIUDAD]
+  const isCustomDepto = deptoCustom || (!!departamento && !selectedDepto)
+  const isCustomCiudad = ciudadCustom || (!!ciudad && !ciudades.includes(ciudad))
 
   function handleSelectDepto(nombre: string) {
     if (nombre === OTRO_DEPARTAMENTO.nombre) {
+      setDeptoCustom(true)
       onDepartamentoChange('')
     } else {
+      setDeptoCustom(false)
       onDepartamentoChange(nombre)
     }
+    setCiudadCustom(false)
   }
 
   function handleSelectCiudad(val: string) {
     if (val === OTRA_CIUDAD) {
+      setCiudadCustom(true)
       onCiudadChange('')
     } else {
+      setCiudadCustom(false)
       onCiudadChange(val)
     }
   }
@@ -54,7 +62,7 @@ export default function CiudadDepartamentoSelect({
           Departamento *
         </label>
         <select
-          value={isOtherDepto ? OTRO_DEPARTAMENTO.nombre : departamento}
+          value={isCustomDepto ? OTRO_DEPARTAMENTO.nombre : departamento}
           onChange={(e) => handleSelectDepto(e.target.value)}
           className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-red-600"
         >
@@ -65,7 +73,7 @@ export default function CiudadDepartamentoSelect({
             </option>
           ))}
         </select>
-        {isOtherDepto && (
+        {isCustomDepto && (
           <input
             type="text"
             value={departamento}
@@ -84,7 +92,7 @@ export default function CiudadDepartamentoSelect({
           Ciudad *
         </label>
         <select
-          value={isOtherCiudad ? OTRA_CIUDAD : ciudad}
+          value={isCustomCiudad ? OTRA_CIUDAD : ciudad}
           onChange={(e) => handleSelectCiudad(e.target.value)}
           disabled={!departamento}
           className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-red-600 disabled:cursor-not-allowed disabled:opacity-50"
@@ -102,7 +110,7 @@ export default function CiudadDepartamentoSelect({
             </>
           )}
         </select>
-        {isOtherCiudad && (
+        {isCustomCiudad && (
           <input
             type="text"
             value={ciudad}

@@ -76,11 +76,27 @@ export default async function OrdenDetallePage({ params }: Props) {
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-[var(--admin-card-border)] flex justify-between items-center">
-              <span className="text-sm font-medium text-[var(--admin-text-muted)]">Total</span>
-              <span className="text-xl font-bold text-[var(--admin-text)]">
-                ${orden.total.toLocaleString('es-CO')}
-              </span>
+            <div className="mt-4 pt-4 border-t border-[var(--admin-card-border)] space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--admin-text-muted)]">Subtotal</span>
+                <span className="text-sm font-medium text-[var(--admin-text)]">
+                  ${(orden.total - (orden.envio ?? 0)).toLocaleString('es-CO')}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--admin-text-muted)]">Envío</span>
+                <span className="text-sm font-medium text-[var(--admin-text)]">
+                  {(orden.envio ?? 0) === 0
+                    ? 'Gratis'
+                    : `$${(orden.envio ?? 0).toLocaleString('es-CO')}`}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-[var(--admin-text-muted)]">Total</span>
+                <span className="text-xl font-bold text-[var(--admin-text)]">
+                  ${orden.total.toLocaleString('es-CO')}
+                </span>
+              </div>
             </div>
           </div>
 

@@ -10,6 +10,7 @@ import { useCart } from '@/features/tienda/store/use-cart'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import CiudadDepartamentoSelect from '@/components/tienda/ciudad-departamento-select'
 import Price from '@/components/tienda/price'
+import { calcularEnvio, ENVIO_GRATIS_UMBRAL } from '@/data/envio'
 
 declare global {
   interface Window {
@@ -411,12 +412,34 @@ export default function CheckoutContent() {
                 </div>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-sm text-neutral-400">Envío</span>
-                  <span className="text-sm text-neutral-500">Por calcular</span>
+                  {form.departamento ? (
+                    calcularEnvio(totalPrecio(), form.departamento) === 0 ? (
+                      <span className="text-sm font-medium text-emerald-400">
+                        Gratis
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium text-white">
+                        <Price amount={calcularEnvio(totalPrecio(), form.departamento)} />
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-sm text-neutral-500">Por calcular</span>
+                  )}
                 </div>
+                {totalPrecio() < ENVIO_GRATIS_UMBRAL && (
+                  <p className="mt-2 text-xs text-neutral-500">
+                    Envío gratis en pedidos mayores a{' '}
+                    <Price amount={ENVIO_GRATIS_UMBRAL} />
+                  </p>
+                )}
                 <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-4">
                   <span className="text-base font-semibold text-white">Total</span>
                   <span className="text-base font-bold text-white">
-                    <Price amount={totalPrecio()} />
+                    <Price
+                      amount={
+                        totalPrecio() + calcularEnvio(totalPrecio(), form.departamento)
+                      }
+                    />
                   </span>
                 </div>
               </div>

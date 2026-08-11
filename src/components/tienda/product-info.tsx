@@ -126,7 +126,7 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
           }`}
         />
         <span className="text-sm text-white">
-          {variantAgotado ? 'Agotado' : maxQty > 0 ? 'En stock' : producto.stock > 0 ? 'En stock' : 'Agotado'}
+          {maxQty === 0 ? 'Agotado' : 'En stock'}
         </span>
         {maxQty > 0 && maxQty < 5 && (
           <span className="text-xs font-medium text-amber-500">

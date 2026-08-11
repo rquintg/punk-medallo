@@ -84,6 +84,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
       barrio,
       notas,
       total,
+      envio,
       estado,
       created_at,
       pedido_items (
@@ -110,10 +111,12 @@ export default async function OrderPage({ params }: OrderPageProps) {
     new Date(pedido.created_at).getTime() + 5 * 24 * 60 * 60 * 1000,
   ).toLocaleDateString('es-CO', { dateStyle: 'long' })
 
+  const estado = (pedido.estado ?? '').toLowerCase()
+
   const estadoColors: Record<string, string> = {
     pendiente: 'text-yellow-400',
     aprobado: 'text-green-400',
-    Preparando: 'text-blue-400',
+    preparando: 'text-blue-400',
     enviado: 'text-blue-400',
     entregado: 'text-white',
     rechazado: 'text-red-400',
@@ -131,7 +134,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
       icon: <CheckCircle size={28} className="text-green-500" />,
       title: '¡Pedido confirmado!',
     },
-    Preparando: {
+    preparando: {
       icon: <Package size={28} className="text-blue-500" />,
       title: 'Pedido en preparación',
     },
@@ -161,7 +164,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
     },
   }
 
-  const config = estadoConfig[pedido.estado] ?? estadoConfig.pendiente
+  const config = estadoConfig[estado] ?? estadoConfig.pendiente
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -224,8 +227,8 @@ export default async function OrderPage({ params }: OrderPageProps) {
           )}
 
           <div className="flex items-center gap-3 text-sm text-neutral-400">
-            <span className={`text-xs font-semibold uppercase ${estadoColors[pedido.estado] ?? 'text-neutral-400'}`}>
-              Estado: {pedido.estado}
+            <span className={`text-xs font-semibold uppercase ${estadoColors[estado] ?? 'text-neutral-400'}`}>
+              Estado: {estado}
             </span>
           </div>
         </div>
@@ -270,6 +273,22 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
         <div className="border-t border-neutral-800 px-6 py-4">
           <div className="flex items-center justify-between">
+            <span className="text-sm text-neutral-400">Subtotal</span>
+            <span className="text-sm font-medium text-white">
+              <Price amount={pedido.total - (pedido.envio ?? 0)} />
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-sm text-neutral-400">Envío</span>
+            {(pedido.envio ?? 0) === 0 ? (
+              <span className="text-sm font-medium text-emerald-400">Gratis</span>
+            ) : (
+              <span className="text-sm font-medium text-white">
+                <Price amount={pedido.envio!} />
+              </span>
+            )}
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t border-neutral-800 pt-3">
             <span className="text-sm text-neutral-400">Total</span>
             <span className="text-lg font-bold text-[#dc2626]">
               <Price amount={pedido.total} />

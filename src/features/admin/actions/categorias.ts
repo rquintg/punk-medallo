@@ -14,8 +14,9 @@ export async function createCategoria(formData: FormData) {
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
   const slug = (formData.get('slug') as string) || slugify(nombre)
+  const descripcion = (formData.get('descripcion') as string) || null
 
-  const { error } = await (supabase.from('categorias') as any).insert({ nombre, slug })
+  const { error } = await (supabase.from('categorias') as any).insert({ nombre, slug, descripcion })
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/categorias')
@@ -25,9 +26,10 @@ export async function updateCategoria(id: string, formData: FormData) {
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
   const slug = slugify(nombre)
+  const descripcion = (formData.get('descripcion') as string) || null
 
   const { error } = await (supabase.from('categorias') as any)
-    .update({ nombre, slug })
+    .update({ nombre, slug, descripcion })
     .eq('id', id)
   if (error) throw new Error(error.message)
 

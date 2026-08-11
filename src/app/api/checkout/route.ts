@@ -6,6 +6,7 @@ import { verifyCsrf } from '@/lib/csrf'
 import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
 import { logger, generateRequestId } from '@/lib/logger'
 import { sanitizeShipping } from '@/lib/sanitize'
+import { calcularEnvio } from '@/data/envio'
 import type { CartItem } from '@/features/tienda/types'
 
 interface CheckoutRequest {
@@ -207,6 +208,10 @@ export async function POST(request: NextRequest) {
       0,
     )
 
+    // Envío: tarifa por zona (server-side, no confiar en el cliente) + gratis > umbral
+    const envio = calcularEnvio(total, shipping.departamento)
+    const totalConEnvio = total + envio
+
     // 2. Insertar pedido
     const { data: pedido, error: pedidoError } = await supabase
       .from('pedidos')
@@ -221,7 +226,8 @@ export async function POST(request: NextRequest) {
         ciudad: shipping.ciudad,
         barrio: shipping.barrio,
         notas: shipping.notas,
-        total,
+        total: totalConEnvio,
+        envio,
         estado: 'pendiente',
       })
       .select('id, numero_pedido, created_at')
@@ -264,7 +270,7 @@ export async function POST(request: NextRequest) {
     // 5. Generar params para Wompi Widget
     const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY
     const integrityKey = process.env.WOMPI_INTEGRITY_KEY
-    const amountInCents = Math.round(total * 100)
+    const amountInCents = Math.round(totalConEnvio * 100)
 
     if (!publicKey || !integrityKey) {
       console.error('Faltan llaves de Wompi en .env.local')
@@ -290,7 +296,7 @@ export async function POST(request: NextRequest) {
     logger.info('Pedido creado exitosamente', {
       requestId: rid,
       duration: Date.now() - start,
-      data: { orderNumber, total, itemsCount: items.length },
+      data: { orderNumber, total: totalConEnvio, envio, itemsCount: items.length },
     })
 
     return respond(

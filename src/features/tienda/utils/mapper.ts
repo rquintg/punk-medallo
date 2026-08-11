@@ -24,7 +24,7 @@ interface DbCategoria {
   slug: string
 }
 
-interface DbProduct {
+export interface DbProduct {
   id: string;
   slug: string;
   nombre: string;

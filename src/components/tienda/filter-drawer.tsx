@@ -5,18 +5,24 @@ import { useSearchParams } from 'next/navigation';
 import { SlidersHorizontal, X } from 'lucide-react';
 
 interface FilterDrawerProps {
-  children: ReactNode;
+  children: (close: () => void) => ReactNode;
+  categoria?: string | null;
 }
 
-export function FilterDrawer({ children }: FilterDrawerProps) {
+export function FilterDrawer({ children, categoria = null }: FilterDrawerProps) {
   const [open, setOpen] = useState(false);
   const searchParams = useSearchParams();
 
-  const activeCategoria = searchParams.get('categoria');
+  const activeGenero = searchParams.get('genero');
   const activeTalla = searchParams.get('talla');
   const activePrecio = searchParams.get('precio');
 
-  const filterCount = [activeCategoria, activeTalla, activePrecio].filter(Boolean).length;
+  const filterCount = [
+    categoria,
+    activeGenero,
+    activeTalla,
+    activePrecio,
+  ].filter(Boolean).length;
 
   const close = useCallback(() => setOpen(false), []);
   const toggle = useCallback(() => setOpen((prev) => !prev), []);
@@ -87,7 +93,7 @@ export function FilterDrawer({ children }: FilterDrawerProps) {
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 py-6">
-            {children}
+            {children(close)}
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, X, Check } from 'lucide-react';
 import { useCart } from '@/features/tienda/store/use-cart';
+import { getCategoriaEstilo } from '@/features/tienda/utils/categorias';
 import Price from './price';
 import { getColorHex } from '@/lib/color-swatch';
 import type { Producto, Talla } from '@/features/tienda/types';
@@ -74,6 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isLowStock = totalStock > 0 && totalStock < 5
 
   const primaryImage = product.imagenes[0];
+  const categoriaEstilo = getCategoriaEstilo(product.categoria);
 
   useEffect(() => {
     if (!showPopover) return;
@@ -146,9 +148,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {product.categoria?.slug === 'accesorios' && (
-          <span className="absolute left-2 top-2 rounded-full bg-[#a40202] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm">
-            Accesorio
+        {product.categoria && (
+          <span
+            className={`absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm ${categoriaEstilo.badge}`}
+          >
+            {categoriaEstilo.label}
           </span>
         )}
 
@@ -181,7 +185,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className="text-xs text-neutral-500">
           {product.genero === 'hombre' ? 'Hombre' : product.genero === 'mujer' ? 'Mujer' : 'Unisex'}
           {' · '}
-          {product.categoria?.slug === 'camisetas' ? 'Camiseta' : 'Accesorio'}
+          {categoriaEstilo.label}
         </p>
 
         {showPopover && needsCustomization ? (

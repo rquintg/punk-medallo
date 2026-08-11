@@ -6,6 +6,7 @@ export interface OrdenRow {
   nombre_entrega: string
   email: string
   total: number
+  envio: number | null
   estado: string
   created_at: string
 }

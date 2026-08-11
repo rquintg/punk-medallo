@@ -6,6 +6,7 @@ export type CategoriaInfo = {
   id: string
   nombre: string
   slug: string
+  descripcion?: string | null
 }
 
 export interface ProductImage {

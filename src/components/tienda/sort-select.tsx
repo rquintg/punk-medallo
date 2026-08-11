@@ -19,6 +19,7 @@ export function SortSelect() {
   const updateSort = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
+      params.delete('page');
       if (value === 'relevancia' || value === '') {
         params.delete('sort');
       } else {
