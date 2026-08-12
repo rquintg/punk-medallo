@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  staticPageGenerationTimeout: 300,
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

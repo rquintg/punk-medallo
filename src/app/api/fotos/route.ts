@@ -1,12 +1,30 @@
 import { NextResponse } from "next/server";
-import { fetchFacebookPhotos } from "@/lib/axiosFacebook";
+import { fetchFacebookPage, fetchFacebookPageTop } from "@/lib/axiosFacebook";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const tipo = searchParams.get("tipo");
+
   try {
-    const photos = await fetchFacebookPhotos();
+    if (tipo === "top") {
+      const items = await fetchFacebookPageTop({ limit: 6, maxPaginas: 3 });
+      return NextResponse.json(
+        { items, next: null },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control": "public, s-maxage=600, stale-while-revalidate=60",
+          },
+        }
+      );
+    }
+
+    const modo = tipo === "videos" ? "videos" : "fotos";
+    const after = searchParams.get("after");
+    const { items, next } = await fetchFacebookPage(modo, { after });
 
     return NextResponse.json(
-      { photos },
+      { items, next },
       {
         status: 200,
         headers: {
@@ -16,11 +34,10 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error("/api/fotos error:", error);
+    console.error(`/api/fotos error (${tipo}):`, error);
     return NextResponse.json(
-      { error: "Error fetching photos from Facebook" },
+      { error: "Error fetching media from Facebook" },
       { status: 500 }
     );
   }
 }
-
