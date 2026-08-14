@@ -36,6 +36,9 @@ export default async function OrdenDetallePage({ params }: Props) {
   const puedeActualizarEstado = can(rol, 'update_order_status')
   const puedeEliminar = can(rol, 'delete_orders')
 
+  const esCOD = orden.metodo_pago === 'CONTRA_ENTREGA'
+  const codPendiente = esCOD && ['aprobado', 'preparando'].includes(orden.estado.toLowerCase())
+
   return (
     <>
       <AdminHeader
@@ -52,6 +55,25 @@ export default async function OrdenDetallePage({ params }: Props) {
           Volver
         </Link>
       </AdminHeader>
+
+      {codPendiente && (
+        <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+          Pedido <strong>contra entrega</strong> sin cobrar: confirmá por teléfono (
+          <a href={`tel:${orden.telefono}`} className="underline underline-offset-2 hover:text-amber-300">
+            {orden.telefono}
+          </a>{' '}
+          o{' '}
+          <a
+            href={`https://wa.me/57${(orden.telefono ?? '').replace(/\D/g, '').replace(/^57/, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-amber-300"
+          >
+            WhatsApp
+          </a>
+          ) antes de despachar.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -94,7 +116,7 @@ export default async function OrdenDetallePage({ params }: Props) {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-[var(--admin-text-muted)]">Subtotal</span>
                 <span className="text-sm font-medium text-[var(--admin-text)]">
-                  ${(orden.total - (orden.envio ?? 0)).toLocaleString('es-CO')}
+                  ${(orden.total - (orden.envio ?? 0) - (orden.recargo ?? 0)).toLocaleString('es-CO')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -105,6 +127,14 @@ export default async function OrdenDetallePage({ params }: Props) {
                     : `$${(orden.envio ?? 0).toLocaleString('es-CO')}`}
                 </span>
               </div>
+              {(orden.recargo ?? 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[var(--admin-text-muted)]">Contra entrega</span>
+                  <span className="text-sm font-medium text-[var(--admin-text)]">
+                    ${(orden.recargo ?? 0).toLocaleString('es-CO')}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-[var(--admin-text-muted)]">Total</span>
                 <span className="text-xl font-bold text-[var(--admin-text)]">
@@ -159,6 +189,14 @@ export default async function OrdenDetallePage({ params }: Props) {
                 <dt className="text-[var(--admin-text-dim)]">Teléfono</dt>
                 <dd className="text-[var(--admin-text)]">{orden.telefono}</dd>
               </div>
+              {orden.metodo_pago && (
+                <div>
+                  <dt className="text-[var(--admin-text-dim)]">Método de pago</dt>
+                  <dd className="text-[var(--admin-text)]">
+                    {esCOD ? 'Contra entrega (efectivo)' : orden.metodo_pago.toUpperCase()}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 

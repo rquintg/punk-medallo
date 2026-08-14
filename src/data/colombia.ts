@@ -16,7 +16,7 @@ export const departamentos: Departamento[] = [
   {
     id: '05',
     nombre: 'Antioquia',
-    ciudades: ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Rionegro', 'Apartadó', 'Turbo', OTRA_CIUDAD],
+    ciudades: ['Medellín', 'Bello', 'Itagüí', 'Envigado', 'Sabaneta', 'Rionegro', 'Apartadó', 'Turbo', OTRA_CIUDAD],
   },
   {
     id: '08',

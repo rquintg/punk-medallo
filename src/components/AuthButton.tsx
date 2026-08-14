@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { LucideUserKey, UserRoundXIcon } from 'lucide-react'
+import { LucideUserKey, UserRoundXIcon, PackageSearch } from 'lucide-react'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
@@ -36,6 +36,14 @@ export default function AuthButton() {
   if (user) {
     return (
       <div className="flex items-center gap-2">
+        <Link
+          href="/cuenta/pedidos"
+          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626] sm:flex"
+          title="Mis pedidos"
+        >
+          <PackageSearch size={18} aria-hidden="true" />
+          <span className="text-xs">Pedidos</span>
+        </Link>
         <span className="text-xs text-white/50 block max-w-[100px] truncate">
           Hola {user.user_metadata?.name || user.email?.split('@')[0]}
         </span>
@@ -50,11 +58,21 @@ export default function AuthButton() {
   }
 
   return (
-    <Link
-      href="/login"
-      className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
-    >
-      <LucideUserKey size={18} aria-hidden="true" />
-    </Link>
+    <div className="flex items-center gap-2">
+      <Link
+        href="/tienda/rastrear"
+        className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
+        title="Rastrear pedido"
+      >
+        <PackageSearch size={18} aria-hidden="true" />
+        <span className="hidden text-xs md:inline">Rastrear</span>
+      </Link>
+      <Link
+        href="/login"
+        className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
+      >
+        <LucideUserKey size={18} aria-hidden="true" />
+      </Link>
+    </div>
   )
 }

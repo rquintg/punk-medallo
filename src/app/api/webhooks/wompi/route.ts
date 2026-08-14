@@ -202,7 +202,13 @@ export async function POST(request: NextRequest) {
 
           const { error: estadoError } = await getSupabaseAdmin()
             .from('pedidos')
-            .update({ estado: verifiedEstado })
+            .update({
+              estado: verifiedEstado,
+              fecha_aprobado: new Date().toISOString(),
+              metodo_pago: transaction.payment_method_type ?? 'Wompi',
+              referencia_pago: transactionId,
+              pagado_at: transaction.paid_at ?? new Date().toISOString(),
+            })
             .eq('id', pedido.id)
 
           if (estadoError) {

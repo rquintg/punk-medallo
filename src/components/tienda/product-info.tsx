@@ -7,6 +7,7 @@ import { getColorHex } from '@/lib/color-swatch';
 import type { Producto, Talla } from '@/features/tienda/types';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from '@/components/tienda/price';
+import { StockAlert } from '@/components/tienda/stock-alert';
 
 interface ProductInfoProps {
   producto: Producto;
@@ -152,13 +153,12 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
                 <button
                   key={color}
                   onClick={() => handleColorClick(color)}
-                  disabled={!available}
                   className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-all ${
                     isSelected
                       ? 'border-red-600 bg-red-600/10 text-white'
                       : available
                         ? 'border-neutral-600 text-neutral-300 hover:border-neutral-500'
-                        : 'border-neutral-800 text-neutral-600 cursor-not-allowed'
+                        : 'border-neutral-800 text-neutral-600 hover:border-neutral-700'
                   }`}
                   aria-label={`Color ${color}${!available ? ' — Agotado' : ''}`}
                   aria-pressed={isSelected}
@@ -189,14 +189,13 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
               return (
                 <button
                   key={talla}
-                  onClick={() => { if (available) setSelectedSize(talla) }}
-                  disabled={!available}
+                  onClick={() => setSelectedSize(talla)}
                   className={`flex h-10 w-10 items-center justify-center rounded-md border text-sm font-medium transition-all ${
                     isSelected
                       ? 'border-red-600 bg-red-600 text-white'
                       : available
                         ? 'border-neutral-600 text-neutral-300 hover:border-neutral-500'
-                        : 'border-neutral-800 text-neutral-600 cursor-not-allowed'
+                        : 'border-neutral-800 text-neutral-600 hover:border-neutral-700'
                   }`}
                   aria-label={`Talla ${TALLA_LABELS[talla]}${!available ? ' — Agotado' : ''}`}
                   aria-pressed={isSelected}
@@ -250,6 +249,10 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
         {added ? <Check size={18} /> : <ShoppingBag size={18} />}
         {added ? 'Agregado' : variantAgotado ? 'Agotado' : 'Agregar al carrito'}
       </button>
+
+      {(!showStock || variantAgotado) && (
+        <StockAlert productoId={producto.id} talla={selectedSize} color={selectedColor} />
+      )}
 
       <div className="border-t border-neutral-800 pt-6">
         <h2 className="mb-2 text-sm font-bold text-neutral-300">Descripción</h2>

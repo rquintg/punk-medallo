@@ -34,6 +34,9 @@ interface OrderConfirmationProps {
   items: OrderItemProps[]
   total: number
   estimatedDelivery: string
+  metodoPago?: string | null
+  orderUrl: string
+  trackingUrl: string
 }
 
 function formatPrice(amount: number): string {
@@ -53,7 +56,11 @@ export default function OrderConfirmation({
   items,
   total,
   estimatedDelivery,
+  metodoPago,
+  orderUrl,
+  trackingUrl,
 }: OrderConfirmationProps) {
+  const esContraEntrega = metodoPago === 'CONTRA_ENTREGA'
   return (
     <Html lang="es">
       <Head>
@@ -98,6 +105,19 @@ export default function OrderConfirmation({
               <Text style={label}>Entrega estimada</Text>
               <Text style={value}>{estimatedDelivery}</Text>
             </Section>
+
+            {esContraEntrega && (
+              <Section style={codBox}>
+                <Text style={codTitle}>Pago contra entrega</Text>
+                <Text style={codText}>
+                  Vas a pagar{' '}
+                  <strong style={{ color: '#ffffff' }}>
+                    {formatPrice(total)}
+                  </strong>{' '}
+                  en efectivo al recibir el pedido en la puerta de tu casa.
+                </Text>
+              </Section>
+            )}
 
             <Hr style={divider} />
 
@@ -163,6 +183,25 @@ export default function OrderConfirmation({
                 <Text style={infoLine}>{notes}</Text>
               </>
             )}
+
+            <Hr style={divider} />
+
+            {/* Seguimiento */}
+            <Section style={ctaSection}>
+              <Text style={ctaText}>
+                ¿Quieres hacerle seguimiento a tu pedido? Podrás ver el estado
+                en tiempo real desde el inicio hasta la entrega.
+              </Text>
+              <a href={orderUrl} style={button}>
+                Seguir mi pedido
+              </a>
+              <Text style={trackingHint}>
+                ¿No llegaste al link? También puedes rastrearlo sin cuenta en{' '}
+                <a href={trackingUrl} style={linkStyle}>
+                  /tienda/rastrear
+                </a>
+              </Text>
+            </Section>
           </Section>
 
           {/* Footer */}
@@ -313,6 +352,58 @@ const infoLine: React.CSSProperties = {
   margin: '0 0 4px 0',
   fontSize: 14,
   color: 'rgba(255,255,255,0.7)',
+}
+
+const ctaSection: React.CSSProperties = {
+  textAlign: 'center',
+}
+
+const ctaText: React.CSSProperties = {
+  margin: '0 0 16px 0',
+  fontSize: 14,
+  color: 'rgba(255,255,255,0.7)',
+  lineHeight: 1.5,
+}
+
+const button: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: '#dc2626',
+  color: '#ffffff',
+  padding: '12px 28px',
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 700,
+  textDecoration: 'none',
+}
+
+const trackingHint: React.CSSProperties = {
+  margin: '12px 0 0 0',
+  fontSize: 12,
+  color: 'rgba(255,255,255,0.4)',
+}
+
+const codBox: React.CSSProperties = {
+  backgroundColor: '#1c1917',
+  border: '1px solid rgba(251,191,36,0.35)',
+  borderRadius: 8,
+  padding: '14px 16px',
+  margin: '16px 0',
+}
+
+const codTitle: React.CSSProperties = {
+  margin: '0 0 4px 0',
+  fontSize: 13,
+  color: '#fbbf24',
+  fontWeight: 700,
+  textTransform: 'uppercase' as const,
+  letterSpacing: 0.5,
+}
+
+const codText: React.CSSProperties = {
+  margin: 0,
+  fontSize: 14,
+  color: 'rgba(255,255,255,0.8)',
+  lineHeight: 1.5,
 }
 
 const footerSection: React.CSSProperties = {

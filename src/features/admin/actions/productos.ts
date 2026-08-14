@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
 import { requirePermissionAction } from '../utils/auth-server'
+import { notificarStockDisponible } from '../services/avisos-stock'
 
 function genSlug(text: string) {
   return text
@@ -88,6 +89,8 @@ export async function updateProducto(id: string, formData: FormData) {
     .eq('id', id)
 
   if (error) throw new Error(error.message)
+
+  await notificarStockDisponible(id)
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda', 'layout')

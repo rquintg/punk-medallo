@@ -7,6 +7,8 @@ export interface OrdenRow {
   email: string
   total: number
   envio: number | null
+  recargo: number | null
+  metodo_pago: string | null
   estado: string
   created_at: string
 }

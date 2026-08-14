@@ -46,7 +46,16 @@ const columns: Column<OrdenRow>[] = [
   {
     key: 'estado',
     header: 'Estado',
-    cell: (item) => <StatusBadge status={item.estado} />,
+    cell: (item) => (
+      <div className="flex items-center gap-2">
+        <StatusBadge status={item.estado} />
+        {item.metodo_pago === 'CONTRA_ENTREGA' && (
+          <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">
+            COD
+          </span>
+        )}
+      </div>
+    ),
   },
   {
     key: 'fecha',

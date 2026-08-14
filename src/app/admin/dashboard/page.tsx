@@ -1,4 +1,4 @@
-import { DollarSign, ShoppingBag, Truck, AlertTriangle, Ship, ShieldCheck } from 'lucide-react'
+import { DollarSign, ShoppingBag, Truck, AlertTriangle, Ship, ShieldCheck, Banknote } from 'lucide-react'
 import { getDashboardStats } from '@/features/admin/services/dashboard'
 import AdminHeader from '@/components/admin/admin-header'
 import StatCard from '@/components/admin/stat-card'
@@ -57,6 +57,14 @@ export default async function AdminDashboardPage() {
           value={`${pctPoliticas}%`}
           icon={ShieldCheck}
           color="green"
+        />
+        <StatCard
+          label="Contra entrega por cobrar"
+          value={stats.contraEntregaPorCobrar}
+          icon={Banknote}
+          color="amber"
+          money
+          sub={`${stats.contraEntregaPedidos} pedido${stats.contraEntregaPedidos !== 1 ? 's' : ''} por cobrar — confirma por teléfono antes de despachar`}
         />
       </div>
 

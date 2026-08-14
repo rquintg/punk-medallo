@@ -6,7 +6,8 @@ import { verifyCsrf } from '@/lib/csrf'
 import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
 import { logger, generateRequestId } from '@/lib/logger'
 import { sanitizeShipping } from '@/lib/sanitize'
-import { calcularEnvio } from '@/data/envio'
+import { calcularEnvio, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega } from '@/data/envio'
+import { sendOrderConfirmation } from '@/lib/email'
 import type { CartItem } from '@/features/tienda/types'
 
 interface CheckoutRequest {
@@ -22,6 +23,7 @@ interface CheckoutRequest {
     aceptaPoliticas?: boolean
   }
   items: CartItem[]
+  metodoPago?: 'wompi' | 'contra_entrega'
 }
 
 function generateOrderNumber(): string {
@@ -113,6 +115,21 @@ export async function POST(request: NextRequest) {
     }
 
     const shipping = sanitizeShipping(rawShipping)
+
+    // Método de pago: wompi (default) o contra entrega (solo Medellín y AM)
+    const esCOD = body.metodoPago === 'contra_entrega'
+
+    if (esCOD && !esContraEntregaDisponible(shipping.departamento, shipping.ciudad)) {
+      logger.warn('Checkout: contra entrega no disponible', { requestId: rid, data: { departamento: shipping.departamento, ciudad: shipping.ciudad } })
+      return respond(
+        { error: 'Pago contra entrega solo disponible en Medellín y área metropolitana' },
+        { status: 400 },
+      )
+    }
+
+    const recargo = esCOD
+      ? calcularRecargoContraEntrega(shipping.departamento, shipping.ciudad)
+      : 0
 
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -219,7 +236,7 @@ export async function POST(request: NextRequest) {
 
     // Envío: tarifa por zona (server-side, no confiar en el cliente) + gratis > umbral
     const envio = calcularEnvio(total, shipping.departamento)
-    const totalConEnvio = total + envio
+    const totalConEnvio = total + envio + recargo
 
     // 2. Insertar pedido
     const { data: pedido, error: pedidoError } = await supabase
@@ -237,8 +254,12 @@ export async function POST(request: NextRequest) {
         notas: shipping.notas,
         total: totalConEnvio,
         envio,
+        recargo,
         acepta_politicas: true,
-        estado: 'pendiente',
+        estado: esCOD ? 'aprobado' : 'pendiente',
+        ...(esCOD
+          ? { metodo_pago: 'CONTRA_ENTREGA', fecha_aprobado: new Date().toISOString() }
+          : {}),
       })
       .select('id, numero_pedido, created_at')
       .single()
@@ -274,6 +295,59 @@ export async function POST(request: NextRequest) {
       return respond(
         { error: 'Error al guardar los artículos del pedido' },
         { status: 500 },
+      )
+    }
+
+    // Contra entrega: no hay Wompi — confirmar por email y listo
+    if (esCOD) {
+      try {
+        const [diasMin, diasMax] = getDiasEntrega(shipping.departamento)
+        const entregaMin = new Date(
+          new Date(pedido.created_at).getTime() + diasMin * 24 * 60 * 60 * 1000,
+        ).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })
+        const entregaMax = new Date(
+          new Date(pedido.created_at).getTime() + diasMax * 24 * 60 * 60 * 1000,
+        ).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })
+
+        await sendOrderConfirmation({
+          orderNumber,
+          customerName: shipping.nombre,
+          email: shipping.email,
+          phone: shipping.telefono,
+          address: shipping.direccion,
+          departamento: shipping.departamento,
+          city: shipping.ciudad,
+          barrio: shipping.barrio,
+          notes: shipping.notas,
+          items: pedidoItems.map((i) => ({
+            name: i.nombre,
+            quantity: i.cantidad,
+            price: i.precio,
+            size: i.talla,
+            color: i.color,
+            imageUrl: i.imagen_url,
+          })),
+          total: totalConEnvio,
+          estimatedDelivery: diasMin === diasMax ? entregaMin : `entre ${entregaMin} y ${entregaMax}`,
+          metodoPago: 'CONTRA_ENTREGA',
+        })
+      } catch (emailError) {
+        console.error('sendOrderConfirmation (COD) error:', emailError)
+      }
+
+      logger.info('Pedido contra entrega creado', {
+        requestId: rid,
+        duration: Date.now() - start,
+        data: { orderNumber, total: totalConEnvio, envio, recargo, itemsCount: items.length },
+      })
+
+      return respond(
+        {
+          metodo: 'contra_entrega',
+          numero_pedido: orderNumber,
+          pedido_id: pedido.id,
+        },
+        { status: 201 },
       )
     }
 

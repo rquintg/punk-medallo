@@ -7,6 +7,7 @@ import CartAbandoned from '@/emails/cart-abandoned'
 import OrderPreparing from '@/emails/order-preparing'
 import OrderShipped from '@/emails/order-shipped'
 import OrderDelivered from '@/emails/order-delivered'
+import StockAvailable from '@/emails/stock-available'
 
 export interface OrderConfirmationData {
   orderNumber: string
@@ -28,6 +29,7 @@ export interface OrderConfirmationData {
   }>
   total: number
   estimatedDelivery: string
+  metodoPago?: string | null
 }
 
 export interface OrderApprovedData {
@@ -61,6 +63,14 @@ export interface CartAbandonedData {
   total: number
 }
 
+export interface StockAvailableData {
+  customerName: string
+  email: string
+  productName: string
+  productUrl: string
+  comboLabel?: string | null
+}
+
 let resendClient: Resend | null = null
 
 function getResend(): Resend {
@@ -77,6 +87,8 @@ function getResend(): Resend {
 const emailFrom = process.env.EMAIL_FROM ?? 'Punk Medallo <info@punkmedallo.com>'
 
 export async function sendOrderConfirmation(data: OrderConfirmationData) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+
   const html = await render(
     <OrderConfirmation
       orderNumber={data.orderNumber}
@@ -91,6 +103,9 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
       items={data.items}
       total={data.total}
       estimatedDelivery={data.estimatedDelivery}
+      metodoPago={data.metodoPago ?? null}
+      orderUrl={`${siteUrl}/tienda/orden/${data.orderNumber}`}
+      trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,
   )
 
@@ -110,10 +125,14 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
 }
 
 export async function sendOrderApproved(data: OrderApprovedData) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+
   const html = await render(
     <OrderApproved
       orderNumber={data.orderNumber}
       customerName={data.customerName}
+      orderUrl={`${siteUrl}/tienda/orden/${data.orderNumber}`}
+      trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,
   )
 
@@ -185,10 +204,13 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
 }
 
 export async function sendOrderPreparing(data: OrderStatusEmailData) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+
   const html = await render(
     <OrderPreparing
       orderNumber={data.orderNumber}
       customerName={data.customerName}
+      trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,
   )
 
@@ -208,10 +230,13 @@ export async function sendOrderPreparing(data: OrderStatusEmailData) {
 }
 
 export async function sendOrderShipped(data: OrderStatusEmailData) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+
   const html = await render(
     <OrderShipped
       orderNumber={data.orderNumber}
       customerName={data.customerName}
+      trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,
   )
 
@@ -231,10 +256,13 @@ export async function sendOrderShipped(data: OrderStatusEmailData) {
 }
 
 export async function sendOrderDelivered(data: OrderStatusEmailData) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+
   const html = await render(
     <OrderDelivered
       orderNumber={data.orderNumber}
       customerName={data.customerName}
+      trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,
   )
 
@@ -248,6 +276,31 @@ export async function sendOrderDelivered(data: OrderStatusEmailData) {
 
   if (error) {
     console.error('sendOrderDelivered error:', error)
+  }
+
+  return { error }
+}
+
+export async function sendStockAvailable(data: StockAvailableData) {
+  const html = await render(
+    <StockAvailable
+      customerName={data.customerName}
+      productName={data.productName}
+      productUrl={data.productUrl}
+      comboLabel={data.comboLabel ?? null}
+    />,
+  )
+
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: emailFrom,
+    to: data.email,
+    subject: `¡${data.productName}${data.comboLabel ? ` ${data.comboLabel}` : ''} volvió a estar disponible!`,
+    html,
+  })
+
+  if (error) {
+    console.error('sendStockAvailable error:', error)
   }
 
   return { error }

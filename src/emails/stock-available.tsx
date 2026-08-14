@@ -12,17 +12,20 @@ import {
   Preview,
 } from '@react-email/components'
 
-interface OrderPreparingProps {
-  orderNumber: string
+interface StockAvailableProps {
   customerName: string
-  trackingUrl: string
+  productName: string
+  productUrl: string
+  comboLabel?: string | null
 }
 
-export default function OrderPreparing({
-  orderNumber,
+export default function StockAvailable({
   customerName,
-  trackingUrl,
-}: OrderPreparingProps) {
+  productName,
+  productUrl,
+  comboLabel,
+}: StockAvailableProps) {
+  const combo = comboLabel ? ` (${comboLabel})` : ''
   return (
     <Html lang="es">
       <Head>
@@ -35,7 +38,7 @@ export default function OrderPreparing({
           }}
         />
       </Head>
-      <Preview>Estamos preparando tu pedido {orderNumber}</Preview>
+      <Preview>{productName}{combo} volvió a estar disponible</Preview>
       <Body style={body}>
         <Container style={container}>
           <Section style={logoSection}>
@@ -49,33 +52,36 @@ export default function OrderPreparing({
           </Section>
 
           <Section style={card}>
-            <Heading style={title}>¡Estamos en eso!</Heading>
+            <Heading style={title}>¡Volvió el stock!</Heading>
             <Text style={subtitle}>
-              {customerName}, tu pedido{' '}
-              <strong style={{ color: '#ff4444' }}>{orderNumber}</strong> ya está
-              siendo preparado. Nuestro equipo está seleccionando y empacando cada
-              artículo con cuidado.
+              {customerName}, ya está disponible nuevamente el{' '}
+              <strong style={{ color: '#ff4444' }}>{productName}</strong>
+              {comboLabel ? (
+                <>
+                  {' '}
+                  en{' '}
+                  <strong style={{ color: '#ff4444' }}>{comboLabel}</strong>
+                </>
+              ) : null}{' '}
+              en la tienda. ¡No lo dejes escapar!
             </Text>
+
+            <Section style={buttonSection}>
+              <a href={productUrl} style={button}>
+                Ver producto
+              </a>
+            </Section>
 
             <Hr style={divider} />
 
             <Text style={infoLine}>
-              Te enviaremos otro correo cuando el pedido sea despachado.
-            </Text>
-            <Text style={infoLine}>
-              Consejo: puedes hacerle seguimiento a tu pedido cuando quieras
-              desde{' '}
-              <a href={trackingUrl} style={linkStyle}>
-                /tienda/rastrear
-              </a>{' '}
-              con tu número de pedido y correo.
+              Gracias por confiar en Punk Medallo. Si tienes alguna duda,
+              escríbenos al WhatsApp +57 301 445 3392.
             </Text>
           </Section>
 
           <Section style={footerSection}>
-            <Text style={footerText}>
-              Punk Medallo Tienda — Radio 24/7
-            </Text>
+            <Text style={footerText}>Punk Medallo Tienda — Radio 24/7</Text>
             <Text style={footerLink}>
               <a href="https://punkmedallo.com" style={linkStyle}>
                 punkmedallo.com
@@ -134,6 +140,22 @@ const subtitle: React.CSSProperties = {
   color: 'rgba(255,255,255,0.6)',
   textAlign: 'center',
   lineHeight: 1.5,
+}
+
+const buttonSection: React.CSSProperties = {
+  textAlign: 'center',
+  margin: '24px 0',
+}
+
+const button: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: '#dc2626',
+  color: '#ffffff',
+  padding: '12px 28px',
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 700,
+  textDecoration: 'none',
 }
 
 const divider: React.CSSProperties = {

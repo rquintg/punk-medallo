@@ -15,11 +15,15 @@ import {
 interface OrderApprovedProps {
   orderNumber: string
   customerName: string
+  orderUrl: string
+  trackingUrl: string
 }
 
 export default function OrderApproved({
   orderNumber,
   customerName,
+  orderUrl,
+  trackingUrl,
 }: OrderApprovedProps) {
   return (
     <Html lang="es">
@@ -55,6 +59,22 @@ export default function OrderApproved({
             </Text>
 
             <Hr style={divider} />
+
+            <Section style={ctaSection}>
+              <Text style={ctaText}>
+                ¿Quieres hacerle seguimiento a tu pedido? Podrás ver el estado
+                en tiempo real desde el inicio hasta la entrega.
+              </Text>
+              <a href={orderUrl} style={button}>
+                Seguir mi pedido
+              </a>
+              <Text style={trackingHint}>
+                ¿No llegaste al link? También puedes rastrearlo sin cuenta en{' '}
+                <a href={trackingUrl} style={linkStyle}>
+                  /tienda/rastrear
+                </a>
+              </Text>
+            </Section>
 
             <Text style={infoLine}>
               Te enviaremos un correo cuando el pedido sea despachado.
@@ -130,6 +150,35 @@ const divider: React.CSSProperties = {
   height: 1,
   background: 'linear-gradient(to right, transparent, rgba(164,2,2,0.4), transparent)',
   margin: '24px 0',
+}
+
+const ctaSection: React.CSSProperties = {
+  textAlign: 'center',
+  margin: '0 0 24px 0',
+}
+
+const ctaText: React.CSSProperties = {
+  margin: '0 0 16px 0',
+  fontSize: 14,
+  color: 'rgba(255,255,255,0.7)',
+  lineHeight: 1.5,
+}
+
+const button: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: '#dc2626',
+  color: '#ffffff',
+  padding: '12px 28px',
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 700,
+  textDecoration: 'none',
+}
+
+const trackingHint: React.CSSProperties = {
+  margin: '12px 0 0 0',
+  fontSize: 12,
+  color: 'rgba(255,255,255,0.4)',
 }
 
 const infoLine: React.CSSProperties = {

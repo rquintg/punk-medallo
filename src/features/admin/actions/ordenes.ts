@@ -8,14 +8,24 @@ import { sendOrderPreparing, sendOrderShipped, sendOrderDelivered } from '@/lib/
 
 const EMAIL_ESTADOS = ['preparando', 'enviado', 'entregado']
 
+const FECHA_POR_ESTADO: Record<string, string> = {
+  preparando: 'fecha_preparando',
+  enviado: 'fecha_enviado',
+  entregado: 'fecha_entregado',
+}
+
 export async function actualizarEstadoOrden(numeroPedido: string, estado: string) {
   await requirePermissionAction('update_order_status')
   const supabase = getSupabaseAdmin()
 
   const estadoNormalized = estado.toLowerCase()
 
+  const updateData: Record<string, unknown> = { estado: estadoNormalized }
+  const columnaFecha = FECHA_POR_ESTADO[estadoNormalized]
+  if (columnaFecha) updateData[columnaFecha] = new Date().toISOString()
+
   const { error } = await (supabase.from('pedidos') as any)
-    .update({ estado: estadoNormalized })
+    .update(updateData)
     .eq('numero_pedido', numeroPedido)
 
   if (error) throw new Error(error.message)

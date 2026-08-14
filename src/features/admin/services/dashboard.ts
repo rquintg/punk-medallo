@@ -10,6 +10,8 @@ export interface DashboardStats {
   stockBajo: number
   politicasAceptadas: number
   totalPedidos: number
+  contraEntregaPorCobrar: number
+  contraEntregaPedidos: number
   ordenesPorEstado: { estado: string; count: number }[]
   ultimasOrdenes: {
     numero_pedido: string
@@ -37,11 +39,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const supabase = getSupabaseAdmin()
   const hoy = startOfDayBogota()
 
-  const [ingresosRes, ordenesCountRes, porEnviarRes, productosRes, variantesRes, estadosRes, ultimasRes] =
+  const [ingresosRes, ordenesCountRes, porEnviarRes, productosRes, variantesRes, estadosRes, ultimasRes, codRes] =
     await Promise.all([
       supabase
         .from('pedidos')
-        .select('total, envio')
+        .select('total, envio, estado, metodo_pago')
         .in('estado', ESTADOS_VALIDOS)
         .gte('created_at', hoy),
       supabase
@@ -65,12 +67,33 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         .select('numero_pedido, nombre_entrega, total, estado, created_at')
         .order('created_at', { ascending: false })
         .limit(5),
+      supabase
+        .from('pedidos')
+        .select('total')
+        .in('estado', ['aprobado', 'preparando', 'enviado'])
+        .eq('metodo_pago', 'CONTRA_ENTREGA'),
     ])
 
-  const pedidosHoy = (ingresosRes.data ?? []) as { total: number; envio: number | null }[]
+  const pedidosHoy = (ingresosRes.data ?? []) as { total: number; envio: number | null; estado: string; metodo_pago: string | null }[]
 
-  const ingresosHoy = pedidosHoy.reduce((sum, p) => sum + (p.total ?? 0), 0)
-  const envioHoy = pedidosHoy.reduce((sum, p) => sum + (p.envio ?? 0), 0)
+  // Los pedidos contra entrega solo cuentan como ingreso cuando se entregan
+  // (pendiente de cobro hasta ese momento)
+  const ingresosHoy = pedidosHoy.reduce(
+    (sum, p) =>
+      sum +
+      (p.metodo_pago === 'CONTRA_ENTREGA' && p.estado !== 'entregado'
+        ? 0
+        : p.total ?? 0),
+    0,
+  )
+  const envioHoy = pedidosHoy.reduce(
+    (sum, p) =>
+      sum +
+      (p.metodo_pago === 'CONTRA_ENTREGA' && p.estado !== 'entregado'
+        ? 0
+        : p.envio ?? 0),
+    0,
+  )
 
   const productos = (productosRes.data ?? []) as { id: string; stock: number; activo: boolean | null }[]
   const variantes = (variantesRes.data ?? []) as { producto_id: string; stock: number }[]
@@ -93,6 +116,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const estadosRaw = (estadosRes.data ?? []) as { estado: string; acepta_politicas: boolean | null }[]
   const politicasAceptadas = estadosRaw.filter((p) => p.acepta_politicas === true).length
 
+  const codData = (codRes.data ?? []) as { total: number }[]
+  const contraEntregaPorCobrar = codData.reduce((sum, p) => sum + (p.total ?? 0), 0)
+
   const ordenesPorEstado = Object.entries(
     estadosRaw.reduce((acc: Record<string, number>, item) => {
       const e = item.estado
@@ -109,6 +135,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     stockBajo,
     politicasAceptadas,
     totalPedidos: estadosRaw.length,
+    contraEntregaPorCobrar,
+    contraEntregaPedidos: codData.length,
     ordenesPorEstado,
     ultimasOrdenes: (ultimasRes.data as unknown as DashboardStats['ultimasOrdenes']) ?? [],
   }

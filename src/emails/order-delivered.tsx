@@ -15,11 +15,13 @@ import {
 interface OrderDeliveredProps {
   orderNumber: string
   customerName: string
+  trackingUrl: string
 }
 
 export default function OrderDelivered({
   orderNumber,
   customerName,
+  trackingUrl,
 }: OrderDeliveredProps) {
   return (
     <Html lang="es">
@@ -63,6 +65,14 @@ export default function OrderDelivered({
                 @punk.medallo
               </a>{' '}
               y cuéntanos qué tal te quedó.
+            </Text>
+            <Text style={infoLine}>
+              Recuerda: puedes ver el historial de tu pedido cuando quieras
+              desde{' '}
+              <a href={trackingUrl} style={linkStyle}>
+                /tienda/rastrear
+              </a>{' '}
+              con tu número de pedido y correo.
             </Text>
           </Section>
 

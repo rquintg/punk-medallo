@@ -12,11 +12,16 @@ import {
   XCircle,
   AlertCircle,
   Truck,
+  CreditCard,
+  MessageCircle,
+  PackageSearch,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import ScrollToTop from '@/components/scroll-to-top'
 import Price from '@/components/tienda/price'
+import OrderTimeline from '@/components/tienda/order-timeline'
+import { getDiasEntrega } from '@/data/envio'
 import type { PedidoItem } from '@/features/tienda/types'
 
 interface OrderPageProps {
@@ -85,8 +90,16 @@ export default async function OrderPage({ params }: OrderPageProps) {
       notas,
       total,
       envio,
+      recargo,
       estado,
       created_at,
+      fecha_aprobado,
+      fecha_preparando,
+      fecha_enviado,
+      fecha_entregado,
+      metodo_pago,
+      referencia_pago,
+      pagado_at,
       pedido_items (
         nombre,
         precio,
@@ -107,23 +120,20 @@ export default async function OrderPage({ params }: OrderPageProps) {
     dateStyle: 'long',
   })
 
-  const estimatedDelivery = new Date(
-    new Date(pedido.created_at).getTime() + 5 * 24 * 60 * 60 * 1000,
-  ).toLocaleDateString('es-CO', { dateStyle: 'long' })
+  const [diasMin, diasMax] = getDiasEntrega(pedido.departamento)
+
+  const deliveryMin = new Date(
+    new Date(pedido.created_at).getTime() + diasMin * 24 * 60 * 60 * 1000,
+  ).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })
+
+  const deliveryMax = new Date(
+    new Date(pedido.created_at).getTime() + diasMax * 24 * 60 * 60 * 1000,
+  ).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })
+
+  const estimatedDelivery =
+    diasMin === diasMax ? deliveryMin : `entre ${deliveryMin} y ${deliveryMax}`
 
   const estado = (pedido.estado ?? '').toLowerCase()
-
-  const estadoColors: Record<string, string> = {
-    pendiente: 'text-yellow-400',
-    aprobado: 'text-green-400',
-    preparando: 'text-blue-400',
-    enviado: 'text-blue-400',
-    entregado: 'text-white',
-    rechazado: 'text-red-400',
-    anulado: 'text-red-400',
-    error: 'text-red-400',
-    cancelado: 'text-red-400',
-  }
 
   const estadoConfig: Record<string, { icon: React.ReactNode; title: string }> = {
     pendiente: {
@@ -226,10 +236,73 @@ export default async function OrderPage({ params }: OrderPageProps) {
             </div>
           )}
 
-          <div className="flex items-center gap-3 text-sm text-neutral-400">
-            <span className={`text-xs font-semibold uppercase ${estadoColors[estado] ?? 'text-neutral-400'}`}>
-              Estado: {estado}
-            </span>
+          <div className="rounded-md border border-neutral-800 bg-[#181818] p-5">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+              Estado del pedido
+            </p>
+            <OrderTimeline
+              estado={estado}
+              fechas={{
+                aprobado: pedido.fecha_aprobado,
+                preparando: pedido.fecha_preparando,
+                enviado: pedido.fecha_enviado,
+                entregado: pedido.fecha_entregado,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-neutral-800 px-6 py-6">
+          <h3 className="mb-4 text-sm font-semibold text-white">
+            Pago
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center gap-3 text-neutral-400">
+              <CreditCard size={16} className="shrink-0 text-neutral-500" />
+              <span>
+                Método:{' '}
+                <span className="text-neutral-300">
+                  {pedido.metodo_pago
+                    ? pedido.metodo_pago === 'CONTRA_ENTREGA'
+                      ? 'Contra entrega (efectivo)'
+                      : pedido.metodo_pago.toUpperCase()
+                    : '—'}
+                </span>
+              </span>
+            </div>
+            {pedido.metodo_pago === 'CONTRA_ENTREGA' && estado !== 'entregado' && (
+              <p className="rounded-md border border-yellow-900/60 bg-yellow-950/40 px-3 py-2 text-xs text-yellow-400">
+                Pagás en efectivo al recibir el pedido. Tené el cambio listo para el momento de la entrega.
+              </p>
+            )}
+            {pedido.referencia_pago && (
+              <div className="flex items-center gap-3 text-neutral-400">
+                <span className="shrink-0 font-mono text-xs text-neutral-600">Ref:</span>
+                <span className="font-mono text-xs text-neutral-300">
+                  {pedido.referencia_pago}
+                </span>
+              </div>
+            )}
+            {pedido.pagado_at && (
+              <div className="flex items-center gap-3 text-neutral-400">
+                <CheckCircle size={16} className="shrink-0 text-emerald-500" />
+                <span>
+                  Pagado el{' '}
+                  <span className="text-neutral-300">
+                    {new Date(pedido.pagado_at).toLocaleString('es-CO', {
+                      dateStyle: 'long',
+                      timeStyle: 'short',
+                    })}
+                  </span>
+                </span>
+              </div>
+            )}
+            {estado === 'pendiente' && (
+              <p className="rounded-md border border-yellow-900/60 bg-yellow-950/40 px-3 py-2 text-xs text-yellow-400">
+                El pago está pendiente. Si ya pagaste, puede tardar unos minutos
+                en confirmarse.
+              </p>
+            )}
           </div>
         </div>
 
@@ -275,7 +348,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm text-neutral-400">Subtotal</span>
             <span className="text-sm font-medium text-white">
-              <Price amount={pedido.total - (pedido.envio ?? 0)} />
+              <Price amount={pedido.total - (pedido.envio ?? 0) - (pedido.recargo ?? 0)} />
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between">
@@ -288,6 +361,14 @@ export default async function OrderPage({ params }: OrderPageProps) {
               </span>
             )}
           </div>
+          {(pedido.recargo ?? 0) > 0 && (
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Contra entrega</span>
+              <span className="text-sm font-medium text-white">
+                <Price amount={pedido.recargo!} />
+              </span>
+            </div>
+          )}
           <div className="mt-3 flex items-center justify-between border-t border-neutral-800 pt-3">
             <span className="text-sm text-neutral-400">Total</span>
             <span className="text-lg font-bold text-[#dc2626]">
@@ -296,14 +377,51 @@ export default async function OrderPage({ params }: OrderPageProps) {
           </div>
         </div>
 
-        <div className="border-t border-neutral-800 px-6 py-5 text-center">
+        <div className="mt-4 rounded-lg border border-neutral-800 bg-[#111] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111a14]">
+                <MessageCircle size={18} className="text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  ¿Dudas con tu pedido?
+                </p>
+                <p className="text-xs text-neutral-500">
+                  Escribinos por WhatsApp, te respondemos rápido.
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://wa.me/573014453392"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-emerald-700 bg-emerald-950/40 px-4 py-2 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-900/40 hover:text-emerald-300"
+            >
+              <MessageCircle size={15} />
+              WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col items-center gap-3">
           <Link
             href="/tienda"
-            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
           >
             <ArrowLeft size={16} />
             Seguir comprando
           </Link>
+          <p className="font-mono text-xs text-neutral-600">
+            ¿Perdiste el link?{' '}
+            <Link
+              href="/tienda/rastrear"
+              className="inline-flex items-center gap-1 text-neutral-400 transition-colors hover:text-[#dc2626]"
+            >
+              <PackageSearch size={12} aria-hidden="true" />
+              Rastrear pedido
+            </Link>
+          </p>
         </div>
       </div>
     </div>

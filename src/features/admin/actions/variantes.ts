@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { getSupabaseAdmin } from '../services/supabase-admin'
 import { requirePermissionAction } from '../utils/auth-server'
+import { notificarStockDisponible } from '../services/avisos-stock'
 
 export interface VarianteInput {
   talla: string | null
@@ -25,6 +26,8 @@ export async function createVariante(productoId: string, data: VarianteInput) {
 
   if (error) throw new Error(error.message)
 
+  await notificarStockDisponible(productoId)
+
   revalidatePath(`/admin/productos/${productoId}`)
 }
 
@@ -43,7 +46,10 @@ export async function updateVariante(id: string, data: VarianteInput) {
     .eq('id', id)
     .single()
 
-  if (v) revalidatePath(`/admin/productos/${v.producto_id}`)
+  if (v) {
+    await notificarStockDisponible(v.producto_id)
+    revalidatePath(`/admin/productos/${v.producto_id}`)
+  }
 }
 
 export async function deleteVariante(id: string) {

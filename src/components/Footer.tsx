@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PaymentBadges from "@/components/tienda/payment-badges";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -91,6 +92,9 @@ export default function Footer() {
 
       {/* Bottom */}
       <div className="max-w-[1300px] mx-auto pt-8 border-t border-white/10 flex flex-col gap-3 text-center max-md:pt-6 max-sm:pt-6">
+        <div className="flex justify-center">
+          <PaymentBadges />
+        </div>
         <p className="text-[#a40202] text-sm font-bold m-0 tracking-[0.5px] max-sm:text-xs">
           © {year} Punk Medallo - Todos los derechos reservados
         </p>

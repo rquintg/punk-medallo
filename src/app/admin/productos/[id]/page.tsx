@@ -3,6 +3,7 @@ import AdminHeader from '@/components/admin/admin-header'
 import ProductoForm from '@/components/admin/producto-form'
 import VariantesManager from '@/components/admin/variantes-manager'
 import ImagenesManager from '@/components/admin/imagenes-manager'
+import { AvisosManager } from '@/components/admin/avisos-manager'
 import { getProductoById } from '@/features/admin/services/productos'
 import { getCategorias } from '@/features/admin/services/categorias'
 import { getVariantesByProducto } from '@/features/admin/services/variantes'
@@ -42,6 +43,7 @@ export default async function EditarProductoPage({ params }: Props) {
           initialVariants={variantes}
           coloresDisponibles={producto.colores_disponibles}
         />
+        <AvisosManager productoId={id} />
       </div>
     </>
   )

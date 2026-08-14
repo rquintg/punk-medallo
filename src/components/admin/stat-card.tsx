@@ -6,6 +6,7 @@ interface StatCardProps {
   icon: LucideIcon
   color: 'red' | 'blue' | 'amber' | 'green'
   money?: boolean
+  sub?: string
 }
 
 const COLORS = {
@@ -15,7 +16,7 @@ const COLORS = {
   green: 'bg-green-500/10 text-green-400',
 }
 
-export default function StatCard({ label, value, icon: Icon, color, money = false }: StatCardProps) {
+export default function StatCard({ label, value, icon: Icon, color, money = false, sub }: StatCardProps) {
   return (
     <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-6">
       <div className="flex items-center justify-between">
@@ -26,6 +27,7 @@ export default function StatCard({ label, value, icon: Icon, color, money = fals
               ? `$${value.toLocaleString('es-CO')}`
               : value}
           </p>
+          {sub && <p className="text-xs text-[var(--admin-text-dim)] mt-1">{sub}</p>}
         </div>
         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${COLORS[color]}`}>
           <Icon size={24} />

@@ -15,11 +15,13 @@ import {
 interface OrderShippedProps {
   orderNumber: string
   customerName: string
+  trackingUrl: string
 }
 
 export default function OrderShipped({
   orderNumber,
   customerName,
+  trackingUrl,
 }: OrderShippedProps) {
   return (
     <Html lang="es">
@@ -60,6 +62,14 @@ export default function OrderShipped({
             <Text style={infoLine}>
               Gracias por confiar en Punk Medallo. Si tienes alguna duda,
               escríbenos al WhatsApp +57 301 445 3392.
+            </Text>
+            <Text style={infoLine}>
+              Consejo: puedes hacerle seguimiento a tu pedido cuando quieras
+              desde{' '}
+              <a href={trackingUrl} style={linkStyle}>
+                /tienda/rastrear
+              </a>{' '}
+              con tu número de pedido y correo.
             </Text>
           </Section>
 

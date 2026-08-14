@@ -4,13 +4,19 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Trash2, Minus, Plus, ShoppingBag, Loader2 } from 'lucide-react'
+import { Trash2, Minus, Plus, ShoppingBag, Loader2, CreditCard, Banknote } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCart } from '@/features/tienda/store/use-cart'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import CiudadDepartamentoSelect from '@/components/tienda/ciudad-departamento-select'
 import Price from '@/components/tienda/price'
-import { calcularEnvio, ENVIO_GRATIS_UMBRAL } from '@/data/envio'
+import {
+  calcularEnvio,
+  ENVIO_GRATIS_UMBRAL,
+  CONTRa_ENTREGA_RECARGO,
+  esContraEntregaDisponible,
+} from '@/data/envio'
+import PaymentBadges from '@/components/tienda/payment-badges'
 
 declare global {
   interface Window {
@@ -81,6 +87,9 @@ export default function CheckoutContent() {
   })
   const [aceptaCambios, setAceptaCambios] = useState(false)
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false)
+  const [metodo, setMetodo] = useState<'wompi' | 'contra_entrega'>('wompi')
+
+  const codDisponible = esContraEntregaDisponible(form.departamento, form.ciudad)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -97,6 +106,11 @@ export default function CheckoutContent() {
 
     if (!aceptaCambios || !aceptaPrivacidad) {
       toast.error('Debes aceptar las políticas de cambios y privacidad')
+      return
+    }
+
+    if (metodo === 'contra_entrega' && !codDisponible) {
+      toast.error('Pago contra entrega solo disponible en Medellín y área metropolitana')
       return
     }
 
@@ -126,6 +140,7 @@ export default function CheckoutContent() {
         body: JSON.stringify({
           shipping: body,
           items,
+          metodoPago: metodo,
         }),
       })
 
@@ -134,6 +149,13 @@ export default function CheckoutContent() {
       if (!res.ok) {
         toast.error(data.error ?? 'Error al crear el pedido')
         setLoading(false)
+        return
+      }
+
+      // Contra entrega: sin Wompi — ir directo al detalle del pedido
+      if (data.metodo === 'contra_entrega') {
+        clearCart()
+        router.push(`/tienda/orden/${data.numero_pedido}`)
         return
       }
 
@@ -330,13 +352,78 @@ export default function CheckoutContent() {
               </label>
             </div>
 
+            <div className="mt-4">
+              <h3 className="mb-3 text-sm font-semibold text-white">Método de pago</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                    metodo === 'wompi'
+                      ? 'border-red-600 bg-red-600/10'
+                      : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="metodoPago"
+                    checked={metodo === 'wompi'}
+                    onChange={() => setMetodo('wompi')}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                  />
+                  <div>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <CreditCard size={16} className="text-neutral-400" />
+                      Pago online
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Tarjeta, PSE o Nequi con Wompi.
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                    metodo === 'contra_entrega'
+                      ? 'border-red-600 bg-red-600/10'
+                      : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'
+                  } ${!codDisponible ? 'cursor-not-allowed opacity-50' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="metodoPago"
+                    checked={metodo === 'contra_entrega'}
+                    onChange={() => setMetodo('contra_entrega')}
+                    disabled={!codDisponible}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                  />
+                  <div>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <Banknote size={16} className="text-emerald-500" />
+                      Contra entrega
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Pagás en efectivo al recibir (+<Price amount={CONTRa_ENTREGA_RECARGO} />). Solo
+                      Medellín y área metropolitana.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="mt-3">
+                <PaymentBadges highlight={metodo} />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading || items.length === 0 || !aceptaCambios || !aceptaPrivacidad}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading ? 'Procesando...' : 'Ir a pagar'}
+              {loading
+                ? 'Procesando...'
+                : metodo === 'contra_entrega'
+                  ? 'Confirmar pedido'
+                  : 'Ir a pagar'}
             </button>
           </form>
         </div>
@@ -484,12 +571,24 @@ export default function CheckoutContent() {
                     <Price amount={ENVIO_GRATIS_UMBRAL} />
                   </p>
                 )}
+                {metodo === 'contra_entrega' && codDisponible && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm text-neutral-400">Contra entrega</span>
+                    <span className="text-sm font-medium text-white">
+                      <Price amount={CONTRa_ENTREGA_RECARGO} />
+                    </span>
+                  </div>
+                )}
                 <div className="mt-4 flex items-center justify-between border-t border-neutral-800 pt-4">
                   <span className="text-base font-semibold text-white">Total</span>
                   <span className="text-base font-bold text-white">
                     <Price
                       amount={
-                        totalPrecio() + calcularEnvio(totalPrecio(), form.departamento)
+                        totalPrecio() +
+                        calcularEnvio(totalPrecio(), form.departamento) +
+                        (metodo === 'contra_entrega' && codDisponible
+                          ? CONTRa_ENTREGA_RECARGO
+                          : 0)
                       }
                     />
                   </span>

@@ -108,23 +108,23 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
   let icon = <Clock size={48} className="text-yellow-500" />
   let title = 'Pago pendiente'
   let description = 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'
-  let linkText = 'Ver mis pedidos'
+  let linkUrl = '/cuenta/pedidos'
 
   if (isApproved) {
     icon = <CheckCircle size={48} className="text-green-500" />
     title = '¡Pago aprobado!'
     description = 'Tu pago fue procesado exitosamente. Te enviamos un correo con los detalles.'
-    linkText = 'Ir a la tienda'
+    linkUrl = `/tienda/orden/${pedido?.numero_pedido ?? transaction.reference}`
   } else if (isPending) {
     icon = <Clock size={48} className="text-yellow-500" />
     title = 'Pago pendiente'
     description = 'Tu pago está siendo procesado. Esto puede tomar unos segundos.'
-    linkText = 'Ver mis pedidos'
+    linkUrl = '/cuenta/pedidos'
   } else if (isDeclined) {
     icon = <XCircle size={48} className="text-red-500" />
     title = 'Pago no procesado'
     description = 'El pago no pudo ser completado. Podés intentar nuevamente desde la tienda.'
-    linkText = 'Volver a la tienda'
+    linkUrl = '/tienda'
   }
 
   return (
@@ -168,6 +168,15 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
 
         {isPending && (
           <PollTransaction transactionId={transactionId} />
+        )}
+
+        {!isApproved && (
+          <a
+            href={linkUrl}
+            className="mt-4 rounded-lg bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+          >
+            {linkUrl === '/tienda' ? 'Volver a la tienda' : 'Ver mis pedidos'}
+          </a>
         )}
       </div>
     </div>
