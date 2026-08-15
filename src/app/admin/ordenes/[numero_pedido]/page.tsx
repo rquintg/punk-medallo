@@ -7,6 +7,7 @@ import { getOrdenByNumero } from '@/features/admin/services/ordenes'
 import { actualizarEstadoOrden } from '@/features/admin/actions/ordenes'
 import { requirePermission } from '@/features/admin/utils/auth-server'
 import { can } from '@/features/admin/utils/permissions'
+import { metodoPagoLabel } from '@/lib/metodo-pago'
 import EliminarOrdenButton from './eliminar-orden-button'
 
 interface Props {
@@ -116,7 +117,7 @@ export default async function OrdenDetallePage({ params }: Props) {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-[var(--admin-text-muted)]">Subtotal</span>
                 <span className="text-sm font-medium text-[var(--admin-text)]">
-                  ${(orden.total - (orden.envio ?? 0) - (orden.recargo ?? 0)).toLocaleString('es-CO')}
+                  ${(orden.total - (orden.envio ?? 0) - (orden.recargo ?? 0) + (orden.descuento ?? 0)).toLocaleString('es-CO')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -132,6 +133,16 @@ export default async function OrdenDetallePage({ params }: Props) {
                   <span className="text-sm text-[var(--admin-text-muted)]">Contra entrega</span>
                   <span className="text-sm font-medium text-[var(--admin-text)]">
                     ${(orden.recargo ?? 0).toLocaleString('es-CO')}
+                  </span>
+                </div>
+              )}
+              {(orden.descuento ?? 0) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[var(--admin-text-muted)]">
+                    Descuento{orden.cupon_codigo ? ` (${orden.cupon_codigo})` : ''}
+                  </span>
+                  <span className="text-sm font-medium text-emerald-400">
+                    −${(orden.descuento ?? 0).toLocaleString('es-CO')}
                   </span>
                 </div>
               )}
@@ -193,7 +204,7 @@ export default async function OrdenDetallePage({ params }: Props) {
                 <div>
                   <dt className="text-[var(--admin-text-dim)]">Método de pago</dt>
                   <dd className="text-[var(--admin-text)]">
-                    {esCOD ? 'Contra entrega (efectivo)' : orden.metodo_pago.toUpperCase()}
+                    {esCOD ? 'Contra entrega (efectivo)' : metodoPagoLabel(orden.metodo_pago)}
                   </dd>
                 </div>
               )}

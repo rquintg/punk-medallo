@@ -7,11 +7,13 @@ interface PaymentBadgesProps {
 }
 
 const LOGOS: { src: string; alt: string; title: string; width: number; height: number }[] = [
-  { src: '/pagos/Wompi.png', alt: 'Wompi', title: 'Wompi', width: 820, height: 192 },
   { src: '/pagos/Visa.png', alt: 'Visa', title: 'Visa', width: 800, height: 259 },
   { src: '/pagos/Symbol.png', alt: 'Mastercard', title: 'Mastercard', width: 800, height: 495 },
   { src: '/pagos/Nequi.png', alt: 'Nequi', title: 'Nequi', width: 800, height: 248 },
+  { src: '/pagos/Pse.png', alt: 'PSE', title: 'PSE', width: 800, height: 248 },
+  { src: '/pagos/Daviplata.png', alt: 'Daviplata', title: 'Daviplata', width: 800, height: 248 },
   { src: '/pagos/Bancolombia.png', alt: 'Bancolombia', title: 'Bancolombia', width: 820, height: 115 },
+  { src: '/pagos/Qr.svg', alt: 'QR Bancolombia', title: 'QR Bancolombia', width: 48, height: 48 },
 ]
 
 export default function PaymentBadges({ highlight, label = 'Aceptamos' }: PaymentBadgesProps) {

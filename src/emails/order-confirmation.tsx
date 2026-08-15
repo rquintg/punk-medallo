@@ -35,6 +35,8 @@ interface OrderConfirmationProps {
   total: number
   estimatedDelivery: string
   metodoPago?: string | null
+  descuento?: number
+  cuponCodigo?: string
   orderUrl: string
   trackingUrl: string
 }
@@ -57,6 +59,8 @@ export default function OrderConfirmation({
   total,
   estimatedDelivery,
   metodoPago,
+  descuento,
+  cuponCodigo,
   orderUrl,
   trackingUrl,
 }: OrderConfirmationProps) {
@@ -160,6 +164,18 @@ export default function OrderConfirmation({
             ))}
 
             <Hr style={divider} />
+
+            {/* Descuento */}
+            {descuento && descuento > 0 && (
+              <Section style={totalRow}>
+                <Text style={label}>
+                  Descuento{cuponCodigo ? ` (${cuponCodigo})` : ''}
+                </Text>
+                <Text style={totalValue}>
+                  −{formatPrice(descuento)}
+                </Text>
+              </Section>
+            )}
 
             {/* Total */}
             <Section style={totalRow}>

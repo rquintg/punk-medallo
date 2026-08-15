@@ -10,6 +10,7 @@ import OrderDetails, {
   type OrderDetailsItem,
 } from '@/components/tienda/order-details'
 import { getDiasEntrega } from '@/data/envio'
+import { metodoPagoInfo } from '@/lib/metodo-pago'
 import type { PedidoItem } from '@/features/tienda/types'
 
 interface OrderPageProps {
@@ -66,35 +67,6 @@ const ESTADOS_TERMINALES: Record<string, string> = {
   cancelado: 'Pedido cancelado',
 }
 
-const LOGOS_METODO: Record<string, string> = {
-  VISA: '/pagos/visa.png',
-  MASTERCARD: '/pagos/symbol.png',
-  NEQUI: '/pagos/nequi.png',
-  BANCOLOMBIA: '/pagos/bancolombia.png',
-}
-
-function infoMetodoPago(mp: string | null): {
-  logo: string | null
-  nombre: string
-  linea: string
-} {
-  const m = mp?.toUpperCase() ?? ''
-  switch (m) {
-    case 'CONTRA_ENTREGA':
-      return { logo: null, nombre: 'Contra entrega', linea: 'Efectivo al recibir' }
-    case 'VISA':
-      return { logo: LOGOS_METODO.VISA, nombre: 'Visa', linea: 'Pago con tarjeta Visa' }
-    case 'MASTERCARD':
-      return { logo: LOGOS_METODO.MASTERCARD, nombre: 'Mastercard', linea: 'Pago con tarjeta Mastercard' }
-    case 'NEQUI':
-      return { logo: LOGOS_METODO.NEQUI, nombre: 'Nequi', linea: 'Pago con Nequi' }
-    case 'BANCOLOMBIA':
-      return { logo: LOGOS_METODO.BANCOLOMBIA, nombre: 'Bancolombia', linea: 'Pago con Bancolombia' }
-    default:
-      return { logo: '/pagos/wompi.png', nombre: 'Wompi', linea: 'Pago online (Wompi)' }
-  }
-}
-
 export default async function OrderPage({ params }: OrderPageProps) {
   const { id } = await params
   const supabase = await createClient()
@@ -115,6 +87,8 @@ export default async function OrderPage({ params }: OrderPageProps) {
       total,
       envio,
       recargo,
+      descuento,
+      cupon_codigo,
       estado,
       created_at,
       fecha_aprobado,
@@ -164,7 +138,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
     ? `${estadoTerminal} — realizado el ${createdDate}`
     : `Pedido realizado el ${createdDate}`
 
-  const { logo, nombre, linea } = infoMetodoPago(pedido.metodo_pago)
+  const { logo, nombre, linea } = metodoPagoInfo(pedido.metodo_pago)
 
   const metodo: MetodoPagoInfo = {
     logo,
@@ -199,13 +173,24 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
   const envio = pedido.envio ?? 0
   const recargo = pedido.recargo ?? 0
-  const subtotal = pedido.total - envio - recargo
+  const descuento = pedido.descuento ?? 0
+  const subtotal = pedido.total + descuento - envio - recargo
 
   const filasResumen = [
     { titulo: 'Subtotal', valor: subtotal },
     { titulo: 'Envío', valor: envio, gratis: envio === 0 },
     ...(recargo > 0
       ? [{ titulo: 'Contra entrega', valor: recargo }]
+      : []),
+    ...(descuento > 0
+      ? [
+          {
+            titulo: pedido.cupon_codigo
+              ? `Descuento (${pedido.cupon_codigo})`
+              : 'Descuento',
+            valor: -descuento,
+          },
+        ]
       : []),
   ]
 

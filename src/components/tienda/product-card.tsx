@@ -8,6 +8,7 @@ import { useCart } from '@/features/tienda/store/use-cart';
 import { getCategoriaEstilo } from '@/features/tienda/utils/categorias';
 import Price from './price';
 import { getColorHex } from '@/lib/color-swatch';
+import { descuentoEntero, precioConDescuento, tieneDescuento } from '@/lib/precio';
 import type { Producto, Talla } from '@/features/tienda/types';
 
 interface ProductCardProps {
@@ -162,6 +163,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
         )}
 
+        {tieneDescuento(product.descuento) && !isOutOfStock && (
+          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-emerald-500 to-green-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-md">
+            Oferta -{descuentoEntero(product.descuento)}%
+          </span>
+        )}
+
         {isOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/70">
             <span className="text-lg font-bold tracking-wide text-white">
@@ -178,8 +185,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        <p className="text-xl font-bold text-[#dc2626]">
-          <Price amount={product.precio} />
+        <p className="flex items-baseline gap-2 text-xl font-bold text-[#dc2626]">
+          <Price amount={precioConDescuento(product.precio, product.descuento)} />
+          {tieneDescuento(product.descuento) && (
+            <span className="text-sm font-medium text-neutral-500 line-through">
+              <Price amount={product.precio} />
+            </span>
+          )}
         </p>
 
         <p className="text-xs text-neutral-500">

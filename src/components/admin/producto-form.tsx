@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createProducto, updateProducto } from '@/features/admin/actions/productos'
+import { precioConDescuento } from '@/lib/precio'
 import type { CategoriaRow } from '@/features/admin/services/categorias'
 import type { ProductoRow } from '@/features/admin/services/productos'
 
@@ -21,6 +22,8 @@ export default function ProductoForm({ categorias, producto }: Props) {
   const [saving, setSaving] = useState(false)
   const [nombre, setNombre] = useState(producto?.nombre ?? '')
   const [slugField, setSlugField] = useState(producto?.slug ?? '')
+  const [precioVal, setPrecioVal] = useState(producto?.precio ?? 0)
+  const [descuentoVal, setDescuentoVal] = useState(producto?.descuento ?? 0)
 
   const slugPreview = useMemo(() => {
     if (slugField) return null
@@ -84,7 +87,7 @@ export default function ProductoForm({ categorias, producto }: Props) {
       </Section>
 
       <Section title="Precio y stock">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <InputField
             label="Precio *"
             name="precio"
@@ -93,6 +96,22 @@ export default function ProductoForm({ categorias, producto }: Props) {
             step={100}
             required
             defaultValue={producto?.precio ?? ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrecioVal(Number(e.target.value) || 0)}
+          />
+          <InputField
+            label={
+              <>
+                Descuento <Hint>% 0-100</Hint>
+              </>
+            }
+            name="descuento"
+            type="number"
+            min={0}
+            max={100}
+            defaultValue={producto?.descuento ?? 0}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setDescuentoVal(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
+            }
           />
           <InputField
             label="Stock *"
@@ -103,6 +122,12 @@ export default function ProductoForm({ categorias, producto }: Props) {
             defaultValue={producto?.stock ?? ''}
           />
         </div>
+        {descuentoVal > 0 && (
+          <p className="mt-1 text-xs text-[var(--admin-text-dim)]">
+            Queda en <span className="font-medium text-emerald-400">${precioConDescuento(precioVal, descuentoVal).toLocaleString('es-CO')}</span>
+            {' '}(-{descuentoVal}% de ${precioVal.toLocaleString('es-CO')})
+          </p>
+        )}
       </Section>
 
       <Section title="Clasificación">

@@ -7,6 +7,7 @@ import { getColorHex } from '@/lib/color-swatch';
 import type { Producto, Talla } from '@/features/tienda/types';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from '@/components/tienda/price';
+import { precioConDescuento, tieneDescuento } from '@/lib/precio';
 import { StockAlert } from '@/components/tienda/stock-alert';
 
 interface ProductInfoProps {
@@ -116,8 +117,13 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
         </p>
       </div>
 
-      <div className="text-3xl font-bold text-white">
-        <Price amount={producto.precio} />
+      <div className="flex items-baseline gap-3 text-3xl font-bold text-white">
+        <Price amount={precioConDescuento(producto.precio, producto.descuento)} />
+        {tieneDescuento(producto.descuento) && (
+          <span className="text-lg font-medium text-neutral-500 line-through">
+            <Price amount={producto.precio} />
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

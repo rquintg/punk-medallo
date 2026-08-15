@@ -15,6 +15,7 @@ export interface ProductoRow {
   nombre: string
   descripcion: string
   precio: number
+  descuento: number
   stock: number
   stock_efectivo: number
   genero: string

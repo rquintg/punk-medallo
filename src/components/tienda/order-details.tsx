@@ -407,9 +407,15 @@ export default function OrderDetails({
                 {filasResumen.map(({ titulo, valor, gratis }, key) => (
                   <div key={key} className="flex justify-between text-sm">
                     <p className="text-muted-foreground">{titulo}</p>
-                    <p className="text-muted-foreground">
-                      {gratis ? "Gratis" : formatearPrecio(valor ?? 0)}
-                    </p>
+                    {valor !== null && valor < 0 ? (
+                      <p className="font-medium text-emerald-400">
+                        −{formatearPrecio(-valor)}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        {gratis ? "Gratis" : formatearPrecio(valor ?? 0)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </CardContent>

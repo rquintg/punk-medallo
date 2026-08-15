@@ -8,6 +8,8 @@ export interface OrdenRow {
   total: number
   envio: number | null
   recargo: number | null
+  descuento: number | null
+  cupon_codigo: string | null
   metodo_pago: string | null
   estado: string
   created_at: string

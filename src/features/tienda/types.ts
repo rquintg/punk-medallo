@@ -31,6 +31,7 @@ export interface Producto {
   nombre: string;
   descripcion: string;
   precio: number;
+  descuento: number;
   imagenes: ProductImage[];
   categoria_id: string | null;
   categoria: CategoriaInfo | null;
@@ -61,9 +62,10 @@ export interface PedidoItem {
 
 export type ProductoFilters = {
   categoria_id?: string
-  genero?: Genero
-  talla?: Talla
+  generos?: Genero[]
+  tallas?: Talla[]
   precio_min?: number
   precio_max?: number
+  oferta?: boolean
   q?: string
 }

@@ -17,6 +17,7 @@ import {
   esContraEntregaDisponible,
 } from '@/data/envio'
 import PaymentBadges from '@/components/tienda/payment-badges'
+import CuponCheckout from '@/components/tienda/cupon-checkout'
 
 declare global {
   interface Window {
@@ -88,8 +89,13 @@ export default function CheckoutContent() {
   const [aceptaCambios, setAceptaCambios] = useState(false)
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false)
   const [metodo, setMetodo] = useState<'wompi' | 'contra_entrega'>('wompi')
+  const [cupon, setCupon] = useState<{ codigo: string; descuento: number } | null>(null)
 
   const codDisponible = esContraEntregaDisponible(form.departamento, form.ciudad)
+
+  const envioCalculado = form.departamento
+    ? calcularEnvio(totalPrecio(), form.departamento)
+    : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -141,6 +147,7 @@ export default function CheckoutContent() {
           shipping: body,
           items,
           metodoPago: metodo,
+          ...(cupon ? { cuponCodigo: cupon.codigo } : {}),
         }),
       })
 
@@ -375,7 +382,7 @@ export default function CheckoutContent() {
                       Pago online
                     </p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      Tarjeta, PSE o Nequi con Wompi.
+                      Procesado de forma segura por Wompi.
                     </p>
                   </div>
                 </label>
@@ -571,6 +578,12 @@ export default function CheckoutContent() {
                     <Price amount={ENVIO_GRATIS_UMBRAL} />
                   </p>
                 )}
+                <CuponCheckout
+                  email={form.email}
+                  subtotal={totalPrecio()}
+                  envio={envioCalculado}
+                  onCambio={setCupon}
+                />
                 {metodo === 'contra_entrega' && codDisponible && (
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-sm text-neutral-400">Contra entrega</span>
@@ -588,7 +601,8 @@ export default function CheckoutContent() {
                         calcularEnvio(totalPrecio(), form.departamento) +
                         (metodo === 'contra_entrega' && codDisponible
                           ? CONTRa_ENTREGA_RECARGO
-                          : 0)
+                          : 0) -
+                        (cupon?.descuento ?? 0)
                       }
                     />
                   </span>

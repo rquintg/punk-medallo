@@ -8,7 +8,10 @@ import { logger, generateRequestId } from '@/lib/logger'
 import { sanitizeShipping } from '@/lib/sanitize'
 import { calcularEnvio, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega } from '@/data/envio'
 import { sendOrderConfirmation } from '@/lib/email'
+import { precioConDescuento } from '@/lib/precio'
 import type { CartItem } from '@/features/tienda/types'
+import { validarCupon, consumirCupon, liberarCupon, registrarRedencion } from '@/features/cupones/services/cupones'
+import { calcularDescuento, normalizarCodigo } from '@/features/cupones/calculo'
 
 interface CheckoutRequest {
   shipping: {
@@ -24,6 +27,7 @@ interface CheckoutRequest {
   }
   items: CartItem[]
   metodoPago?: 'wompi' | 'contra_entrega'
+  cuponCodigo?: string
 }
 
 function generateOrderNumber(): string {
@@ -159,7 +163,7 @@ export async function POST(request: NextRequest) {
     const productIds = items.map((i) => i.id)
     const { data: products, error: productsError } = await supabase
       .from('productos')
-      .select('id, stock, precio')
+      .select('id, stock, precio, descuento')
       .in('id', productIds)
 
     if (productsError || !products) {
@@ -226,7 +230,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      productPrices.set(item.id, product.precio)
+      productPrices.set(item.id, precioConDescuento(product.precio, product.descuento))
     }
 
     const total = items.reduce(
@@ -236,7 +240,66 @@ export async function POST(request: NextRequest) {
 
     // Envío: tarifa por zona (server-side, no confiar en el cliente) + gratis > umbral
     const envio = calcularEnvio(total, shipping.departamento)
-    const totalConEnvio = total + envio + recargo
+
+    // 1.5. Cupón: validar, reservar cupo (atómico) y calcular descuento
+    let cuponInfo: {
+      id: string
+      codigo: string
+      tipo: string
+      valor: number
+      descuento_maximo: number | null
+    } | null = null
+    let descuento = 0
+
+    const cuponCodigo = body.cuponCodigo ? normalizarCodigo(body.cuponCodigo) : null
+    if (cuponCodigo) {
+      const validacion = await validarCupon(supabase, cuponCodigo, shipping.email, total)
+
+      if (!validacion.valido) {
+        logger.warn('Checkout: cupón inválido', { requestId: rid, data: { codigo: cuponCodigo, motivo: validacion.motivo } })
+        return respond(
+          { error: validacion.motivo === 'ya_usado'
+            ? 'Ya usaste este cupón con ese correo'
+            : validacion.motivo === 'minimo'
+              ? 'Este cupón requiere un pedido mínimo'
+              : 'El cupón no es válido para este pedido' },
+          { status: 400 },
+        )
+      }
+
+      cuponInfo = validacion.cupon!
+
+      const reservado = await consumirCupon(cuponInfo.id)
+      if (!reservado.ok) {
+        if (reservado.errorMessage) {
+          logger.error('Checkout: error RPC consumir cupón', {
+            requestId: rid,
+            data: { codigo: cuponCodigo, error: reservado.errorMessage },
+          })
+          return respond(
+            { error: 'No se pudo aplicar el cupón. Intentá de nuevo.' },
+            { status: 500 },
+          )
+        }
+        logger.warn('Checkout: cupón sin cupo', { requestId: rid, data: { codigo: cuponCodigo } })
+        return respond(
+          { error: 'El cupón agotó su cupo de usos' },
+          { status: 400 },
+        )
+      }
+
+      descuento =
+        cuponInfo.tipo === 'envio'
+          ? envio
+          : calcularDescuento(
+              cuponInfo.tipo as 'porcentaje' | 'fijo',
+              cuponInfo.valor,
+              cuponInfo.descuento_maximo,
+              total,
+            )
+    }
+
+    const totalConDescuento = total + envio + recargo - descuento
 
     // 2. Insertar pedido
     const { data: pedido, error: pedidoError } = await supabase
@@ -252,11 +315,13 @@ export async function POST(request: NextRequest) {
         ciudad: shipping.ciudad,
         barrio: shipping.barrio,
         notas: shipping.notas,
-        total: totalConEnvio,
+        total: totalConDescuento,
         envio,
         recargo,
         acepta_politicas: true,
         estado: esCOD ? 'aprobado' : 'pendiente',
+        ...(cuponInfo ? { cupon_id: cuponInfo.id, cupon_codigo: cuponInfo.codigo } : {}),
+        ...(descuento > 0 ? { descuento } : {}),
         ...(esCOD
           ? { metodo_pago: 'CONTRA_ENTREGA', fecha_aprobado: new Date().toISOString() }
           : {}),
@@ -265,6 +330,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (pedidoError || !pedido) {
+      if (cuponInfo) await liberarCupon(cuponInfo.id)
       console.error('Insert pedido error:', pedidoError)
       return respond(
         { error: 'Error al crear el pedido' },
@@ -292,10 +358,28 @@ export async function POST(request: NextRequest) {
     if (itemsError) {
       console.error('Insert pedido_items error:', itemsError)
       await supabase.from('pedidos').delete().eq('id', pedido.id)
+      if (cuponInfo) await liberarCupon(cuponInfo.id)
       return respond(
         { error: 'Error al guardar los artículos del pedido' },
         { status: 500 },
       )
+    }
+
+    // 3. Registrar redención del cupón (1 uso por email). Si otra
+    // solicitud concurrente usó el cupón con el mismo correo, rollback.
+    if (cuponInfo) {
+      const registrada = await registrarRedencion(cuponInfo.id, shipping.email, pedido.id)
+
+      if (!registrada) {
+        await supabase.from('pedido_items').delete().eq('pedido_id', pedido.id)
+        await supabase.from('pedidos').delete().eq('id', pedido.id)
+        await liberarCupon(cuponInfo.id)
+        logger.warn('Checkout: cupón ya usado por email (race)', { requestId: rid, data: { codigo: cuponInfo.codigo } })
+        return respond(
+          { error: 'Ya usaste este cupón con ese correo' },
+          { status: 400 },
+        )
+      }
     }
 
     // Contra entrega: no hay Wompi — confirmar por email y listo
@@ -327,9 +411,10 @@ export async function POST(request: NextRequest) {
             color: i.color,
             imageUrl: i.imagen_url,
           })),
-          total: totalConEnvio,
+          total: totalConDescuento,
           estimatedDelivery: diasMin === diasMax ? entregaMin : `entre ${entregaMin} y ${entregaMax}`,
           metodoPago: 'CONTRA_ENTREGA',
+          ...(descuento > 0 ? { descuento, cuponCodigo: cuponInfo?.codigo } : {}),
         })
       } catch (emailError) {
         console.error('sendOrderConfirmation (COD) error:', emailError)
@@ -338,7 +423,7 @@ export async function POST(request: NextRequest) {
       logger.info('Pedido contra entrega creado', {
         requestId: rid,
         duration: Date.now() - start,
-        data: { orderNumber, total: totalConEnvio, envio, recargo, itemsCount: items.length },
+        data: { orderNumber, total: totalConDescuento, envio, recargo, descuento, itemsCount: items.length },
       })
 
       return respond(
@@ -354,7 +439,7 @@ export async function POST(request: NextRequest) {
     // 5. Generar params para Wompi Widget
     const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY
     const integrityKey = process.env.WOMPI_INTEGRITY_KEY
-    const amountInCents = Math.round(totalConEnvio * 100)
+    const amountInCents = Math.round(totalConDescuento * 100)
 
     if (!publicKey || !integrityKey) {
       console.error('Faltan llaves de Wompi en .env.local')
@@ -380,7 +465,7 @@ export async function POST(request: NextRequest) {
     logger.info('Pedido creado exitosamente', {
       requestId: rid,
       duration: Date.now() - start,
-      data: { orderNumber, total: totalConEnvio, envio, itemsCount: items.length },
+      data: { orderNumber, total: totalConDescuento, envio, descuento, itemsCount: items.length },
     })
 
     return respond(

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { precioConDescuento } from '@/lib/precio';
 import type { Producto, Talla, CartItem, Variante } from '../types';
 
 const MAX_QUANTITY = 10
@@ -27,7 +28,14 @@ function createCartItem(
   colorSeleccionado: string | null,
   cantidad: number,
 ): CartItem {
-  return { ...producto, variantId, tallaSeleccionada, colorSeleccionado, cantidad };
+  return {
+    ...producto,
+    precio: precioConDescuento(producto.precio, producto.descuento),
+    variantId,
+    tallaSeleccionada,
+    colorSeleccionado,
+    cantidad,
+  };
 }
 
 function itemKey(productoId: string, variantId: string | null, talla: Talla | null, color: string | null): string {

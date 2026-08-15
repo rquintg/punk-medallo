@@ -15,13 +15,15 @@ export function FilterDrawer({ children, categoria = null }: FilterDrawerProps) 
 
   const activeGenero = searchParams.get('genero');
   const activeTalla = searchParams.get('talla');
-  const activePrecio = searchParams.get('precio');
+  const activePrecio = searchParams.get('precio_min') || searchParams.get('precio_max');
+  const activeOferta = searchParams.get('oferta');
 
   const filterCount = [
     categoria,
     activeGenero,
     activeTalla,
     activePrecio,
+    activeOferta,
   ].filter(Boolean).length;
 
   const close = useCallback(() => setOpen(false), []);

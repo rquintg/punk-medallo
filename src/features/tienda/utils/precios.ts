@@ -1,16 +1,43 @@
-export interface RangoPrecio {
-  key: string
-  label: string
-  min: number
-  max: number | null
+const currencyFormatter = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
+export function formatearPesos(n: number): string {
+  return currencyFormatter.format(n)
 }
 
-export const PRICE_RANGES: Record<string, RangoPrecio> = {
-  barato: { key: 'barato', label: 'Menos de $50K', min: 0, max: 50000 },
-  medio: { key: 'medio', label: '$50K - $80K', min: 50000, max: 80000 },
-  caro: { key: 'caro', label: 'Más de $80K', min: 80000, max: null },
+export interface RangoPrecioParse {
+  min?: number
+  max?: number
 }
 
-export function getRangoPrecio(key: string): RangoPrecio | null {
-  return PRICE_RANGES[key] ?? null
+const valorEntero = (v: unknown): number | null => {
+  const n = Number(v)
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null
+}
+
+export function parsePrecios(
+  searchParams: { precio_min?: unknown; precio_max?: unknown },
+): RangoPrecioParse {
+  const rawMin = valorEntero(searchParams.precio_min)
+  const rawMax = valorEntero(searchParams.precio_max)
+
+  if (rawMin === null && rawMax === null) return {}
+
+  let min = rawMin ?? 0
+  let max = rawMax ?? Number.POSITIVE_INFINITY
+
+  if (min > max) {
+    const swap = min
+    min = max
+    max = swap
+  }
+
+  const result: RangoPrecioParse = {}
+  if (min > 0) result.min = min
+  if (Number.isFinite(max)) result.max = max
+  return result
 }

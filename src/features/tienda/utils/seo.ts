@@ -1,3 +1,5 @@
+import { precioConDescuento } from '@/lib/precio';
+
 export const SITE_URL = 'https://punkmedallo.com';
 export const TIENDA_URL = `${SITE_URL}/tienda`;
 
@@ -24,6 +26,7 @@ export function productJsonLd(product: {
   descripcion: string;
   slug: string;
   precio: number;
+  descuento?: number;
   stock: number;
   imagenes: { url: string }[];
   categoria: { nombre: string } | null;
@@ -43,7 +46,7 @@ export function productJsonLd(product: {
     },
     offers: {
       '@type': 'Offer',
-      price: product.precio,
+      price: precioConDescuento(product.precio, product.descuento),
       priceCurrency: 'COP',
       availability: product.stock > 0
         ? 'https://schema.org/InStock'

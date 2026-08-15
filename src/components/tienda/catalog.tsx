@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import type { CategoriaInfo, Producto } from '@/features/tienda/types';
+import type { PrecioLimites } from '@/features/tienda/services/products';
 import { SearchBar } from './search-bar';
 import { ProductFilters } from './product-filters';
 import { MobileFilters } from './mobile-filters';
@@ -17,6 +19,8 @@ interface CatalogProps {
   activeCategoria?: string | null;
   hasFilters: boolean;
   destacados?: Producto[];
+  ofertas?: Producto[];
+  precioLimites: PrecioLimites;
 }
 
 export function Catalog({
@@ -28,8 +32,11 @@ export function Catalog({
   activeCategoria = null,
   hasFilters,
   destacados = [],
+  ofertas = [],
+  precioLimites,
 }: CatalogProps) {
   const showDestacados = !hasFilters && destacados.length > 0;
+  const showOfertas = !hasFilters && ofertas.length > 0;
 
   return (
     <div className="lg:flex lg:gap-8">
@@ -41,12 +48,32 @@ export function Catalog({
               orientation="sidebar"
               categorias={categorias}
               activeCategoria={activeCategoria}
+              precioLimites={precioLimites}
             />
           </Suspense>
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
+        {showOfertas && (
+          <section className="mb-10">
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white">Ofertas</h2>
+              <Link
+                href="/tienda/ofertas"
+                className="text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+              >
+                Ver todas
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {ofertas.slice(0, 4).map((producto) => (
+                <ProductCard key={producto.id} product={producto} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {showDestacados && (
           <section className="mb-10">
             <h2 className="mb-4 text-lg font-bold text-white">Lo más pedido</h2>
@@ -70,6 +97,7 @@ export function Catalog({
               <MobileFilters
                 categorias={categorias}
                 activeCategoria={activeCategoria}
+                precioLimites={precioLimites}
               />
             </Suspense>
           </div>

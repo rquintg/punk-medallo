@@ -30,6 +30,7 @@ export interface DbProduct {
   nombre: string;
   descripcion: string;
   precio: number;
+  descuento?: number;
   categoria_id: string | null;
   categorias: DbCategoria | null;
   genero: string;
@@ -108,6 +109,7 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
       nombre: db.nombre,
       descripcion: db.descripcion,
       precio: db.precio,
+      descuento: db.descuento ?? 0,
       categoria_id: db.categoria_id,
       categoria,
       genero: db.genero as Producto['genero'],
@@ -127,6 +129,7 @@ export function mapDbProductoToProducto(db: DbProduct): Producto {
     nombre: db.nombre,
     descripcion: db.descripcion,
     precio: db.precio,
+    descuento: db.descuento ?? 0,
     categoria_id: db.categoria_id,
     categoria,
     genero: db.genero as Producto['genero'],

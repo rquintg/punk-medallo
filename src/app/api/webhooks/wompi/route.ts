@@ -9,6 +9,7 @@ import {
 } from '@/lib/wompi'
 import { sendOrderConfirmation, sendOrderApproved, sendOrderDeclined } from '@/lib/email'
 import { logger, generateRequestId } from '@/lib/logger'
+import { canonicalMetodoPago } from '@/lib/metodo-pago'
 
 let supabaseAdminClient: SupabaseClient | null = null
 
@@ -202,8 +203,7 @@ export async function POST(request: NextRequest) {
 
           const pmType = transaction.payment_method_type
           const brand = transaction.payment_method?.extra?.brand
-          const metodoPago =
-            pmType === 'CARD' && brand ? brand.toUpperCase() : (pmType ?? 'Wompi')
+          const metodoPago = canonicalMetodoPago(pmType, brand)
 
           const { error: estadoError } = await getSupabaseAdmin()
             .from('pedidos')

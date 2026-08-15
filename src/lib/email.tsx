@@ -30,6 +30,8 @@ export interface OrderConfirmationData {
   total: number
   estimatedDelivery: string
   metodoPago?: string | null
+  descuento?: number
+  cuponCodigo?: string
 }
 
 export interface OrderApprovedData {
@@ -104,6 +106,8 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
       total={data.total}
       estimatedDelivery={data.estimatedDelivery}
       metodoPago={data.metodoPago ?? null}
+      descuento={data.descuento}
+      cuponCodigo={data.cuponCodigo}
       orderUrl={`${siteUrl}/tienda/orden/${data.orderNumber}`}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
     />,

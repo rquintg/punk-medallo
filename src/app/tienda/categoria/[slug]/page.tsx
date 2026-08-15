@@ -4,12 +4,13 @@ import type { Genero, ProductoFilters, Talla } from '@/features/tienda/types';
 import {
   getProductosPage,
   getProductosDestacados,
+  getPrecioLimites,
   PAGE_SIZE,
   type ProductoOrden,
 } from '@/features/tienda/services/products';
 import { getCategorias } from '@/features/tienda/services/categorias';
 import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
-import { getRangoPrecio } from '@/features/tienda/utils/precios';
+import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
@@ -79,24 +80,25 @@ export default async function CategoriaPage({
   const categoria = categorias.find((c) => c.slug === slug);
   if (!categoria) notFound();
 
-  const genero = (params2.genero as string) ?? '';
-  const talla = (params2.talla as string) ?? '';
-  const precioKey = (params2.precio as string) ?? '';
+  const generos = ((params2.genero as string) ?? '').split(',').map((g) => g.trim()).filter(Boolean) as Genero[];
+  const tallas = ((params2.talla as string) ?? '').split(',').map((t) => t.trim()).filter(Boolean) as Talla[];
+  const rangoPrecio = parsePrecios(params2);
+  const oferta = params2.oferta === '1';
   const sort = (params2.sort as ProductoOrden) ?? 'relevancia';
   const page = Math.max(1, Number(params2.page) || 1);
 
   const filters: ProductoFilters = { categoria_id: categoria.id }
-  if (genero) filters.genero = genero as Genero
-  if (talla) filters.talla = talla as Talla
-  const rangoPrecio = getRangoPrecio(precioKey)
-  if (rangoPrecio) {
-    filters.precio_min = rangoPrecio.min
-    if (rangoPrecio.max !== null) {
-      filters.precio_max = rangoPrecio.max
-    }
-  }
+  if (generos.length) filters.generos = generos
+  if (tallas.length) filters.tallas = tallas
+  if (oferta) filters.oferta = true
+  if (rangoPrecio.min !== undefined) filters.precio_min = rangoPrecio.min
+  if (rangoPrecio.max !== undefined) filters.precio_max = rangoPrecio.max
 
-  const hasFilters = Boolean(genero || talla || precioKey);
+  const hasFilters = Boolean(
+    generos.length || tallas.length || rangoPrecio.min !== undefined || rangoPrecio.max !== undefined || oferta,
+  );
+
+  const precioLimites = await getPrecioLimites();
 
   const [pageData, destacados] = await Promise.all([
     getProductosPage(filters, sort, page, PAGE_SIZE),
@@ -156,6 +158,7 @@ export default async function CategoriaPage({
         activeCategoria={categoria.slug}
         hasFilters={hasFilters}
         destacados={destacados}
+        precioLimites={precioLimites}
       />
     </>
   );

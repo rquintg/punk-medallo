@@ -74,9 +74,16 @@ function createColumns(onDelete: (id: string) => void): Column<ProductoRow>[] {
       key: 'precio',
       header: 'Precio',
       cell: (item) => (
-        <span className="font-medium text-[var(--admin-text)]">
-          ${item.precio.toLocaleString('es-CO')}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-[var(--admin-text)]">
+            ${item.precio.toLocaleString('es-CO')}
+          </span>
+          {item.descuento > 0 && (
+            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+              -{item.descuento}%
+            </span>
+          )}
+        </div>
       ),
     },
     {

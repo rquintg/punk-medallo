@@ -11,6 +11,7 @@ import {
   UserCircle,
   LogOut,
   Radio,
+  Ticket,
 } from 'lucide-react'
 import { can } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -45,6 +46,12 @@ const NAV_ITEMS = [
     href: '/admin/ordenes',
     icon: ClipboardList,
     permission: 'view_orders' as const,
+  },
+  {
+    label: 'Cupones',
+    href: '/admin/cupones',
+    icon: Ticket,
+    permission: 'manage_cupones' as const,
   },
   {
     label: 'Usuarios',

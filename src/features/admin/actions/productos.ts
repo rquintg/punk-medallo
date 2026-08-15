@@ -21,6 +21,7 @@ export async function createProducto(formData: FormData) {
   const descripcion = formData.get('descripcion') as string
   const precio = Number(formData.get('precio'))
   const stock = Number(formData.get('stock'))
+  const descuento = Math.min(100, Math.max(0, Number(formData.get('descuento')) || 0))
   const genero = formData.get('genero') as string
   const categoria_id = (formData.get('categoria_id') as string) || null
   const destacado = formData.get('destacado') === 'true'
@@ -36,6 +37,7 @@ export async function createProducto(formData: FormData) {
     nombre,
     descripcion,
     precio,
+    descuento,
     stock,
     genero,
     categoria_id,
@@ -62,6 +64,7 @@ export async function updateProducto(id: string, formData: FormData) {
   const descripcion = formData.get('descripcion') as string
   const precio = Number(formData.get('precio'))
   const stock = Number(formData.get('stock'))
+  const descuento = Math.min(100, Math.max(0, Number(formData.get('descuento')) || 0))
   const genero = formData.get('genero') as string
   const categoria_id = (formData.get('categoria_id') as string) || null
   const destacado = formData.get('destacado') === 'true'
@@ -78,6 +81,7 @@ export async function updateProducto(id: string, formData: FormData) {
       nombre,
       descripcion,
       precio,
+      descuento,
       stock,
       genero,
       categoria_id,
