@@ -75,7 +75,7 @@ export async function AvisosManager({ productoId }: AvisosManagerProps) {
             </div>
             {a.telefono && (
               <a
-                href={`https://wa.me/57${a.telefono.replace(/^\D?57/, '')}`}
+                href={`https://wa.me/57${a.telefono.replace(/^\D?57/, '')}?text=${encodeURIComponent('Hola, te escribimos de Punk Medallo por el aviso de stock')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="shrink-0 rounded-md border border-emerald-800 bg-emerald-950/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-400 transition-colors hover:bg-emerald-900/40"

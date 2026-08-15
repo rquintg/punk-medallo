@@ -36,6 +36,14 @@ export interface WompiTransaction {
   currency: string
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'VOIDED' | 'ERROR'
   payment_method_type: string
+  payment_method?: {
+    type: string
+    extra?: {
+      brand?: string
+      last_four?: string
+      institution?: string
+    }
+  }
   status_message?: string
   created_at: string
   paid_at?: string

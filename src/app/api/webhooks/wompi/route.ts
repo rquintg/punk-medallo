@@ -200,12 +200,17 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          const pmType = transaction.payment_method_type
+          const brand = transaction.payment_method?.extra?.brand
+          const metodoPago =
+            pmType === 'CARD' && brand ? brand.toUpperCase() : (pmType ?? 'Wompi')
+
           const { error: estadoError } = await getSupabaseAdmin()
             .from('pedidos')
             .update({
               estado: verifiedEstado,
               fecha_aprobado: new Date().toISOString(),
-              metodo_pago: transaction.payment_method_type ?? 'Wompi',
+              metodo_pago: metodoPago,
               referencia_pago: transactionId,
               pagado_at: transaction.paid_at ?? new Date().toISOString(),
             })

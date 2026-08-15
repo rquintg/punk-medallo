@@ -64,7 +64,7 @@ export default async function OrdenDetallePage({ params }: Props) {
           </a>{' '}
           o{' '}
           <a
-            href={`https://wa.me/57${(orden.telefono ?? '').replace(/\D/g, '').replace(/^57/, '')}`}
+            href={`https://wa.me/57${(orden.telefono ?? '').replace(/\D/g, '').replace(/^57/, '')}?text=${encodeURIComponent(`Hola, te escribimos de Punk Medallo por tu pedido ${orden.numero_pedido}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="underline underline-offset-2 hover:text-amber-300"

@@ -63,7 +63,7 @@ export default function RastrearPage() {
               </Link>{' '}
               o escribinos por{' '}
               <a
-                href="https://wa.me/573014453392"
+                href="https://wa.me/573014453392?text=Hola%2C%20necesito%20rastrear%20mi%20pedido"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-[#dc2626]"

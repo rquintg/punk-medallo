@@ -237,3 +237,33 @@ select.input {
 .pm-fade-in {
   animation: pm-fade-in 0.45s ease-out both;
 }
+
+/* Tema shadcn/ui (solo para el bloque de detalle de pedido) — dark, acorde al sitio */
+@theme inline {
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-card: #111111;
+  --color-card-foreground: #fafafa;
+  --color-primary: #dc2626;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #262626;
+  --color-muted-foreground: #a3a3a3;
+  --color-accent: #262626;
+  --color-accent-foreground: #fafafa;
+  --color-border: #1f1f1f;
+  --color-ring: #dc2626;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* En Tailwind v4 la clase `border` sin color usa currentColor (casi blanco).
+   Forzamos que todos los bordes tomen el color tenue del tema (como Tailwind v3). */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+}
