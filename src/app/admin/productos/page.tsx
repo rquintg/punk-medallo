@@ -25,7 +25,7 @@ export default async function AdminProductosPage({ searchParams }: Props) {
       >
         <Link
           href="/admin/productos/nuevo"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--admin-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          className="btn-primary"
         >
           <Plus size={16} />
           Nuevo producto

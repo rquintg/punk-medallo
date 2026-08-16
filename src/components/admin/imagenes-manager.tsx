@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Trash2, Upload, Loader2, X } from 'lucide-react'
+import { Trash2, Upload, Loader2, X, ImageIcon, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { subirImagen, eliminarImagen, actualizarAltImagen, actualizarColorImagen } from '@/features/admin/actions/productos'
 import { confirmDialog } from '@/components/admin/confirm-dialog'
@@ -86,13 +86,21 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
 
   return (
     <div className="card-section">
-      <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-4">
-        Imágenes del producto
-      </h2>
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="admin-section-title">
+          Imágenes
+          <span className="rounded-full bg-[var(--admin-accent)]/20 px-2 py-0.5 text-[11px] font-bold text-[var(--admin-accent)]">
+            {sorted.length}
+          </span>
+        </h2>
+        {sorted.length > 1 && (
+          <span className="text-xs text-[var(--admin-text-dim)]">La primera se muestra en catálogo</span>
+        )}
+      </div>
 
       {sorted.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
-          {sorted.map((img) => (
+          {sorted.map((img, i) => (
             <div key={img.id} className="relative group rounded-lg border border-[var(--admin-card-border)] bg-[var(--admin-card)] p-2">
               <div className="relative aspect-square rounded-md overflow-hidden bg-[var(--admin-hover)] mb-2">
                 <Image
@@ -102,6 +110,12 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
+                {i === 0 && (
+                  <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-amber-400 backdrop-blur">
+                    <Star size={10} fill="currentColor" />
+                    Primera
+                  </span>
+                )}
               </div>
               <input
                 type="text"
@@ -150,11 +164,16 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
         </div>
       )}
 
-      <form onSubmit={handleUpload} className="border-2 border-dashed border-[var(--admin-card-border)] rounded-xl p-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-end">
+      <form onSubmit={handleUpload} className="rounded-xl border border-dashed border-[var(--admin-card-border)] p-6 transition-colors hover:border-[var(--admin-accent)]/50">
+        <div className="flex flex-col gap-5 sm:flex-row">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center self-start rounded-xl bg-[var(--admin-accent)]/15">
+            <ImageIcon size={26} className="text-[var(--admin-accent)]" />
+          </div>
           <div className="flex-1 space-y-3">
             <div>
-              <label className="label">Archivo</label>
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+                Archivo
+              </label>
               <input
                 ref={fileRef}
                 type="file"
@@ -164,32 +183,39 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
                 className="input text-sm"
               />
             </div>
-            <div>
-              <label className="label">Texto alternativo</label>
-              <input type="text" name="alt" className="input text-sm" placeholder="Breve descripción" />
-            </div>
-            <div>
-              <label className="label">Color</label>
-              <select name="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} className="input text-sm">
-                <option value="">Sin color (imagen por defecto)</option>
-                {coloresDisponibles.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+                  Texto alternativo
+                </label>
+                <input type="text" name="alt" className="input text-sm" placeholder="Breve descripción" />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+                  Color
+                </label>
+                <select name="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} className="input text-sm">
+                  <option value="">Sin color (imagen por defecto)</option>
+                  {coloresDisponibles.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={uploading}
-            className="btn-primary whitespace-nowrap"
-          >
-            {uploading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Upload size={16} />
-            )}
-            {uploading ? 'Subiendo...' : 'Subir imagen'}
-          </button>
+          <div className="flex flex-col items-stretch justify-between gap-2 sm:items-end">
+            <button type="submit" disabled={uploading} className="btn-primary whitespace-nowrap">
+              {uploading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Upload size={16} />
+              )}
+              {uploading ? 'Subiendo...' : 'Subir imagen'}
+            </button>
+            <p className="text-right text-[11px] text-[var(--admin-text-dim)] sm:text-xs">
+              JPG, PNG, WEBP o AVIF · máx 5 MB
+            </p>
+          </div>
         </div>
       </form>
     </div>

@@ -8,6 +8,7 @@ import OrderPreparing from '@/emails/order-preparing'
 import OrderShipped from '@/emails/order-shipped'
 import OrderDelivered from '@/emails/order-delivered'
 import StockAvailable from '@/emails/stock-available'
+import { sitioUrl } from '@/lib/site-url'
 
 export interface OrderConfirmationData {
   orderNumber: string
@@ -89,7 +90,7 @@ function getResend(): Resend {
 const emailFrom = process.env.EMAIL_FROM ?? 'Punk Medallo <info@punkmedallo.com>'
 
 export async function sendOrderConfirmation(data: OrderConfirmationData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <OrderConfirmation
@@ -129,7 +130,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
 }
 
 export async function sendOrderApproved(data: OrderApprovedData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <OrderApproved
@@ -180,7 +181,7 @@ export async function sendOrderDeclined(data: OrderDeclinedData) {
 }
 
 export async function sendCartAbandoned(data: CartAbandonedData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <CartAbandoned
@@ -208,7 +209,7 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
 }
 
 export async function sendOrderPreparing(data: OrderStatusEmailData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <OrderPreparing
@@ -234,7 +235,7 @@ export async function sendOrderPreparing(data: OrderStatusEmailData) {
 }
 
 export async function sendOrderShipped(data: OrderStatusEmailData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <OrderShipped
@@ -260,7 +261,7 @@ export async function sendOrderShipped(data: OrderStatusEmailData) {
 }
 
 export async function sendOrderDelivered(data: OrderStatusEmailData) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
 
   const html = await render(
     <OrderDelivered

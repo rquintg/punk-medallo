@@ -1,30 +1,57 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { Monitor, Moon, Sun } from 'lucide-react'
+
+export type AdminThemeMode = 'dark' | 'light' | 'system'
+
+const OPCIONES: { valor: AdminThemeMode; icono: typeof Sun; label: string }[] = [
+  { valor: 'light', icono: Sun, label: 'Modo claro' },
+  { valor: 'dark', icono: Moon, label: 'Modo oscuro' },
+  { valor: 'system', icono: Monitor, label: 'Sistema' },
+]
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [tema, setTema] = useState<AdminThemeMode>('dark')
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin-theme') as 'dark' | 'light' | null
-    if (stored) setTheme(stored)
+    const stored = localStorage.getItem('admin-theme') as AdminThemeMode | null
+    if (stored) setTema(stored)
   }, [])
 
-  function toggle() {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    localStorage.setItem('admin-theme', next)
+  function seleccionar(modo: AdminThemeMode) {
+    setTema(modo)
+    localStorage.setItem('admin-theme', modo)
     window.dispatchEvent(new Event('admin-theme-change'))
   }
 
   return (
-    <button
-      onClick={toggle}
-      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)] transition-colors text-sm"
+    <div
+      role="group"
+      aria-label="Tema del panel"
+      className="grid grid-cols-3 gap-1 rounded-lg bg-[var(--admin-hover)]/60 p-1"
     >
-      {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-      {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-    </button>
+      {OPCIONES.map((opcion) => {
+        const activo = tema === opcion.valor
+        const Icono = opcion.icono
+        return (
+          <button
+            key={opcion.valor}
+            type="button"
+            onClick={() => seleccionar(opcion.valor)}
+            aria-pressed={activo}
+            title={opcion.label}
+            className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+              activo
+                ? 'bg-[var(--admin-accent)]/15 text-[var(--admin-accent)]'
+                : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
+            }`}
+          >
+            <Icono size={14} />
+            <span className="hidden xl:inline">{opcion.label.replace('Modo ', '')}</span>
+          </button>
+        )
+      })}
+    </div>
   )
 }

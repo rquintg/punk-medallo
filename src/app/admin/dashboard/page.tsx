@@ -1,145 +1,316 @@
-import { DollarSign, ShoppingBag, Truck, AlertTriangle, Ship, ShieldCheck, Banknote } from 'lucide-react'
-import { getDashboardStats } from '@/features/admin/services/dashboard'
-import AdminHeader from '@/components/admin/admin-header'
-import StatCard from '@/components/admin/stat-card'
-import StatusBadge from '@/components/admin/status-badge'
+import {
+  AlertTriangle,
+  Banknote,
+  BarChart3,
+  ClipboardList,
+  CreditCard,
+  DollarSign,
+  PieChart,
+  ReceiptText,
+  ShieldCheck,
+  ShoppingBag,
+  Ticket,
+  TrendingUp,
+  Trophy,
+  Truck,
+} from 'lucide-react'
 import Link from 'next/link'
+import {
+  getDashboardAnalytics,
+  RANGOS,
+  type RangoDias,
+} from '@/features/admin/services/dashboard'
+import AdminHeader from '@/components/admin/admin-header'
+import KpiCard from '@/components/admin/dashboard/kpi-card'
+import DashboardCard from '@/components/admin/dashboard/dashboard-card'
+import RangoSelector from '@/components/admin/dashboard/rango-selector'
+import ChartIngresos from '@/components/admin/dashboard/chart-ingresos'
+import ChartOrdenesDia from '@/components/admin/dashboard/chart-ordenes-dia'
+import ChartDonut from '@/components/admin/dashboard/chart-donut'
+import ChartEstados from '@/components/admin/dashboard/chart-estados'
+import TopProductos from '@/components/admin/dashboard/top-productos'
+import EmptyChart from '@/components/admin/dashboard/empty-chart'
+import StatusBadge from '@/components/admin/status-badge'
+import { metodoPagoLabel } from '@/lib/metodo-pago'
+import { formatearCOPCompleto } from '@/components/admin/dashboard/chart-theme'
 
-export default async function AdminDashboardPage() {
-  const stats = await getDashboardStats()
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
 
-  const pctPoliticas = stats.totalPedidos > 0
-    ? Math.round((stats.politicasAceptadas / stats.totalPedidos) * 100)
-    : 0
+const ETIQUETA_RANGO: Record<RangoDias, string> = { 7: '7 días', 30: '30 días', 90: '90 días' }
+
+export default async function AdminDashboardPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const rangoParam = Number(params.rango)
+  const rango: RangoDias = (RANGOS as number[]).includes(rangoParam) ? (rangoParam as RangoDias) : 30
+  const analytics = await getDashboardAnalytics(rango)
+
+  const conVentas = analytics.totalIngresos > 0
+  const etiqueta = ETIQUETA_RANGO[rango]
 
   return (
     <>
       <AdminHeader
         title="Dashboard"
-        description="Resumen general de la tienda"
-      />
+        description={`Ventas y operación de Punk Medallo · últimos ${etiqueta}`}
+      >
+        <RangoSelector />
+      </AdminHeader>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          label="Ingresos hoy"
-          value={stats.ingresosHoy}
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label={`Ingresos · ${etiqueta}`}
+          value={analytics.totalIngresos}
           icon={DollarSign}
           color="green"
           money
+          delta={analytics.deltaIngresos}
         />
-        <StatCard
-          label="Órdenes hoy"
-          value={stats.ordenesHoy}
+        <KpiCard
+          label={`Órdenes · ${etiqueta}`}
+          value={analytics.totalOrdenes}
           icon={ShoppingBag}
           color="blue"
+          delta={analytics.deltaOrdenes}
         />
-        <StatCard
+        <KpiCard
+          label="Ticket promedio"
+          value={analytics.ticketPromedio}
+          icon={ReceiptText}
+          color="zinc"
+          money
+          delta={analytics.deltaTicket}
+        />
+        <KpiCard
           label="Por enviar"
-          value={stats.porEnviar}
+          value={analytics.porEnviar}
           icon={Truck}
           color="amber"
+          sub="pendientes, aprobados y en preparación"
         />
-        <StatCard
-          label="Stock bajo"
-          value={stats.stockBajo}
-          icon={AlertTriangle}
-          color="red"
-        />
-        <StatCard
-          label="Envío recaudado hoy"
-          value={stats.envioHoy}
-          icon={Ship}
-          color="blue"
-          money
-        />
-        <StatCard
-          label="Políticas aceptadas"
-          value={`${pctPoliticas}%`}
-          icon={ShieldCheck}
-          color="green"
-        />
-        <StatCard
+        <KpiCard
           label="Contra entrega por cobrar"
-          value={stats.contraEntregaPorCobrar}
+          value={analytics.contraEntregaPorCobrar}
           icon={Banknote}
           color="amber"
           money
-          sub={`${stats.contraEntregaPedidos} pedido${stats.contraEntregaPedidos !== 1 ? 's' : ''} por cobrar — confirma por teléfono antes de despachar`}
+          sub={`${analytics.contraEntregaPedidos} pedido${analytics.contraEntregaPedidos !== 1 ? 's' : ''} — confirma por teléfono antes de despachar`}
+        />
+        <KpiCard
+          label="Stock bajo"
+          value={analytics.stockBajo}
+          icon={AlertTriangle}
+          color="red"
+          sub="productos con menos de 10 unidades"
+        />
+        <KpiCard
+          label="Cupones usados"
+          value={analytics.cuponesUsados}
+          icon={Ticket}
+          color="zinc"
+          sub={analytics.cuponesDescontado > 0
+            ? `descontado: ${formatearCOPCompleto(analytics.cuponesDescontado)}`
+            : undefined}
+        />
+        <KpiCard
+          label="Políticas aceptadas"
+          value={analytics.politicasPct}
+          icon={ShieldCheck}
+          color="green"
+          suffix="%"
+          sub="pedidos con aceptación de políticas"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl">
-          <div className="px-6 py-4 border-b border-[var(--admin-card-border)]">
-            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Últimas órdenes</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--admin-card-border)]">
-                  <th className="text-left px-6 py-3 text-[var(--admin-text-muted)] font-medium">Pedido</th>
-                  <th className="text-left px-6 py-3 text-[var(--admin-text-muted)] font-medium">Cliente</th>
-                  <th className="text-left px-6 py-3 text-[var(--admin-text-muted)] font-medium">Total</th>
-                  <th className="text-left px-6 py-3 text-[var(--admin-text-muted)] font-medium">Estado</th>
-                  <th className="text-left px-6 py-3 text-[var(--admin-text-muted)] font-medium">Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.ultimasOrdenes.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-[var(--admin-text-dim)]">
-                      No hay órdenes aún
-                    </td>
-                  </tr>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8">
+          <DashboardCard
+            icon={TrendingUp}
+            title="Ingresos"
+            right={
+              <span className="text-xs text-[var(--admin-text-dim)]">
+                vs periodo anterior{' '}
+                {analytics.deltaIngresos !== null ? (
+                  <b className={analytics.deltaIngresos >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                    {analytics.deltaIngresos >= 0 ? '+' : '−'}
+                    {Math.abs(analytics.deltaIngresos)}%
+                  </b>
+                ) : (
+                  '—'
                 )}
-                {stats.ultimasOrdenes.map((orden) => (
-                  <tr
-                    key={orden.numero_pedido}
-                    className="border-b border-[var(--admin-card-border)] hover:bg-[var(--admin-hover)] transition-colors"
-                  >
-                    <td className="px-6 py-3">
-                      <Link
-                        href={`/admin/ordenes/${orden.numero_pedido}`}
-                        className="text-[var(--admin-accent)] hover:underline font-medium"
-                      >
-                        {orden.numero_pedido}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-3 text-[var(--admin-text)]">{orden.nombre_entrega}</td>
-                    <td className="px-6 py-3 text-[var(--admin-text)]">
-                      ${orden.total.toLocaleString('es-CO')}
-                    </td>
-                    <td className="px-6 py-3">
-                      <StatusBadge status={orden.estado} />
-                    </td>
-                    <td className="px-6 py-3 text-[var(--admin-text-muted)]">
-                      {new Date(orden.created_at).toLocaleDateString('es-CO', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              </span>
+            }
+          >
+            {conVentas ? <ChartIngresos serie={analytics.serie} /> : <EmptyChart title={`Sin ventas en los últimos ${etiqueta}`} />}
+          </DashboardCard>
         </div>
 
-        <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl">
-          <div className="px-6 py-4 border-b border-[var(--admin-card-border)]">
-            <h2 className="text-lg font-semibold text-[var(--admin-text)]">Órdenes por estado</h2>
-          </div>
-          <div className="p-6 space-y-3">
-            {stats.ordenesPorEstado.length === 0 && (
-              <p className="text-center text-[var(--admin-text-dim)]">Sin datos</p>
+        <div className="lg:col-span-4">
+          <DashboardCard icon={Trophy} title="Top productos" right={<span className="text-xs text-[var(--admin-text-dim)]">por ingresos</span>}>
+            <TopProductos
+              productos={analytics.topProductos}
+              maxIngresos={analytics.topProductos[0]?.ingresos ?? 0}
+            />
+          </DashboardCard>
+        </div>
+
+        <div className="lg:col-span-4">
+          <DashboardCard icon={BarChart3} title="Órdenes por día">
+            {conVentas ? <ChartOrdenesDia serie={analytics.serie} /> : <EmptyChart />}
+          </DashboardCard>
+        </div>
+
+        <div className="lg:col-span-4">
+          <DashboardCard icon={PieChart} title="Por categoría">
+            {analytics.porCategoria.length > 0 ? (
+              <ChartDonut
+              data={analytics.porCategoria.map((c) => ({ name: c.nombre, value: c.ingresos }))}
+              centerLabel="Categorías"
+            />
+            ) : (
+              <EmptyChart />
             )}
-            {stats.ordenesPorEstado.map((item) => (
-              <div key={item.estado} className="flex items-center justify-between">
-                <StatusBadge status={item.estado} />
-                <span className="text-[var(--admin-text)] font-medium">{item.count}</span>
+          </DashboardCard>
+        </div>
+
+        <div className="lg:col-span-4">
+          <DashboardCard icon={CreditCard} title="Método de pago">
+            {analytics.porMetodoPago.length > 0 ? (
+              <ChartDonut
+              data={analytics.porMetodoPago.map((m) => ({ name: m.nombre, value: m.ingresos }))}
+              centerLabel="Método"
+            />
+            ) : (
+              <EmptyChart />
+            )}
+          </DashboardCard>
+        </div>
+
+        <div className="lg:col-span-8">
+          <DashboardCard
+            icon={ClipboardList}
+            title="Últimas órdenes"
+            right={
+              <Link
+                href="/admin/ordenes"
+                className="text-xs font-medium text-[var(--admin-accent)] hover:underline"
+              >
+                Ver todas
+              </Link>
+            }
+          >
+            <div className="-m-6 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--admin-card-border)]">
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Pedido</th>
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Cliente</th>
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Items</th>
+                    <th className="hidden px-6 py-3 text-left font-medium text-[var(--admin-text-muted)] md:table-cell">Método</th>
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Total</th>
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Estado</th>
+                    <th className="px-6 py-3 text-left font-medium text-[var(--admin-text-muted)]">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.ultimasOrdenes.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-10 text-center text-[var(--admin-text-dim)]">
+                        No hay órdenes aún
+                      </td>
+                    </tr>
+                  )}
+                  {analytics.ultimasOrdenes.map((orden) => (
+                    <tr
+                      key={orden.numero_pedido}
+                      className="border-b border-[var(--admin-card-border)] transition-colors hover:bg-[var(--admin-hover)]"
+                    >
+                      <td className="px-6 py-3">
+                        <Link
+                          href={`/admin/ordenes/${orden.numero_pedido}`}
+                          className="font-mono font-medium text-[var(--admin-accent)] hover:underline"
+                        >
+                          {orden.numero_pedido}
+                        </Link>
+                      </td>
+                      <td className="max-w-[160px] truncate px-6 py-3 text-[var(--admin-text)]">
+                        {orden.nombre_entrega}
+                      </td>
+                      <td className="px-6 py-3 tabular-nums text-[var(--admin-text-muted)]">
+                        {orden.items}
+                      </td>
+                      <td className="hidden px-6 py-3 md:table-cell">
+                        {orden.metodo_pago === 'CONTRA_ENTREGA' ? (
+                          <span className="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                            COD
+                          </span>
+                        ) : (
+                          <span className="text-xs text-[var(--admin-text-muted)]">
+                            {metodoPagoLabel(orden.metodo_pago)}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 tabular-nums font-medium text-[var(--admin-text)]">
+                        {formatearCOPCompleto(orden.total)}
+                      </td>
+                      <td className="px-6 py-3">
+                        <StatusBadge status={orden.estado} />
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-3 text-[var(--admin-text-muted)]">
+                        {new Date(orden.created_at).toLocaleDateString('es-CO', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </DashboardCard>
+        </div>
+
+        <div className="flex flex-col gap-6 lg:col-span-4">
+          <DashboardCard icon={ClipboardList} title="Órdenes por estado">
+            {analytics.ordenesPorEstado.length > 0 ? (
+              <ChartEstados data={analytics.ordenesPorEstado} />
+            ) : (
+              <EmptyChart />
+            )}
+          </DashboardCard>
+
+          <DashboardCard icon={Ticket} title="Cupones">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+                  Redenciones
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-text)]">
+                  {analytics.cuponesUsados}
+                </p>
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+                  Descontado
+                </p>
+                <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-400">
+                  {formatearCOPCompleto(analytics.cuponesDescontado)}
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-[var(--admin-text-dim)]">
+              Descuentos aplicados con cupón acorde a la política de la tienda.
+            </p>
+            <Link
+              href="/admin/cupones"
+              className="mt-4 inline-block text-xs font-medium text-[var(--admin-accent)] hover:underline"
+            >
+              Gestionar cupones →
+            </Link>
+          </DashboardCard>
         </div>
       </div>
     </>

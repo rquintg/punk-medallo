@@ -1,7 +1,7 @@
 'use client'
 
 import { useOptimistic, useRef, startTransition, useState } from 'react'
-import { Plus, Trash2, Pencil } from 'lucide-react'
+import { Boxes, Plus, Trash2, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { createVariante, updateVariante, deleteVariante, type VarianteInput } from '@/features/admin/actions/variantes'
 import type { VarianteRow } from '@/features/admin/services/variantes'
@@ -45,6 +45,7 @@ export default function VariantesManager({ productoId, initialVariants, coloresD
   })
 
   const formRef = useRef<HTMLFormElement>(null)
+  const stockTotal = optimisticVariants.reduce((s, v) => s + v.stock, 0)
 
   async function handleAdd(formData: FormData) {
     const tempId = `temp-${Date.now()}`
@@ -90,75 +91,97 @@ export default function VariantesManager({ productoId, initialVariants, coloresD
 
   return (
     <div className="card-section">
-      <h2 className="text-lg font-semibold text-[var(--admin-text)] mb-5">
-        Variantes
-        <span className="text-sm text-[var(--admin-text-dim)] font-normal ml-2">
-          ({optimisticVariants.length})
-        </span>
-      </h2>
-
-      <div className="overflow-x-auto mb-4">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--admin-card-border)]">
-              <th className="text-left px-3 py-2 text-[var(--admin-text-muted)] font-medium">Color</th>
-              <th className="text-left px-3 py-2 text-[var(--admin-text-muted)] font-medium">Talla</th>
-              <th className="text-left px-3 py-2 text-[var(--admin-text-muted)] font-medium">Stock</th>
-              <th className="text-left px-3 py-2 text-[var(--admin-text-muted)] font-medium">SKU</th>
-              <th className="w-16 px-3 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {optimisticVariants.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-3 py-8 text-center text-[var(--admin-text-dim)]">
-                  Sin variantes — el stock se lee de <code className="text-xs">productos.stock</code>
-                </td>
-              </tr>
-            )}
-            {optimisticVariants.map((v) => (
-              <VarianteRow
-                key={v.id}
-                variant={v}
-                onSave={handleUpdate}
-                onDelete={handleDelete}
-                coloresDisponibles={coloresDisponibles}
-              />
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="admin-section-title">
+          Variantes
+          <span className="rounded-full bg-[var(--admin-accent)]/20 px-2 py-0.5 text-[11px] font-bold text-[var(--admin-accent)]">
+            {optimisticVariants.length}
+          </span>
+        </h2>
+        {optimisticVariants.length > 0 && (
+          <span className="text-xs text-[var(--admin-text-dim)]">
+            Stock total: <span className="font-bold tabular-nums text-[var(--admin-text)]">{stockTotal}</span>
+          </span>
+        )}
       </div>
 
-      <form ref={formRef} action={handleAdd} className="flex items-end gap-3 flex-wrap">
-        <select name="color" className="input max-w-[140px]" defaultValue="">
-          <option value="">Color</option>
-          {coloresDisponibles.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select name="talla" className="input max-w-[100px]" defaultValue="">
-          <option value="">Talla</option>
-          {TALLAS.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <input
-          name="stock"
-          type="number"
-          min={0}
-          placeholder="Stock"
-          className="input max-w-[90px]"
-        />
-        <input
-          name="sku"
-          placeholder="SKU (opcional)"
-          className="input max-w-[130px]"
-        />
-        <button type="submit" className="btn-primary text-sm py-2">
-          <Plus size={14} />
-          Agregar
-        </button>
+      <form ref={formRef} action={handleAdd} className="mb-5 grid grid-cols-2 gap-3 rounded-lg border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] p-4 sm:grid-cols-[1fr_1fr_90px_1fr_auto]">
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+            Color
+          </label>
+          <select name="color" className="input" defaultValue="">
+            <option value="">Color</option>
+            {coloresDisponibles.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+            Talla
+          </label>
+          <select name="talla" className="input" defaultValue="">
+            <option value="">Talla</option>
+            {TALLAS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+            Stock
+          </label>
+          <input name="stock" type="number" min={0} placeholder="0" className="input" />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">
+            SKU
+          </label>
+          <input name="sku" placeholder="Opcional" className="input" />
+        </div>
+        <div className="flex items-end">
+          <button type="submit" className="btn-primary w-full whitespace-nowrap text-sm py-2.5">
+            <Plus size={14} />
+            Agregar
+          </button>
+        </div>
       </form>
+
+      {optimisticVariants.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-[var(--admin-card-border)] py-10 text-center">
+          <Boxes size={28} className="text-[var(--admin-text-dim)]" />
+          <p className="text-sm text-[var(--admin-text-muted)]">Sin variantes todavía</p>
+          <p className="text-xs text-[var(--admin-text-dim)]">
+            El stock se lee de <code className="rounded bg-[var(--admin-hover)] px-1">productos.stock</code>. Agrega combinaciones talla/color arriba.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--admin-card-border)]">
+                <th className="px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">Color</th>
+                <th className="px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">Talla</th>
+                <th className="px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">Stock</th>
+                <th className="px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-dim)]">SKU</th>
+                <th className="w-16 px-3 py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {optimisticVariants.map((v) => (
+                <VarianteRow
+                  key={v.id}
+                  variant={v}
+                  onSave={handleUpdate}
+                  onDelete={handleDelete}
+                  coloresDisponibles={coloresDisponibles}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -185,7 +208,7 @@ function VarianteRow({
 
   if (editing) {
     return (
-      <tr className="border-b border-[var(--admin-card-border)]">
+      <tr className="border-b border-[var(--admin-card-border)] bg-[var(--admin-hover)]/50">
         <td className="px-3 py-1.5">
           <select
             aria-label="Color de la variante"
@@ -244,7 +267,7 @@ function VarianteRow({
                 }
               }}
               disabled={saving}
-              className="text-xs text-[var(--admin-accent)] hover:underline"
+              className="text-xs font-medium text-[var(--admin-accent)] hover:underline"
             >
               {saving ? '…' : 'Guardar'}
             </button>
@@ -266,7 +289,7 @@ function VarianteRow({
       <td className="px-3 py-2 text-[var(--admin-text)]">{variant.color || '—'}</td>
       <td className="px-3 py-2 text-[var(--admin-text)]">{variant.talla || '—'}</td>
       <td className="px-3 py-2">
-        <span className={variant.stock < 5 ? 'text-red-400 font-medium' : 'text-[var(--admin-text)]'}>
+        <span className={variant.stock < 5 ? 'text-red-400 font-medium tabular-nums' : 'text-[var(--admin-text)] tabular-nums'}>
           {variant.stock}
         </span>
       </td>

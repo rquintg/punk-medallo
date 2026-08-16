@@ -1,12 +1,14 @@
 import { getSupabaseAdmin } from './supabase-admin'
 import { sendStockAvailable } from '@/lib/email'
+import { sitioUrl } from '@/lib/site-url'
 
 // Cuando un producto vuelve a tener stock, notifica a todos los emails
-// registrados en avisos_stock y limpia la lista. Se llama desde las actions
+// registrados en avisos_stock y LOS MARCA como notificados (no borra — el
+// registro queda para contacto manual por WhatsApp). Se llama desde las actions
 // de admin (updateProducto/updateVariante) cuando el stock pasa de 0 a >0.
 // Avisos con talla/color solo se notifican cuando esa combinación específica
 // tiene stock; avisos sin combinación (producto completo agotado) cuando el
-// stock total pasa de 0.
+// stock total pasa de 0. Los ya notificados se saltan (no re-envían email).
 export async function notificarStockDisponible(productoId: string) {
   const supabase = getSupabaseAdmin()
 
@@ -35,17 +37,18 @@ export async function notificarStockDisponible(productoId: string) {
 
   const { data: avisos } = await (supabase
     .from('avisos_stock')
-    .select('id, email, telefono, talla, color')
+    .select('id, email, telefono, talla, color, notificado_at')
     .eq('producto_id', productoId) as any)
 
   if (!avisos || avisos.length === 0) return
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com'
+  const siteUrl = sitioUrl()
   const productUrl = `${siteUrl}/tienda/${producto.slug}`
 
   const notificados: string[] = []
 
   for (const aviso of avisos) {
+    if (aviso.notificado_at) continue
     // Aviso de combinación específica: solo notifica si esa combo tiene stock
     if (aviso.talla) {
       const disponible = variantesLista.some(
@@ -75,8 +78,11 @@ export async function notificarStockDisponible(productoId: string) {
     }
   }
 
-  // Limpia solo los avisos ya notificados (los de combos aún agotadas se quedan)
+  // Marca como notificados (no borra — el registro queda para contacto manual)
   if (notificados.length > 0) {
-    await supabase.from('avisos_stock').delete().in('id', notificados)
+    await (supabase
+      .from('avisos_stock') as any)
+      .update({ notificado_at: new Date().toISOString() })
+      .in('id', notificados)
   }
 }

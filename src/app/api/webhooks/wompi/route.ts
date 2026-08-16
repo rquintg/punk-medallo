@@ -1,15 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { revalidatePath } from 'next/cache'
 import {
   verifyEventSignature,
   getTransaction,
   mapWompiStatus,
   type WompiEvent,
 } from '@/lib/wompi'
-import { sendOrderConfirmation, sendOrderApproved, sendOrderDeclined } from '@/lib/email'
 import { logger, generateRequestId } from '@/lib/logger'
-import { canonicalMetodoPago } from '@/lib/metodo-pago'
+import {
+  aprobarPedido,
+  enviarEmailsAprobacion,
+  procesarEstadoNoAprobado,
+  SELECT_PEDIDO_PARA_PAGO,
+} from '@/lib/aprobar-pedido'
 
 let supabaseAdminClient: SupabaseClient | null = null
 
@@ -38,24 +41,6 @@ async function retryOnNetworkError<T>(fn: () => Promise<T>, maxRetries = 3): Pro
     }
   }
   throw new Error('unreachable')
-}
-
-type DeductedItem = {
-  producto_id: string
-  stockBefore: number
-} | {
-  variante_id: string
-  stockBefore: number
-}
-
-async function rollbackStock(deductedItems: DeductedItem[]) {
-  for (const d of deductedItems) {
-    if ('variante_id' in d) {
-      await getSupabaseAdmin().from('producto_variantes').update({ stock: d.stockBefore }).eq('id', d.variante_id)
-    } else {
-      await getSupabaseAdmin().from('productos').update({ stock: d.stockBefore }).eq('id', d.producto_id)
-    }
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -88,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     const { data: pedido, error: pedidoError } = await getSupabaseAdmin()
       .from('pedidos')
-      .select('id, estado, total, email, nombre_entrega, telefono, direccion, ciudad, departamento, barrio, notas, created_at')
+      .select(`${SELECT_PEDIDO_PARA_PAGO}, estado`)
       .eq('numero_pedido', reference)
       .single()
 
@@ -125,187 +110,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (verifiedEstado === 'aprobado') {
-      const { data: items, error: itemsError } = await getSupabaseAdmin()
-        .from('pedido_items')
-        .select('producto_id, variante_id, cantidad')
-        .eq('pedido_id', pedido.id)
-
-      if (itemsError || !items) {
-        logger.error('Error obteniendo items del pedido', { requestId: rid, data: { pedidoId: pedido.id, error: itemsError } })
-        return NextResponse.json({ error: 'Error obteniendo items del pedido' }, { status: 500 })
-      }
-
       await retryOnNetworkError(async () => {
-        const deductedItems: DeductedItem[] = []
-
-        try {
-          for (const item of items) {
-            if (item.variante_id) {
-              const { data: variant, error: variantError } = await getSupabaseAdmin()
-                .from('producto_variantes')
-                .select('stock')
-                .eq('id', item.variante_id)
-                .single()
-
-              if (variantError || !variant) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Variante no encontrada: ${item.variante_id}`)
-              }
-
-              if (variant.stock < item.cantidad) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Stock insuficiente en variante: ${item.variante_id}`)
-              }
-
-              const stockBefore = variant.stock
-              const { error: updateError } = await getSupabaseAdmin()
-                .from('producto_variantes')
-                .update({ stock: Math.max(0, stockBefore - item.cantidad) })
-                .eq('id', item.variante_id)
-
-              if (updateError) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Error actualizando stock de variante: ${item.variante_id}`)
-              }
-
-              deductedItems.push({ variante_id: item.variante_id, stockBefore })
-            } else {
-              const { data: product, error: productError } = await getSupabaseAdmin()
-                .from('productos')
-                .select('stock')
-                .eq('id', item.producto_id)
-                .single()
-
-              if (productError || !product) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Producto no encontrado: ${item.producto_id}`)
-              }
-
-              if (product.stock < item.cantidad) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Stock insuficiente: ${item.producto_id}`)
-              }
-
-              const stockBefore = product.stock
-              const { error: updateError } = await getSupabaseAdmin()
-                .from('productos')
-                .update({ stock: Math.max(0, stockBefore - item.cantidad) })
-                .eq('id', item.producto_id)
-
-              if (updateError) {
-                await rollbackStock(deductedItems)
-                throw new Error(`Error actualizando stock: ${item.producto_id}`)
-              }
-
-              deductedItems.push({ producto_id: item.producto_id, stockBefore })
-            }
-          }
-
-          const pmType = transaction.payment_method_type
-          const brand = transaction.payment_method?.extra?.brand
-          const metodoPago = canonicalMetodoPago(pmType, brand)
-
-          const { error: estadoError } = await getSupabaseAdmin()
-            .from('pedidos')
-            .update({
-              estado: verifiedEstado,
-              fecha_aprobado: new Date().toISOString(),
-              metodo_pago: metodoPago,
-              referencia_pago: transactionId,
-              pagado_at: transaction.paid_at ?? new Date().toISOString(),
-            })
-            .eq('id', pedido.id)
-
-          if (estadoError) {
-            await rollbackStock(deductedItems)
-            throw new Error(`Error actualizando estado: ${pedido.id}`)
-          }
-
-          const { data: productosAfectados } = await getSupabaseAdmin()
-            .from('productos')
-            .select('slug')
-            .in('id', items.map(i => i.producto_id))
-
-          for (const p of productosAfectados ?? []) {
-            revalidatePath(`/tienda/${p.slug}`)
-          }
-          revalidatePath('/tienda')
-
-          logger.info('Stock descontado y pedido aprobado', {
-            requestId: rid,
-            data: { reference, items: deductedItems.length, revalidados: productosAfectados?.length },
-          })
-        } catch (err) {
-          await rollbackStock(deductedItems)
-          logger.error('Error en proceso de aprobación, stock revertido', {
-            requestId: rid,
-            error: err,
-            data: { reference, deductedItems: deductedItems.length },
-          })
-          throw err
-        }
+        await aprobarPedido(getSupabaseAdmin(), pedido, transactionId, transaction)
+        logger.info('Stock descontado y pedido aprobado', {
+          requestId: rid,
+          data: { reference, pedidoId: pedido.id },
+        })
       })
     } else {
-      const { error: updateError } = await getSupabaseAdmin()
-        .from('pedidos')
-        .update({ estado: verifiedEstado })
-        .eq('id', pedido.id)
-
-      if (updateError) {
-        logger.error('Error actualizando pedido', { requestId: rid, data: { pedidoId: pedido.id, error: updateError } })
-        return NextResponse.json({ error: 'Error actualizando pedido' }, { status: 500 })
-      }
+      await procesarEstadoNoAprobado(getSupabaseAdmin(), pedido, wompiStatus, verifiedEstado)
 
       logger.info('Pedido actualizado', { requestId: rid, data: { reference, estado: verifiedEstado } })
     }
 
-    const estimatedDelivery = new Date(
-      new Date(pedido.created_at).getTime() + 5 * 24 * 60 * 60 * 1000,
-    ).toLocaleDateString('es-CO', { dateStyle: 'long' })
-
     if (verifiedEstado === 'aprobado') {
-      const { data: pedidoItems } = await getSupabaseAdmin()
-        .from('pedido_items')
-        .select('nombre, precio, talla, color, cantidad, imagen_url')
-        .eq('pedido_id', pedido.id)
-
-      await sendOrderConfirmation({
-        orderNumber: reference,
-        customerName: pedido.nombre_entrega,
-        email: pedido.email,
-        phone: pedido.telefono ?? '',
-        address: pedido.direccion ?? '',
-        departamento: pedido.departamento ?? '',
-        city: pedido.ciudad ?? '',
-        barrio: pedido.barrio ?? '',
-        notes: pedido.notas ?? '',
-        items: (pedidoItems ?? []).map((i) => ({
-          name: i.nombre,
-          quantity: i.cantidad,
-          price: i.precio,
-          size: i.talla,
-          color: i.color,
-          imageUrl: i.imagen_url,
-        })),
-        total: pedido.total,
-        estimatedDelivery,
-      })
-
-      await sendOrderApproved({
-        orderNumber: reference,
-        customerName: pedido.nombre_entrega,
-        email: pedido.email,
-      })
-
+      await enviarEmailsAprobacion(getSupabaseAdmin(), pedido)
       logger.info('Emails de confirmación y aprobación enviados', { requestId: rid, data: { reference } })
     } else if (['rechazado', 'anulado', 'error'].includes(verifiedEstado)) {
-      await sendOrderDeclined({
-        orderNumber: reference,
-        customerName: pedido.nombre_entrega,
-        email: pedido.email,
-        reason: wompiStatus === 'DECLINED' ? 'rechazado' : wompiStatus === 'VOIDED' ? 'anulado' : 'error en el procesamiento',
-      })
-
       logger.info('Email de declinación enviado', { requestId: rid, data: { reference, estado: verifiedEstado } })
     }
 

@@ -54,7 +54,7 @@ export default function StockAvailable({
           <Section style={card}>
             <Heading style={title}>¡Volvió el stock!</Heading>
             <Text style={subtitle}>
-              {customerName}, ya está disponible nuevamente el{' '}
+              {customerName}, ya está disponible nuevamente {' '}
               <strong style={{ color: '#ff4444' }}>{productName}</strong>
               {comboLabel ? (
                 <>
@@ -76,7 +76,7 @@ export default function StockAvailable({
 
             <Text style={infoLine}>
               Gracias por confiar en Punk Medallo. Si tienes alguna duda,
-              escríbenos al WhatsApp +57 301 445 3392.
+              escríbenos .
             </Text>
           </Section>
 

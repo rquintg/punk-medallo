@@ -112,6 +112,34 @@ export async function getTransaction(
   return json.data as WompiTransaction
 }
 
+// Lista transacciones de una referencia (para reconciliar pedidos pendientes
+// cuyo webhook nunca llegó). Wompi permite filtrar por ?reference=.
+export async function getTransactionsByReference(
+  reference: string,
+): Promise<WompiTransaction[]> {
+  const privateKey = process.env.WOMPI_PRIVATE_KEY
+  if (!privateKey) {
+    console.error('WOMPI_PRIVATE_KEY no configurada')
+    return []
+  }
+
+  const url = `${getWompiApiUrl()}/transactions?reference=${encodeURIComponent(reference)}`
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${privateKey}`,
+    },
+  })
+
+  if (!res.ok) {
+    console.error('Wompi getTransactionsByReference error:', res.status, await res.text())
+    return []
+  }
+
+  const json = await res.json()
+  return (json.data as WompiTransaction[]) ?? []
+}
+
 export async function getMerchantInfo(publicKey: string) {
   const url = `${getWompiApiUrl()}/merchants/${publicKey}`
 

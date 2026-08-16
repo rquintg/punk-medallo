@@ -13,7 +13,7 @@ import {
   Radio,
   Ticket,
 } from 'lucide-react'
-import { can } from '@/features/admin/utils/permissions'
+import { can, type Permission } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
 
 interface SidebarShellProps {
@@ -22,48 +22,76 @@ interface SidebarShellProps {
   onNavigate?: () => void
 }
 
-const NAV_ITEMS = [
+const NAV_GROUPS: {
+  label: string
+  items: {
+    label: string
+    href: string
+    icon: typeof LayoutDashboard
+    permission: Permission
+  }[]
+}[] = [
   {
-    label: 'Dashboard',
-    href: '/admin/dashboard',
-    icon: LayoutDashboard,
-    permission: 'view_dashboard' as const,
+    label: 'General',
+    items: [
+      {
+        label: 'Dashboard',
+        href: '/admin/dashboard',
+        icon: LayoutDashboard,
+        permission: 'view_dashboard',
+      },
+    ],
   },
   {
-    label: 'Productos',
-    href: '/admin/productos',
-    icon: Package,
-    permission: 'view_products' as const,
+    label: 'Tienda',
+    items: [
+      {
+        label: 'Productos',
+        href: '/admin/productos',
+        icon: Package,
+        permission: 'view_products',
+      },
+      {
+        label: 'Categorías',
+        href: '/admin/categorias',
+        icon: Tags,
+        permission: 'edit_products',
+      },
+      {
+        label: 'Cupones',
+        href: '/admin/cupones',
+        icon: Ticket,
+        permission: 'manage_cupones',
+      },
+    ],
   },
   {
-    label: 'Categorías',
-    href: '/admin/categorias',
-    icon: Tags,
-    permission: 'edit_products' as const,
+    label: 'Ventas',
+    items: [
+      {
+        label: 'Órdenes',
+        href: '/admin/ordenes',
+        icon: ClipboardList,
+        permission: 'view_orders',
+      },
+    ],
   },
   {
-    label: 'Órdenes',
-    href: '/admin/ordenes',
-    icon: ClipboardList,
-    permission: 'view_orders' as const,
-  },
-  {
-    label: 'Cupones',
-    href: '/admin/cupones',
-    icon: Ticket,
-    permission: 'manage_cupones' as const,
-  },
-  {
-    label: 'Usuarios',
-    href: '/admin/usuarios',
-    icon: Users,
-    permission: 'view_users' as const,
-  },
-  {
-    label: 'Perfil',
-    href: '/admin/perfil',
-    icon: UserCircle,
-    permission: 'view_dashboard' as const,
+    label: 'Gestión',
+    items: [
+      {
+        label: 'Usuarios',
+        href: '/admin/usuarios',
+        icon: Users,
+        permission: 'view_users',
+      },
+      {
+        label: 'Perfil',
+        href: '/admin/perfil',
+        icon: UserCircle,
+        permission: 'view_dashboard',
+      },
+    ],
   },
 ]
 
@@ -78,30 +106,45 @@ export function SidebarShell({ rol, userEmail, onNavigate }: SidebarShellProps) 
   return (
     <aside className="flex h-full flex-col bg-[var(--admin-sidebar-bg)] border-r border-[var(--admin-sidebar-border)]">
       <div className="flex items-center gap-3 px-6 h-16 border-b border-[var(--admin-sidebar-border)] shrink-0">
-        <Radio size={24} className="text-[var(--admin-accent)]" />
-        <span className="font-bold text-[var(--admin-text)]">Punk Medallo</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--admin-accent)] text-white">
+          <Radio size={18} />
+        </span>
+        <span className="font-black uppercase tracking-wide text-[var(--admin-text)]">
+          Punk Medallo
+        </span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-        {NAV_ITEMS.map((item) => {
-          if (!can(rol, item.permission)) return null
-
-          const active = isActive(item.href, pathname)
+      <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+        {NAV_GROUPS.map((grupo) => {
+          const visibles = grupo.items.filter((item) => can(rol, item.permission))
+          if (visibles.length === 0) return null
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-l-2 border-[var(--admin-accent)]'
-                  : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)] border-l-2 border-transparent'
-              }`}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </Link>
+            <div key={grupo.label}>
+              <p className="px-3 mb-2 text-[11px] font-bold uppercase tracking-widest text-[var(--admin-text-dim)]">
+                {grupo.label}
+              </p>
+              <div className="space-y-1">
+                {visibles.map((item) => {
+                  const active = isActive(item.href, pathname)
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onNavigate}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        active
+                          ? 'bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-l-2 border-[var(--admin-accent)]'
+                          : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-hover)] border-l-2 border-transparent'
+                      }`}
+                    >
+                      <item.icon size={18} />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
           )
         })}
       </nav>

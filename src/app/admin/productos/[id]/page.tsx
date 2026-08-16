@@ -17,21 +17,44 @@ export default async function EditarProductoPage({ params }: Props) {
   const { id } = await params
   await requirePermission('edit_products')
 
-  const producto = await getProductoById(id)
-  const categorias = await getCategorias()
+  const [producto, categorias, variantes] = await Promise.all([
+    getProductoById(id),
+    getCategorias(),
+    getVariantesByProducto(id),
+  ])
 
   if (!producto) notFound()
-
-  const variantes = await getVariantesByProducto(id)
 
   return (
     <>
       <AdminHeader
         title={`Editar: ${producto.nombre}`}
         description="Modifica los datos del producto"
-      />
-      <div className="space-y-6">
-        <ProductoForm categorias={categorias} producto={producto} />
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-bold ${
+              producto.activo
+                ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
+                : 'border-[var(--admin-card-border)] bg-[var(--admin-hover)] text-[var(--admin-text-dim)]'
+            }`}
+          >
+            {producto.activo ? 'Activo' : 'Inactivo'}
+          </span>
+          {producto.stock_efectivo <= 0 ? (
+            <span className="rounded-full border border-red-500/30 bg-red-500/15 px-3 py-1 text-xs font-bold text-red-400">
+              Agotado
+            </span>
+          ) : producto.stock_efectivo < 10 ? (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-400">
+              Stock bajo ({producto.stock_efectivo})
+            </span>
+          ) : null}
+        </div>
+      </AdminHeader>
+
+      <ProductoForm categorias={categorias} producto={producto} variantesCount={variantes.length} />
+      <div className="mt-6 space-y-6">
         <ImagenesManager
           productoId={id}
           slug={producto.slug}
