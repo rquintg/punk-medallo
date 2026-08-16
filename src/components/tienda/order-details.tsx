@@ -162,14 +162,14 @@ export default function OrderDetails({
   };
 
   return (
-    <section className="py-16">
+    <section className="pt-16 pb-8">
       <div className="container mx-auto px-4">
         <h2 className="md:text-4xl text-3xl font-bold">Detalle del pedido</h2>
         <p className="text-muted-foreground mt-2 text-sm md:text-base">
           {subtitulo}
         </p>
-        <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-6 lg:grid-cols-12">
-          <div className="col-span-8 space-y-6">
+        <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-8">
             <Card className="flex flex-wrap items-center justify-between gap-4 p-6">
               <div>
                 <p className="text-muted-foreground text-sm font-medium">
@@ -305,43 +305,41 @@ export default function OrderDetails({
                   {items.map(({ nombre, imagen, detalle, talla, cantidad, precio }, key) => (
                     <div
                       key={key}
-                      className="flex items-center justify-between gap-4 rounded-lg border p-4 transition-all hover:shadow-md"
+                      className="flex items-center gap-4 rounded-lg border p-4 transition-all hover:shadow-md"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="bg-muted/50 relative flex h-32 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg">
-                          {imagen ? (
-                            <Image
-                              src={imagen}
-                              alt={nombre}
-                              fill
-                              className="object-cover"
-                              sizes="96px"
-                            />
-                          ) : (
-                            <Package className="text-muted-foreground h-6 w-6" />
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-semibold">{nombre}</p>
-                          {detalle && (
-                            <p className="text-muted-foreground text-sm">
-                              {detalle}
-                            </p>
-                          )}
-                          {talla && (
-                            <p className="text-muted-foreground text-sm">
-                              Talla: {talla}
-                            </p>
-                          )}
-                        </div>
+                      <div className="bg-muted/50 relative flex h-24 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg sm:h-32 sm:w-24">
+                        {imagen ? (
+                          <Image
+                            src={imagen}
+                            alt={nombre}
+                            fill
+                            className="object-cover"
+                            sizes="96px"
+                          />
+                        ) : (
+                          <Package className="text-muted-foreground h-6 w-6" />
+                        )}
                       </div>
-                      <div className="flex items-center gap-6">
-                        <p className="text-muted-foreground text-sm">
-                          {cantidad}x
-                        </p>
-                        <p className="min-w-[80px] text-right font-semibold">
-                          {formatearPrecio(precio * cantidad)}
-                        </p>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="font-semibold">{nombre}</p>
+                        {detalle && (
+                          <p className="text-muted-foreground text-sm">
+                            {detalle}
+                          </p>
+                        )}
+                        {talla && (
+                          <p className="text-muted-foreground text-sm">
+                            Talla: {talla}
+                          </p>
+                        )}
+                        <div className="mt-3 flex items-center justify-between gap-4">
+                          <p className="text-muted-foreground text-sm">
+                            {cantidad}x
+                          </p>
+                          <p className="shrink-0 text-right font-semibold">
+                            {formatearPrecio(precio * cantidad)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -349,7 +347,7 @@ export default function OrderDetails({
               </CardContent>
             </Card>
           </div>
-          <div className="col-span-4 space-y-6">
+          <div className="space-y-6 lg:col-span-4">
             <Card>
               <CardHeader className="m-0 flex w-full items-center justify-between p-6">
                 <h3 className="text-lg font-semibold">Dirección de envío</h3>

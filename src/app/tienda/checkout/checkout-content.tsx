@@ -168,13 +168,15 @@ export default function CheckoutContent() {
 
       await loadWompiScript()
 
+      const redirectUrl = data.wompi.redirectUrl || `${window.location.origin}/tienda/compra`
+
       const checkout = new window.WidgetCheckout({
         currency: data.wompi.currency,
         amountInCents: data.wompi.amountInCents,
         reference: data.wompi.reference,
         publicKey: data.wompi.publicKey,
         signature: data.wompi.signature,
-        ...(data.wompi.redirectUrl ? { redirectUrl: data.wompi.redirectUrl } : {}),
+        redirectUrl,
         customerData: {
           email: form.email,
           fullName: form.nombre,

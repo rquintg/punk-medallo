@@ -2,24 +2,24 @@ import type { AdminThemeEfectivo } from '@/features/admin/utils/use-admin-theme'
 
 export const PALETA_PUNK = [
   '#dc2626',
-  '#ef4444',
-  '#b91c1c',
-  '#f87171',
-  '#fca5a5',
-  '#71717a',
   '#f59e0b',
-  '#52525b',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#a855f7',
+  '#ec4899',
+  '#71717a',
 ]
 
 export const PALETA_PUNK_LIGHT = [
   '#b91c1c',
-  '#dc2626',
-  '#991b1b',
-  '#ef4444',
-  '#f87171',
-  '#52525b',
   '#d97706',
-  '#3f3f46',
+  '#15803d',
+  '#0e7490',
+  '#1d4ed8',
+  '#7c3aed',
+  '#db2777',
+  '#52525b',
 ]
 
 export function paletaPunk(theme: AdminThemeEfectivo): string[] {
