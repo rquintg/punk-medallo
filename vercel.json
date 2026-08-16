@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/reconciliar-pedidos?secret=:CRON_SECRET",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}
