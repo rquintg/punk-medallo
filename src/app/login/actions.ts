@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { safeRedirect } from '@/lib/safe-redirect'
 import { DEFAULT_AUTH_REDIRECT } from '@/lib/constants'
 
 export interface LoginState {
@@ -23,7 +24,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     return { error: error.message }
   }
 
-  const redirectTo = (formData.get('redirect') as string) || DEFAULT_AUTH_REDIRECT
+  const redirectTo = safeRedirect(formData.get('redirect') as string, DEFAULT_AUTH_REDIRECT)
   revalidatePath(redirectTo, 'layout')
   redirect(redirectTo)
 }

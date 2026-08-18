@@ -3,6 +3,7 @@ import { getArchive } from "@/features/descargas/services/archivo";
 import { qualifiedSlugBase } from "@/features/descargas/utils/slug";
 import { bandSlug } from "@/features/descargas/utils/album";
 import { getProductosFiltrados } from "@/features/tienda/services/products";
+import { getCategorias } from "@/features/tienda/services/categorias";
 
 const SITE_URL = "https://punkmedallo.com";
 
@@ -14,6 +15,7 @@ const staticRoutes: Array<{
   { url: "", changeFrequency: "weekly", priority: 1 },
   { url: "/descargas", changeFrequency: "weekly", priority: 0.8 },
   { url: "/tienda", changeFrequency: "weekly", priority: 0.8 },
+  { url: "/tienda/ofertas", changeFrequency: "weekly", priority: 0.7 },
   { url: "/fotos", changeFrequency: "daily", priority: 0.8 },
   { url: "/eventos", changeFrequency: "daily", priority: 0.8 },
   { url: "/about", changeFrequency: "monthly", priority: 0.7 },
@@ -91,5 +93,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     productEntries = [];
   }
 
-  return [...entries, ...albumEntries, ...bandEntries, ...productEntries];
+  let categoriaEntries: MetadataRoute.Sitemap = [];
+  try {
+    const categorias = await getCategorias();
+    categoriaEntries = categorias.map((c) => ({
+      url: `${SITE_URL}/tienda/categoria/${c.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+  } catch {
+    categoriaEntries = [];
+  }
+
+  return [...entries, ...albumEntries, ...bandEntries, ...productEntries, ...categoriaEntries];
 }

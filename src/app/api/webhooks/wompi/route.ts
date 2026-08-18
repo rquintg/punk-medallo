@@ -56,7 +56,11 @@ export async function POST(request: NextRequest) {
     }
 
     const eventsKey = process.env.WOMPI_EVENTS_KEY
-    if (eventsKey && !verifyEventSignature(body, eventsKey)) {
+    if (!eventsKey) {
+      logger.error('WOMPI_EVENTS_KEY no configurada — webhook rechazado (fail-closed)', { requestId: rid })
+      return NextResponse.json({ error: 'Configuración del webhook incompleta' }, { status: 500 })
+    }
+    if (!verifyEventSignature(body, eventsKey)) {
       logger.error('Firma inválida en webhook', { requestId: rid })
       return NextResponse.json({ error: 'Firma inválida' }, { status: 401 })
     }

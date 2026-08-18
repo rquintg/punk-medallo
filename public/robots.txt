@@ -4,6 +4,11 @@ Allow: /
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
+Disallow: /cuenta/
+Disallow: /tienda/checkout
+Disallow: /tienda/compra
+Disallow: /tienda/orden
+Disallow: /tienda/rastrear
 
 # Delay para web crawlers menos importantes
 User-agent: AhrefsBot

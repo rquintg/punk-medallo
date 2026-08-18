@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import type { CookieOptions } from '@supabase/ssr'
+import { randomInt } from 'node:crypto'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { generateIntegritySignature } from '@/lib/wompi'
 import { verifyCsrf } from '@/lib/csrf'
 import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
@@ -10,6 +10,7 @@ import { sanitizeShipping } from '@/lib/sanitize'
 import { calcularEnvio, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega } from '@/data/envio'
 import { sendOrderConfirmation } from '@/lib/email'
 import { precioConDescuento } from '@/lib/precio'
+import { MAX_QUANTITY } from '@/features/tienda/constants'
 import type { CartItem } from '@/features/tienda/types'
 import { validarCupon, consumirCupon, liberarCupon, registrarRedencion } from '@/features/cupones/services/cupones'
 import { calcularDescuento, normalizarCodigo } from '@/features/cupones/calculo'
@@ -35,7 +36,7 @@ function generateOrderNumber(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let result = 'PM-'
   for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    result += chars.charAt(randomInt(chars.length))
   }
   return result
 }
@@ -43,7 +44,7 @@ function generateOrderNumber(): string {
 export async function POST(request: NextRequest) {
   const rid = generateRequestId()
   const start = Date.now()
-  const cookieChanges: { name: string; value: string; options: Record<string, unknown> }[] = []
+  const cookieChanges: { name: string; value: string; options: CookieOptions }[] = []
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
         getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieChanges.push({ name, value, options: options as Record<string, unknown> })
+            cookieChanges.push({ name, value, options })
           })
         },
       },
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
   function respond(data: unknown, init?: ResponseInit) {
     const res = NextResponse.json(data, init)
     cookieChanges.forEach(({ name, value, options }) => {
-      res.cookies.set(name, value, options as Parameters<typeof res.cookies.set>[2])
+      res.cookies.set(name, value, options)
     })
     return res
   }
@@ -102,6 +103,40 @@ export async function POST(request: NextRequest) {
         { error: `Máximo ${MAX_ITEMS} artículos por pedido` },
         { status: 400 },
       )
+    }
+
+    // Validación de cantidad: entero 1..MAX_QUANTITY (el cliente ya lo limita;
+    // esto es la autoridad server — cantidad 0/negativa/float sortearía el stock)
+    for (const item of items) {
+      if (!Number.isInteger(item.cantidad) || item.cantidad < 1 || item.cantidad > MAX_QUANTITY) {
+        logger.warn('Checkout: cantidad inválida', { requestId: rid, data: { producto: item.id, cantidad: item.cantidad } })
+        return respond(
+          { error: `Cantidad inválida para: ${item.nombre}` },
+          { status: 400 },
+        )
+      }
+    }
+
+    // Dedupe defensivo: mismo id+variantId se suma (el cliente ya mergea; acá se
+    // evita que líneas duplicadas inflen el pedido o burlen el check de stock)
+    const merged = new Map<string, CartItem>()
+    for (const item of items) {
+      const key = `${item.id}::${item.variantId ?? ''}`
+      const prev = merged.get(key)
+      if (prev) {
+        prev.cantidad += item.cantidad
+      } else {
+        merged.set(key, { ...item })
+      }
+    }
+    const itemsFinal = [...merged.values()]
+    for (const item of itemsFinal) {
+      if (item.cantidad > MAX_QUANTITY) {
+        return respond(
+          { error: `Cantidad inválida para: ${item.nombre}` },
+          { status: 400 },
+        )
+      }
     }
 
     if (!rawShipping.nombre || !rawShipping.email || !rawShipping.telefono || !rawShipping.direccion || !rawShipping.departamento || !rawShipping.ciudad) {
@@ -161,7 +196,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Verificar stock y obtener precios reales desde DB (batch queries)
-    const productIds = items.map((i) => i.id)
+    const productIds = itemsFinal.map((i) => i.id)
     const { data: products, error: productsError } = await supabase
       .from('productos')
       .select('id, stock, precio, descuento')
@@ -175,7 +210,7 @@ export async function POST(request: NextRequest) {
     }
 
     const productMap = new Map(products.map((p) => [p.id, p]))
-    const variantIds = items.filter((i) => i.variantId).map((i) => i.variantId!)
+    const variantIds = itemsFinal.filter((i) => i.variantId).map((i) => i.variantId!)
     let variantMap = new Map<string, { id: string; producto_id: string; stock: number }>()
 
     if (variantIds.length > 0) {
@@ -196,7 +231,7 @@ export async function POST(request: NextRequest) {
 
     const productPrices = new Map<string, number>()
 
-    for (const item of items) {
+    for (const item of itemsFinal) {
       const product = productMap.get(item.id)
 
       if (!product) {
@@ -234,7 +269,7 @@ export async function POST(request: NextRequest) {
       productPrices.set(item.id, precioConDescuento(product.precio, product.descuento))
     }
 
-    const total = items.reduce(
+    const total = itemsFinal.reduce(
       (sum, item) => sum + (productPrices.get(item.id) ?? 0) * item.cantidad,
       0,
     )
@@ -353,7 +388,7 @@ export async function POST(request: NextRequest) {
     })
 
     // 4. Insertar items del pedido
-    const pedidoItems = items.map((item) => ({
+    const pedidoItems = itemsFinal.map((item) => ({
       pedido_id: pedido.id,
       producto_id: item.id,
       variante_id: item.variantId ?? null,

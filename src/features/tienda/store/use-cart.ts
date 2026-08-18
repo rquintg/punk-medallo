@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { precioConDescuento } from '@/lib/precio';
+import { MAX_QUANTITY } from '../constants';
 import type { Producto, Talla, CartItem, Variante } from '../types';
-
-const MAX_QUANTITY = 10
 
 function findVariantId(
   producto: Producto,
