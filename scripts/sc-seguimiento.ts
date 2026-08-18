@@ -29,7 +29,7 @@ const TOP20_SLUGS = [
   "rasix-y-sociedad-violenta",
 ];
 
-const norm = (u: string) => (u.endsWith("/") ? u.slice(0, -1) : u);
+const norm = (u: string) => (u.startsWith("http://") ? `https://${u.slice(7)}` : u).replace(/\/$/, "");
 
 function leerCsv(path: string): Set<string> {
   const raw = readFileSync(path, "utf8").replace(/^\uFEFF/, "");
@@ -38,18 +38,18 @@ function leerCsv(path: string): Set<string> {
       .split("\n")
       .slice(1)
       .map((l) => l.split(",")[0].trim())
-      .filter((u) => u.startsWith("https://"))
+      .filter((u) => u.startsWith("http"))
       .map(norm),
   );
 }
 
-function buscarCsv(patron: string): string | null {
+function buscarCsv(patron: string): string | undefined {
   const downloads = join(homedir(), "Downloads");
   const candidatos = readdirSync(downloads)
     .filter((dir) => dir.includes(patron) && existsSync(join(downloads, dir, "Tabla.csv")))
     .map((dir) => ({ dir, mtime: statSync(join(downloads, dir, "Tabla.csv")).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime);
-  return candidatos.length ? join(downloads, candidatos[0].dir, "Tabla.csv") : null;
+  return candidatos.length ? join(downloads, candidatos[0].dir, "Tabla.csv") : undefined;
 }
 
 function marcasDelDoc(): Set<string> {
@@ -78,7 +78,10 @@ async function main() {
   validPath ??= buscarCsv("Coverage-Valid");
   drillPath ??= buscarCsv("Coverage-Drilldown");
   if (!validPath || !drillPath) {
-    console.error("No se encontraron los CSVs en ~/Downloads. Pasar --valid <ruta> --drill <ruta>");
+    const falta: string[] = [];
+    if (!validPath) falta.push("Válidas (Coverage-Valid*)");
+    if (!drillPath) falta.push("Descubierta (Coverage-Drilldown*)");
+    console.error(`Falta el export de ${falta.join(" y ")} en ~/Downloads. Exportarlo desde SC (Páginas → reporte → Exportar) y volver a correr, o pasar --valid <ruta> --drill <ruta>`);
     process.exit(1);
   }
 
