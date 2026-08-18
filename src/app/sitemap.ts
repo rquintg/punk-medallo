@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getArchive } from "@/features/descargas/services/archivo";
+import { getPostById } from "@/features/descargas/services/blogger";
+import { parsePostToAlbums } from "@/features/descargas/utils/parse-content";
 import { qualifiedSlugBase } from "@/features/descargas/utils/slug";
 import { bandSlug } from "@/features/descargas/utils/album";
 import { getProductosFiltrados } from "@/features/tienda/services/products";
@@ -36,25 +38,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let albumEntries: MetadataRoute.Sitemap = [];
   try {
     const archive = await getArchive();
-    albumEntries = archive.posts
-      .filter((post) => post.id && post.url)
-      .map((post) => {
-        let pathname = "";
-        try {
-          pathname = new URL(post.url as string).pathname;
-        } catch {
-          pathname = "";
-        }
-        const slug = qualifiedSlugBase(pathname, archive.duplicatedBases);
-        if (!slug) return null;
-        return {
-          url: `${SITE_URL}/descargas/${slug}`,
-          lastModified: post.updated ? new Date(post.updated) : new Date(),
-          changeFrequency: "monthly" as const,
-          priority: 0.5,
-        };
-      })
-      .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    const seenSlugs = new Set<string>();
+    const pushAlbum = (slug: string, post: { updated?: string | null }) => {
+      if (seenSlugs.has(slug)) return;
+      seenSlugs.add(slug);
+      albumEntries.push({
+        url: `${SITE_URL}/descargas/${slug}`,
+        lastModified: post.updated ? new Date(post.updated) : new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.5,
+      });
+    };
+    for (const post of archive.posts) {
+      if (!post.id || !post.url) continue;
+      let pathname = "";
+      try {
+        pathname = new URL(post.url as string).pathname;
+      } catch {
+        pathname = "";
+      }
+      const base = qualifiedSlugBase(pathname, archive.duplicatedBases);
+      if (!base) continue;
+      try {
+        const full = await getPostById(post.id);
+        const albums = parsePostToAlbums(full, archive.duplicatedBases);
+        const slugs = albums.length > 0 ? albums.map((a) => a.slug) : [base];
+        for (const slug of slugs) pushAlbum(slug, post);
+      } catch {
+        pushAlbum(base, post);
+      }
+    }
   } catch {
     albumEntries = [];
   }
