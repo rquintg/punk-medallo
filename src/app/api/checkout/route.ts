@@ -5,6 +5,7 @@ import { generateIntegritySignature } from '@/lib/wompi'
 import { verifyCsrf } from '@/lib/csrf'
 import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
 import { logger, generateRequestId } from '@/lib/logger'
+import { firmarPedido, ORDER_VERIFY_COOKIE } from '@/lib/order-verify'
 import { sanitizeShipping } from '@/lib/sanitize'
 import { calcularEnvio, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega } from '@/data/envio'
 import { sendOrderConfirmation } from '@/lib/email'
@@ -337,6 +338,19 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       )
     }
+
+    // Cookie de verificación: el comprador recién creado ve sus datos completos
+    // en /tienda/orden/[id] sin volver a validar el correo.
+    cookieChanges.push({
+      name: ORDER_VERIFY_COOKIE,
+      value: firmarPedido(orderNumber),
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      },
+    })
 
     // 4. Insertar items del pedido
     const pedidoItems = items.map((item) => ({

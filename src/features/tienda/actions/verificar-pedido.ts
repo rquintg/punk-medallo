@@ -5,16 +5,17 @@ import { redirect } from 'next/navigation'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 import { firmarPedido, ORDER_VERIFY_COOKIE } from '@/lib/order-verify'
 
-export interface RastrearState {
+export interface VerificarPedidoState {
   error: string | null
 }
 
 const NUMERO_RE = /^PM-[A-Z0-9]+$/i
+const MAX_EDAD_COOKIE = 60 * 60 * 24 * 7
 
-export async function rastrearPedido(
-  _prevState: RastrearState,
+export async function verificarPedido(
+  _prevState: VerificarPedidoState,
   formData: FormData,
-): Promise<RastrearState> {
+): Promise<VerificarPedidoState> {
   const numero = (formData.get('numero') as string)?.trim() ?? ''
   const email = (formData.get('email') as string)?.trim().toLowerCase() ?? ''
 
@@ -34,7 +35,7 @@ export async function rastrearPedido(
   if (error || !pedido) {
     return {
       error:
-        'No encontramos un pedido con esos datos. Verificá que el número y el correo coincidan con los del checkout.',
+        'El número y el correo no coinciden con ningún pedido. Verificá que sean los del checkout.',
     }
   }
 
@@ -42,7 +43,7 @@ export async function rastrearPedido(
   cookieStore.set(ORDER_VERIFY_COOKIE, firmarPedido(pedido.numero_pedido), {
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: MAX_EDAD_COOKIE,
     path: '/',
   })
 

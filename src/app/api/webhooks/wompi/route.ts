@@ -110,24 +110,38 @@ export async function POST(request: NextRequest) {
     }
 
     if (verifiedEstado === 'aprobado') {
-      await retryOnNetworkError(async () => {
-        await aprobarPedido(getSupabaseAdmin(), pedido, transactionId, transaction)
-        logger.info('Stock descontado y pedido aprobado', {
+      const resultado = await retryOnNetworkError(async () => {
+        const r = await aprobarPedido(getSupabaseAdmin(), pedido, transactionId, transaction)
+        if (r !== 'ya_procesado') {
+          logger.info('Stock descontado y pedido aprobado', {
+            requestId: rid,
+            data: { reference, pedidoId: pedido.id, resultado: r },
+          })
+        }
+        return r
+      })
+
+      if (resultado === 'ya_procesado') {
+        logger.info('Webhook: pedido ya procesado por otro evento, se omite', {
           requestId: rid,
           data: { reference, pedidoId: pedido.id },
         })
-      })
+      } else if (resultado === 'rechazado_stock') {
+        logger.info('Webhook: pedido rechazado por stock insuficiente', {
+          requestId: rid,
+          data: { reference, pedidoId: pedido.id },
+        })
+      } else {
+        await enviarEmailsAprobacion(getSupabaseAdmin(), pedido)
+        logger.info('Emails de confirmación y aprobación enviados', { requestId: rid, data: { reference } })
+      }
     } else {
       await procesarEstadoNoAprobado(getSupabaseAdmin(), pedido, wompiStatus, verifiedEstado)
 
       logger.info('Pedido actualizado', { requestId: rid, data: { reference, estado: verifiedEstado } })
-    }
-
-    if (verifiedEstado === 'aprobado') {
-      await enviarEmailsAprobacion(getSupabaseAdmin(), pedido)
-      logger.info('Emails de confirmación y aprobación enviados', { requestId: rid, data: { reference } })
-    } else if (['rechazado', 'anulado', 'error'].includes(verifiedEstado)) {
-      logger.info('Email de declinación enviado', { requestId: rid, data: { reference, estado: verifiedEstado } })
+      if (['rechazado', 'anulado', 'error'].includes(verifiedEstado)) {
+        logger.info('Email de declinación enviado', { requestId: rid, data: { reference, estado: verifiedEstado } })
+      }
     }
 
     logger.info('Webhook procesado exitosamente', {

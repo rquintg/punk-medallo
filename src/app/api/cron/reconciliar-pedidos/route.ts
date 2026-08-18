@@ -74,10 +74,12 @@ export async function GET(request: NextRequest) {
 
         if (transacciones.length === 0) {
           if (ahora - new Date(pedido.created_at).getTime() > ANULAR_SIN_TRANSACCION_MS) {
+            // Guard idempotente: solo anula si nadie más lo reclamó mientras tanto.
             await getSupabaseAdmin()
               .from('pedidos')
               .update({ estado: 'anulado' })
               .eq('id', pedido.id)
+              .eq('estado', 'pendiente')
             resultados.anulados++
             logger.info('Cron: pendiente sin transacción anulado (checkout abandonado)', {
               requestId: rid,
@@ -116,22 +118,38 @@ export async function GET(request: NextRequest) {
         const verifiedEstado = mapWompiStatus(transaction.status)
 
         if (verifiedEstado === 'aprobado') {
-          await aprobarPedido(getSupabaseAdmin(), pedido, transaction.id, transaction)
-          try {
-            await enviarEmailsAprobacion(getSupabaseAdmin(), pedido)
-          } catch (emailErr) {
-            // El pedido ya quedó aprobado; los emails pueden reintentarse aparte.
-            logger.error('Cron: emails de aprobación fallaron', {
+          const resultado = await aprobarPedido(getSupabaseAdmin(), pedido, transaction.id, transaction)
+
+          if (resultado === 'ya_procesado') {
+            // El webhook (o un evento en carrera) ya lo aprobó → no duplicar emails.
+            resultados.salteados++
+            logger.info('Cron: pendiente ya aprobado por otro proceso, se omite', {
               requestId: rid,
-              error: emailErr,
               data: { numero_pedido: pedido.numero_pedido },
             })
+          } else if (resultado === 'rechazado_stock') {
+            resultados.rechazados++
+            logger.info('Cron: pendiente rechazado por stock insuficiente', {
+              requestId: rid,
+              data: { numero_pedido: pedido.numero_pedido },
+            })
+          } else {
+            try {
+              await enviarEmailsAprobacion(getSupabaseAdmin(), pedido)
+            } catch (emailErr) {
+              // El pedido ya quedó aprobado; los emails pueden reintentarse aparte.
+              logger.error('Cron: emails de aprobación fallaron', {
+                requestId: rid,
+                error: emailErr,
+                data: { numero_pedido: pedido.numero_pedido },
+              })
+            }
+            resultados.aprobados++
+            logger.info('Cron: pedido pendiente aprobado por reconciliación', {
+              requestId: rid,
+              data: { numero_pedido: pedido.numero_pedido, transactionId: transaction.id },
+            })
           }
-          resultados.aprobados++
-          logger.info('Cron: pedido pendiente aprobado por reconciliación', {
-            requestId: rid,
-            data: { numero_pedido: pedido.numero_pedido, transactionId: transaction.id },
-          })
         } else {
           await procesarEstadoNoAprobado(getSupabaseAdmin(), pedido, transaction.status, verifiedEstado)
           resultados.rechazados++

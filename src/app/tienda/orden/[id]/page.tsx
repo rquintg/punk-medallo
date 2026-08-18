@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { ArrowLeft, MessageCircle, PackageSearch } from 'lucide-react'
+import { ArrowLeft, MessageCircle, PackageSearch, ShieldCheck } from 'lucide-react'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import ScrollToTop from '@/components/scroll-to-top'
 import OrderDetails, {
@@ -11,6 +13,15 @@ import OrderDetails, {
 } from '@/components/tienda/order-details'
 import { getDiasEntrega } from '@/data/envio'
 import { metodoPagoInfo } from '@/lib/metodo-pago'
+import {
+  mascararDireccion,
+  mascararEmail,
+  mascararNombre,
+  mascararReferencia,
+  mascararTelefono,
+} from '@/lib/mascarar'
+import { ORDER_VERIFY_COOKIE, verificarFirma } from '@/lib/order-verify'
+import VerificarOrdenForm from '../verificar-orden-form'
 import type { PedidoItem } from '@/features/tienda/types'
 
 interface OrderPageProps {
@@ -67,11 +78,49 @@ const ESTADOS_TERMINALES: Record<string, string> = {
   cancelado: 'Pedido cancelado',
 }
 
+interface PedidoDetalleItem {
+  nombre: string
+  precio: number
+  talla: string | null
+  color: string | null
+  cantidad: number
+  imagen_url: string | null
+}
+
+interface PedidoDetalle {
+  id: string
+  numero_pedido: string
+  nombre_entrega: string
+  email: string
+  telefono: string | null
+  direccion: string | null
+  departamento: string | null
+  ciudad: string | null
+  barrio: string | null
+  notas: string | null
+  total: number
+  envio: number | null
+  recargo: number | null
+  descuento: number | null
+  cupon_codigo: string | null
+  estado: string | null
+  created_at: string
+  fecha_aprobado: string | null
+  fecha_preparando: string | null
+  fecha_enviado: string | null
+  fecha_entregado: string | null
+  metodo_pago: string | null
+  referencia_pago: string | null
+  pagado_at: string | null
+  pedido_items: PedidoDetalleItem[] | null
+}
+
 export default async function OrderPage({ params }: OrderPageProps) {
   const { id } = await params
   const supabase = await createClient()
+  const supabaseAdmin = getSupabaseAdmin()
 
-  const { data: pedido } = await supabase
+  const { data } = await supabaseAdmin
     .from('pedidos')
     .select(`
       id,
@@ -110,9 +159,40 @@ export default async function OrderPage({ params }: OrderPageProps) {
     .eq('numero_pedido', id)
     .single()
 
+  const pedido = data as unknown as PedidoDetalle | null
+
   if (!pedido) {
     notFound()
   }
+
+  const [cookieStore, { data: authData }] = await Promise.all([
+    cookies(),
+    supabase.auth.getUser(),
+  ])
+
+  const emailPedido = (pedido.email ?? '').toLowerCase()
+  const verificado =
+    verificarFirma(pedido.numero_pedido, cookieStore.get(ORDER_VERIFY_COOKIE)?.value) ||
+    (authData.user?.email !== undefined &&
+      authData.user.email.toLowerCase() === emailPedido)
+
+  const direccionLineas = verificado
+    ? [
+        pedido.nombre_entrega,
+        pedido.direccion,
+        ...(pedido.barrio ? [pedido.barrio] : []),
+        [pedido.ciudad, pedido.departamento].filter(Boolean).join(', '),
+        pedido.telefono,
+      ].filter((linea): linea is string => !!linea)
+    : [
+        mascararNombre(pedido.nombre_entrega),
+        mascararDireccion(pedido.direccion),
+        ...(pedido.barrio ? [mascararDireccion(pedido.barrio)] : []),
+        [pedido.ciudad, pedido.departamento].filter(Boolean).join(', '),
+        mascararTelefono(pedido.telefono),
+      ].filter((linea): linea is string => !!linea)
+
+  const emailMostrado = mascararEmail(pedido.email)
 
   const createdDate = new Date(pedido.created_at).toLocaleDateString('es-CO', {
     dateStyle: 'long',
@@ -150,7 +230,9 @@ export default async function OrderPage({ params }: OrderPageProps) {
           timeStyle: 'short',
         })}`
       : null,
-    ref: pedido.referencia_pago ?? null,
+    ref: verificado
+      ? (pedido.referencia_pago ?? null)
+      : mascararReferencia(pedido.referencia_pago),
   }
 
   const notaMetodo =
@@ -206,6 +288,35 @@ export default async function OrderPage({ params }: OrderPageProps) {
         />
       </div>
 
+      {!verificado && (
+        <div className="container mx-auto max-w-7xl px-4 pt-6">
+          <div className="rounded-lg border border-neutral-800 bg-[#111] p-5 sm:p-6">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-950/60">
+                <ShieldCheck size={18} className="text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  Tus datos de envío están ocultos
+                </p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Para proteger tu privacidad, ocultamos la dirección y el
+                  teléfono. Verificalo con el correo del pedido
+                  {emailMostrado ? (
+                    <>
+                      {' '}
+                      (<span className="text-neutral-400">{emailMostrado}</span>)
+                    </>
+                  ) : null}{' '}
+                  para verlos completos.
+                </p>
+              </div>
+            </div>
+            <VerificarOrdenForm numero={pedido.numero_pedido} />
+          </div>
+        </div>
+      )}
+
       <OrderDetails
         numero={pedido.numero_pedido}
         subtitulo={subtitulo}
@@ -221,13 +332,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
         items={items}
         filasResumen={filasResumen}
         total={pedido.total}
-        direccionLineas={[
-          pedido.nombre_entrega,
-          pedido.direccion,
-          ...(pedido.barrio ? [pedido.barrio] : []),
-          [pedido.ciudad, pedido.departamento].filter(Boolean).join(', '),
-          pedido.telefono,
-        ].filter(Boolean)}
+        direccionLineas={direccionLineas}
         metodo={metodo}
         notaMetodo={notaMetodo}
       />

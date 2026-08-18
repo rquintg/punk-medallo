@@ -26,6 +26,12 @@ type DeductedItem =
   | { producto_id: string; stockBefore: number }
   | { variante_id: string; stockBefore: number }
 
+// Resultado del guard de idempotencia atómico:
+// - 'aprobado': esta llamada ganó la carrera (stock descontado, pedido aprobado)
+// - 'ya_procesado': otro evento/cron ya procesó el pedido → no hacer nada
+// - 'rechazado_stock': stock insuficiente → pedido a 'rechazado' + email (no reintentar)
+export type ResultadoAprobacion = 'aprobado' | 'ya_procesado' | 'rechazado_stock'
+
 async function rollbackStock(supabase: SupabaseClient, deductedItems: DeductedItem[]) {
   for (const d of deductedItems) {
     if ('variante_id' in d) {
@@ -36,21 +42,100 @@ async function rollbackStock(supabase: SupabaseClient, deductedItems: DeductedIt
   }
 }
 
-// Descuenta stock y pasa el pedido a aprobado (con metodo de pago, referencia y
-// fechas). Lanza error con el stock ya revertido si algo falla. Usado por el
-// webhook de Wompi y por el cron de reconciliación.
+// Reclama el pedido de forma atómica: solo gana el UPDATE si sigue 'pendiente'.
+// Devuelve true si esta instancia ganó, false si otro proceso ya lo reclamó.
+async function reclamarPedido(
+  supabase: SupabaseClient,
+  pedidoId: string,
+  transactionId: string,
+  transaction: WompiTransaction,
+): Promise<boolean> {
+  const pmType = transaction.payment_method_type
+  const brand = transaction.payment_method?.extra?.brand
+
+  const { data: claimed, error: claimError } = await supabase
+    .from('pedidos')
+    .update({
+      estado: 'aprobado',
+      fecha_aprobado: new Date().toISOString(),
+      metodo_pago: canonicalMetodoPago(pmType, brand),
+      referencia_pago: transactionId,
+      pagado_at: transaction.paid_at ?? new Date().toISOString(),
+    })
+    .eq('id', pedidoId)
+    .eq('estado', 'pendiente')
+    .select('id')
+    .maybeSingle()
+
+  if (claimError) {
+    throw new Error(`Error reclamando pedido: ${pedidoId}`)
+  }
+  return claimed !== null
+}
+
+// Deja el pedido de nuevo en 'pendiente' tras un fallo post-reclamo, para que
+// el webhook (retry) o el cron de reconciliación lo reintenten.
+async function restablecerPendiente(supabase: SupabaseClient, pedidoId: string) {
+  await supabase.from('pedidos').update({ estado: 'pendiente' }).eq('id', pedidoId)
+}
+
+// Descuenta stock de forma atómica (update condicional con `.gte` sobre stock).
+// Lanza si falla la query o si la carrera se pierde (stock cambió entre read y
+// update); el llamador revierte y reintenta.
+async function descontarStockItem(
+  supabase: SupabaseClient,
+  tipo: 'producto' | 'variante',
+  id: string,
+  cantidad: number,
+): Promise<number> {
+  const tabla = tipo === 'variante' ? 'producto_variantes' : 'productos'
+
+  const { data: fila, error: readError } = await supabase
+    .from(tabla)
+    .select('stock')
+    .eq('id', id)
+    .single()
+
+  if (readError || !fila) {
+    throw new Error(`${tipo === 'variante' ? 'Variante' : 'Producto'} no encontrada: ${id}`)
+  }
+
+  const { error: updateError, data: actualizado } = await supabase
+    .from(tabla)
+    .update({ stock: Math.max(0, fila.stock - cantidad) })
+    .eq('id', id)
+    .gte('stock', cantidad)
+    .select('id')
+
+  if (updateError) {
+    throw new Error(`Error actualizando stock de ${tipo}: ${id}`)
+  }
+  if (!actualizado || actualizado.length === 0) {
+    throw new Error(`Carrera de stock en ${tipo}: ${id}`)
+  }
+
+  return fila.stock
+}
+
+// Aprueba el pedido con guard de idempotencia atómico y descuento de stock
+// atómico. Usado por el webhook de Wompi y el cron de reconciliación.
 export async function aprobarPedido(
   supabase: SupabaseClient,
   pedido: PedidoParaPago,
   transactionId: string,
   transaction: WompiTransaction,
-): Promise<void> {
+): Promise<ResultadoAprobacion> {
+  if (!(await reclamarPedido(supabase, pedido.id, transactionId, transaction))) {
+    return 'ya_procesado'
+  }
+
   const { data: items, error: itemsError } = await supabase
     .from('pedido_items')
     .select('producto_id, variante_id, cantidad')
     .eq('pedido_id', pedido.id)
 
   if (itemsError || !items) {
+    await restablecerPendiente(supabase, pedido.id)
     throw new Error('Error obteniendo items del pedido')
   }
 
@@ -59,6 +144,8 @@ export async function aprobarPedido(
   try {
     for (const item of items) {
       if (item.variante_id) {
+        if (item.cantidad <= 0) continue
+
         const { data: variant, error: variantError } = await supabase
           .from('producto_variantes')
           .select('stock')
@@ -69,20 +156,24 @@ export async function aprobarPedido(
           throw new Error(`Variante no encontrada: ${item.variante_id}`)
         }
         if (variant.stock < item.cantidad) {
-          throw new Error(`Stock insuficiente en variante: ${item.variante_id}`)
+          await rollbackStock(supabase, deducted)
+          await supabase.from('pedidos').update({ estado: 'rechazado' }).eq('id', pedido.id)
+          await sendOrderDeclined({
+            orderNumber: pedido.numero_pedido,
+            customerName: pedido.nombre_entrega,
+            email: pedido.email,
+            reason: 'stock insuficiente al confirmar el pago',
+          })
+          return 'rechazado_stock'
         }
 
-        const stockBefore = variant.stock
-        const { error: updateError } = await supabase
-          .from('producto_variantes')
-          .update({ stock: Math.max(0, stockBefore - item.cantidad) })
-          .eq('id', item.variante_id)
-
-        if (updateError) {
-          throw new Error(`Error actualizando stock de variante: ${item.variante_id}`)
-        }
-        deducted.push({ variante_id: item.variante_id, stockBefore })
+        deducted.push({
+          variante_id: item.variante_id,
+          stockBefore: await descontarStockItem(supabase, 'variante', item.variante_id, item.cantidad),
+        })
       } else {
+        if (item.cantidad <= 0) continue
+
         const { data: product, error: productError } = await supabase
           .from('productos')
           .select('stock')
@@ -93,41 +184,26 @@ export async function aprobarPedido(
           throw new Error(`Producto no encontrado: ${item.producto_id}`)
         }
         if (product.stock < item.cantidad) {
-          throw new Error(`Stock insuficiente: ${item.producto_id}`)
+          await rollbackStock(supabase, deducted)
+          await supabase.from('pedidos').update({ estado: 'rechazado' }).eq('id', pedido.id)
+          await sendOrderDeclined({
+            orderNumber: pedido.numero_pedido,
+            customerName: pedido.nombre_entrega,
+            email: pedido.email,
+            reason: 'stock insuficiente al confirmar el pago',
+          })
+          return 'rechazado_stock'
         }
 
-        const stockBefore = product.stock
-        const { error: updateError } = await supabase
-          .from('productos')
-          .update({ stock: Math.max(0, stockBefore - item.cantidad) })
-          .eq('id', item.producto_id)
-
-        if (updateError) {
-          throw new Error(`Error actualizando stock: ${item.producto_id}`)
-        }
-        deducted.push({ producto_id: item.producto_id, stockBefore })
+        deducted.push({
+          producto_id: item.producto_id,
+          stockBefore: await descontarStockItem(supabase, 'producto', item.producto_id, item.cantidad),
+        })
       }
-    }
-
-    const pmType = transaction.payment_method_type
-    const brand = transaction.payment_method?.extra?.brand
-
-    const { error: estadoError } = await supabase
-      .from('pedidos')
-      .update({
-        estado: 'aprobado',
-        fecha_aprobado: new Date().toISOString(),
-        metodo_pago: canonicalMetodoPago(pmType, brand),
-        referencia_pago: transactionId,
-        pagado_at: transaction.paid_at ?? new Date().toISOString(),
-      })
-      .eq('id', pedido.id)
-
-    if (estadoError) {
-      throw new Error(`Error actualizando estado: ${pedido.id}`)
     }
   } catch (err) {
     await rollbackStock(supabase, deducted)
+    await restablecerPendiente(supabase, pedido.id)
     throw err
   }
 
@@ -141,6 +217,8 @@ export async function aprobarPedido(
     revalidatePath(`/tienda/${p.slug}`)
   }
   revalidatePath('/tienda')
+
+  return 'aprobado'
 }
 
 // Emails que acompañan la aprobación (confirmación de compra + aprobado).
@@ -186,20 +264,25 @@ export async function enviarEmailsAprobacion(
   })
 }
 
-// Actualiza a un estado no aprobado y envía el email de declinación si aplica
-// (rechazado/anulado/error). Usado por webhook y cron de reconciliación.
+// Actualiza a un estado no aprobado con guard de idempotencia: solo actúa si el
+// pedido sigue 'pendiente'. Devuelve false si otro proceso ya lo llevó a un
+// estado terminal (no re-envía emails duplicados).
 export async function procesarEstadoNoAprobado(
   supabase: SupabaseClient,
   pedido: PedidoParaPago,
   wompiStatus: WompiTransaction['status'],
   nuevoEstado: string,
-) {
-  const { error: updateError } = await supabase
+): Promise<boolean> {
+  const { data: actualizado, error: updateError } = await supabase
     .from('pedidos')
     .update({ estado: nuevoEstado })
     .eq('id', pedido.id)
+    .eq('estado', 'pendiente')
+    .select('id')
+    .maybeSingle()
 
   if (updateError) throw new Error(`Error actualizando pedido: ${pedido.id}`)
+  if (!actualizado) return false
 
   if (['rechazado', 'anulado', 'error'].includes(nuevoEstado)) {
     await sendOrderDeclined({
@@ -212,4 +295,6 @@ export async function procesarEstadoNoAprobado(
         : 'error en el procesamiento',
     })
   }
+
+  return true
 }
