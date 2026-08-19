@@ -2,7 +2,7 @@
 
 import { useAdminTheme } from '@/features/admin/utils/use-admin-theme'
 import EChart from './echart'
-import { formatearCOP, formatearCOPCompleto, paletaPunk, temaEcharts } from './chart-theme'
+import { formatearCOP, paletaPunk, temaEcharts } from './chart-theme'
 
 export interface DonutData {
   name: string
@@ -12,9 +12,14 @@ export interface DonutData {
 interface ChartDonutProps {
   data: DonutData[]
   centerLabel: string
+  money?: boolean
 }
 
-export default function ChartDonut({ data, centerLabel }: ChartDonutProps) {
+function formatearValor(n: number, money: boolean): string {
+  return money ? formatearCOP(n) : n.toLocaleString('es-CO')
+}
+
+export default function ChartDonut({ data, centerLabel, money = true }: ChartDonutProps) {
   const theme = useAdminTheme()
   const t = temaEcharts(theme)
 
@@ -32,7 +37,7 @@ export default function ChartDonut({ data, centerLabel }: ChartDonutProps) {
       formatter: (params: unknown) => {
         const p = params as { name: string; value: number; percent: number }
         return `<div style="font-weight:700;color:${t.tooltipTitle};margin-bottom:4px;">${p.name}</div>
-          <div style="font-size:12px;color:${t.tooltipBody};">${formatearCOPCompleto(p.value)} · ${p.percent}%</div>`
+          <div style="font-size:12px;color:${t.tooltipBody};">${formatearValor(p.value, money)} · ${p.percent}%</div>`
       },
     },
     legend: {
@@ -80,7 +85,7 @@ export default function ChartDonut({ data, centerLabel }: ChartDonutProps) {
         left: '36%',
         top: '54%',
         style: {
-          text: formatearCOP(normalizado.reduce((s, d) => s + d.value, 0)),
+          text: formatearValor(normalizado.reduce((s, d) => s + d.value, 0), money),
           textAlign: 'center',
           fontSize: 14,
           fontWeight: 700,
@@ -95,7 +100,7 @@ export default function ChartDonut({ data, centerLabel }: ChartDonutProps) {
       option={option}
       theme={theme}
       className="h-64 w-full"
-      ariaLabel={`${centerLabel}: ${normalizado.map((d) => `${d.name} ${formatearCOP(d.value)}`).join(', ')}`}
+      ariaLabel={`${centerLabel}: ${normalizado.map((d) => `${d.name} ${formatearValor(d.value, money)}`).join(', ')}`}
     />
   )
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ShoppingBag, Check, Minus, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { getColorHex } from '@/lib/color-swatch';
@@ -9,6 +9,7 @@ import { useCart } from '@/features/tienda/store/use-cart';
 import Price from '@/components/tienda/price';
 import { precioConDescuento, tieneDescuento } from '@/lib/precio';
 import { StockAlert } from '@/components/tienda/stock-alert';
+import { verProducto, agregarAlCarrito } from '@/lib/analytics';
 
 interface ProductInfoProps {
   producto: Producto;
@@ -28,6 +29,15 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCart((s) => s.addItem);
+
+  useEffect(() => {
+    verProducto({
+      item_id: producto.slug,
+      item_name: producto.nombre,
+      price: precioConDescuento(producto.precio, producto.descuento),
+      item_category: producto.categoria?.nombre,
+    });
+  }, [producto.id, producto.slug, producto.nombre, producto.precio, producto.descuento, producto.categoria?.nombre]);
 
   const needsSize = producto.tallasDisponibles.length > 0;
   const needsColor = producto.coloresDisponibles.length > 0;
@@ -87,6 +97,14 @@ export function ProductInfo({ producto, selectedColor, onColorChange }: ProductI
     }
 
     addItem(producto, selectedSize, selectedColor, quantity);
+
+    agregarAlCarrito({
+      item_id: producto.slug,
+      item_name: producto.nombre,
+      price: precioConDescuento(producto.precio, producto.descuento),
+      quantity,
+      item_category: producto.categoria?.nombre,
+    });
 
     setAdded(true);
     setQuantity(1);

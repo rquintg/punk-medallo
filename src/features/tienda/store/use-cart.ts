@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { precioConDescuento } from '@/lib/precio';
 import { MAX_QUANTITY } from '../constants';
 import type { Producto, Talla, CartItem, Variante } from '../types';
+import { sacarDelCarrito } from '@/lib/analytics';
 
 function findVariantId(
   producto: Producto,
@@ -92,6 +93,20 @@ export const useCart = create<CartState>()(
       },
 
       removeItem: (productoId, tallaSeleccionada = null, colorSeleccionado = null) => {
+        const quitar = get().items.find((item) => (
+          item.id === productoId &&
+          item.tallaSeleccionada === tallaSeleccionada &&
+          item.colorSeleccionado === colorSeleccionado
+        ))
+        if (quitar) {
+          sacarDelCarrito({
+            item_id: quitar.slug,
+            item_name: quitar.nombre,
+            price: quitar.precio,
+            quantity: quitar.cantidad,
+            item_category: quitar.categoria?.nombre,
+          })
+        }
         set((state) => ({
           items: state.items.filter((item) => {
             return !(

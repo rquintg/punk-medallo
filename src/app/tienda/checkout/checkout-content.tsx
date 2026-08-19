@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -18,6 +18,7 @@ import {
 } from '@/data/envio'
 import PaymentBadges from '@/components/tienda/payment-badges'
 import CuponCheckout from '@/components/tienda/cupon-checkout'
+import { iniciarCheckout } from '@/lib/analytics'
 
 declare global {
   interface Window {
@@ -90,6 +91,21 @@ export default function CheckoutContent() {
   const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false)
   const [metodo, setMetodo] = useState<'wompi' | 'contra_entrega'>('wompi')
   const [cupon, setCupon] = useState<{ codigo: string; descuento: number } | null>(null)
+
+  useEffect(() => {
+    if (items.length === 0) return
+    iniciarCheckout(
+      items.map((item) => ({
+        item_id: item.slug,
+        item_name: item.nombre,
+        price: item.precio,
+        quantity: item.cantidad,
+        item_category: item.categoria?.nombre,
+      })),
+      totalPrecio(),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const codDisponible = esContraEntregaDisponible(form.departamento, form.ciudad)
 

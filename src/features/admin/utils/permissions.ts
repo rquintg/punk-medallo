@@ -7,6 +7,7 @@ export function isAdminRol(rol: string | null | undefined): rol is AdminRol {
 
 export type Permission =
   | 'view_dashboard'
+  | 'view_analytics'
   | 'view_products'
   | 'create_products'
   | 'edit_products'
@@ -21,6 +22,7 @@ export type Permission =
 const PERMISSION_MATRIX: Record<string, Permission[]> = {
   super_admin: [
     'view_dashboard',
+    'view_analytics',
     'view_products',
     'create_products',
     'edit_products',
@@ -34,6 +36,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
   ],
   admin: [
     'view_dashboard',
+    'view_analytics',
     'view_products',
     'create_products',
     'edit_products',

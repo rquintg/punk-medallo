@@ -9,7 +9,7 @@ const LABELS: Record<RangoDias, string> = {
   90: '90 días',
 }
 
-export default function RangoSelector() {
+export default function RangoSelector({ base = '/admin/dashboard' }: { base?: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rango = (Number(searchParams.get('rango')) as RangoDias) in LABELS
@@ -32,7 +32,7 @@ export default function RangoSelector() {
               const params = new URLSearchParams(searchParams.toString())
               params.delete('page')
               params.set('rango', String(valor))
-              router.replace(`/admin/dashboard?${params.toString()}`, { scroll: false })
+              router.replace(`${base}?${params.toString()}`, { scroll: false })
             }}
             aria-pressed={activo}
             className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${

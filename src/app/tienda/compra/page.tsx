@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import RedirectTimer from './redirect-timer'
 import ClearCart from './clear-cart'
 import PollTransaction from './poll-transaction'
+import PurchaseEvent from './purchase-event'
 
 interface CompraPageProps {
   searchParams: Promise<{ id?: string }>
@@ -142,6 +143,13 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
         transactionId={transactionId}
         transactionStatus={transaction.status}
       />
+
+      {isApproved && (
+        <PurchaseEvent
+          transactionId={transaction.reference}
+          value={transaction.amount_in_cents / 100}
+        />
+      )}
 
       <div className="mt-16 flex flex-col items-center gap-4 text-center">
         {icon}

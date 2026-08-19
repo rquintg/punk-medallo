@@ -8,6 +8,7 @@ import {
   LegendComponent,
   TooltipComponent,
   DatasetComponent,
+  GraphicComponent,
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { EChartsCoreOption } from 'echarts/core'
@@ -21,6 +22,7 @@ echarts.use([
   LegendComponent,
   TooltipComponent,
   DatasetComponent,
+  GraphicComponent,
   CanvasRenderer,
 ])
 

@@ -12,6 +12,7 @@ import {
   LogOut,
   Radio,
   Ticket,
+  ChartColumn,
 } from 'lucide-react'
 import { can, type Permission } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -39,6 +40,12 @@ const NAV_GROUPS: {
         href: '/admin/dashboard',
         icon: LayoutDashboard,
         permission: 'view_dashboard',
+      },
+      {
+        label: 'Analítica',
+        href: '/admin/analitica',
+        icon: ChartColumn,
+        permission: 'view_analytics',
       },
     ],
   },
