@@ -14,7 +14,8 @@ import {
   Settings2,
   Clock5,
 } from 'lucide-react'
-import type { AnaliticaReportes } from '@/features/admin/services/analitica'
+import type { AnaliticaReportes, ConteoAnalitica } from '@/features/admin/services/analitica'
+import { AYUDA_ANALITICA } from '@/features/admin/services/analitica-ayuda'
 import type { RangoDias } from '@/features/admin/services/dashboard'
 import KpiCard from '@/components/admin/dashboard/kpi-card'
 import DashboardCard from '@/components/admin/dashboard/dashboard-card'
@@ -245,6 +246,134 @@ function HorasToggle({
   )
 }
 
+function PaisesChart({ reportes }: { reportes: AnaliticaReportes }) {
+  const [modo, setModo] = useState<'vistas' | 'usuarios'>('vistas')
+
+  const valor = (p: ConteoAnalitica) => (modo === 'usuarios' ? (p.usuarios ?? 0) : p.vista)
+
+  const datos = [...reportes.paises]
+    .map((p) => ({ name: p.nombre, value: valor(p) }))
+    .filter((d) => d.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <PaisesToggle modo={modo} onModo={setModo} />
+      </div>
+      {datos.length > 0 ? (
+        <ChartDonut data={datos} centerLabel="Países" money={false} />
+      ) : (
+        <EmptyChart />
+      )}
+    </div>
+  )
+}
+
+function PaisesToggle({
+  modo,
+  onModo,
+}: {
+  modo: 'vistas' | 'usuarios'
+  onModo: (m: 'vistas' | 'usuarios') => void
+}) {
+  const opciones: { valor: 'vistas' | 'usuarios'; etiqueta: string }[] = [
+    { valor: 'vistas', etiqueta: 'Vistas' },
+    { valor: 'usuarios', etiqueta: 'Usuarios' },
+  ]
+  return (
+    <div
+      role="group"
+      aria-label="Modo del gráfico de países"
+      className="inline-flex items-center gap-1 rounded-lg border border-[var(--admin-card-border)] bg-[var(--admin-card)] p-1"
+    >
+      {opciones.map((op) => {
+        const activo = modo === op.valor
+        return (
+          <button
+            key={op.valor}
+            type="button"
+            onClick={() => onModo(op.valor)}
+            aria-pressed={activo}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              activo
+                ? 'bg-[var(--admin-accent)] text-white'
+                : 'text-[var(--admin-text-muted)] hover:bg-[var(--admin-hover)] hover:text-[var(--admin-text)]'
+            }`}
+          >
+            {op.etiqueta}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function FuentesChart({ reportes }: { reportes: AnaliticaReportes }) {
+  const [modo, setModo] = useState<'vistas' | 'sesiones'>('vistas')
+
+  const valor = (f: ConteoAnalitica) => (modo === 'sesiones' ? (f.sesiones ?? 0) : f.vista)
+
+  const datos = [...reportes.fuentes]
+    .map((f) => ({ name: f.nombre, value: valor(f) }))
+    .filter((d) => d.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <FuentesToggle modo={modo} onModo={setModo} />
+      </div>
+      {datos.length > 0 ? (
+        <ChartDonut data={datos} centerLabel="Fuentes" money={false} />
+      ) : (
+        <EmptyChart />
+      )}
+    </div>
+  )
+}
+
+function FuentesToggle({
+  modo,
+  onModo,
+}: {
+  modo: 'vistas' | 'sesiones'
+  onModo: (m: 'vistas' | 'sesiones') => void
+}) {
+  const opciones: { valor: 'vistas' | 'sesiones'; etiqueta: string }[] = [
+    { valor: 'vistas', etiqueta: 'Vistas' },
+    { valor: 'sesiones', etiqueta: 'Sesiones' },
+  ]
+  return (
+    <div
+      role="group"
+      aria-label="Modo del gráfico de fuentes"
+      className="inline-flex items-center gap-1 rounded-lg border border-[var(--admin-card-border)] bg-[var(--admin-card)] p-1"
+    >
+      {opciones.map((op) => {
+        const activo = modo === op.valor
+        return (
+          <button
+            key={op.valor}
+            type="button"
+            onClick={() => onModo(op.valor)}
+            aria-pressed={activo}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              activo
+                ? 'bg-[var(--admin-accent)] text-white'
+                : 'text-[var(--admin-text-muted)] hover:bg-[var(--admin-hover)] hover:text-[var(--admin-text)]'
+            }`}
+          >
+            {op.etiqueta}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Embudo({ reportes }: { reportes: AnaliticaReportes }) {
   const embudo = reportes.embudo
   if (embudo.length === 0) return <EmptyChart title="Sin eventos de ecommerce todavía" />
@@ -422,7 +551,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
   const etiqueta = { 7: 'Últimos 7 días', 30: 'Últimos 30 días', 90: 'Últimos 90 días' }[rango]
   const conTrafico = reportes.kpis.vistas > 0
   const duracionMin = reportes.kpis.duracionSeg !== null
-    ? Math.floor(reportes.kpis.duracionSeg / 60)
+    ? Math.round(reportes.kpis.duracionSeg / 60)
     : null
   const duracionSeg = reportes.kpis.duracionSeg
 
@@ -436,6 +565,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
           color="red"
           delta={reportes.kpis.deltaVistas}
           sub={reportes.ventana || undefined}
+          help={AYUDA_ANALITICA.vistas}
         />
         <KpiCard
           label="Usuarios únicos"
@@ -443,6 +573,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
           icon={Users}
           color="blue"
           delta={reportes.kpis.deltaUsuarios}
+          help={AYUDA_ANALITICA.usuarios}
         />
         <KpiCard
           label="Sesiones"
@@ -450,6 +581,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
           icon={MousePointerClick}
           color="zinc"
           delta={reportes.kpis.deltaSesiones}
+          help={AYUDA_ANALITICA.sesiones}
         />
         <KpiCard
           label="Rebote"
@@ -459,37 +591,36 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
           suffix="%"
           delta={reportes.kpis.deltaRebote}
           sub="abandonos sin interacción"
+          help={AYUDA_ANALITICA.rebote}
         />
         <KpiCard
           label="Duración media"
           value={duracionMin ?? 0}
           icon={Timer}
           color="green"
+          suffix="min"
           sub={duracionSeg !== null ? `${duracionSeg}s en promedio` : undefined}
+          help={AYUDA_ANALITICA.duracion}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
-          <DashboardCard icon={TrendingUp} title="Tráfico por día">
+          <DashboardCard icon={TrendingUp} title="Tráfico por día" help={AYUDA_ANALITICA.trafico}>
             {conTrafico ? <TraficoChart reportes={reportes} /> : <EmptyChart />}
           </DashboardCard>
         </div>
 
         <div className="lg:col-span-4">
-          <DashboardCard icon={MapPin} title="Últimos 30 minutos">
+          <DashboardCard icon={MapPin} title="Últimos 30 minutos" help={AYUDA_ANALITICA.realtime}>
             <RealtimeLive initial={reportes.realtime} />
           </DashboardCard>
         </div>
 
         <div className="lg:col-span-4">
-          <DashboardCard icon={Globe} title="Fuentes de tráfico">
+          <DashboardCard icon={Globe} title="Fuentes de tráfico" help={AYUDA_ANALITICA.fuentes}>
             {reportes.fuentes.length > 0 ? (
-              <ChartDonut
-                data={reportes.fuentes.map((f) => ({ name: f.nombre, value: f.vista }))}
-                centerLabel="Fuentes"
-                money={false}
-              />
+              <FuentesChart reportes={reportes} />
             ) : (
               <EmptyChart />
             )}
@@ -497,7 +628,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
         </div>
 
         <div className="lg:col-span-4">
-          <DashboardCard icon={MonitorSmartphone} title="Dispositivos">
+          <DashboardCard icon={MonitorSmartphone} title="Dispositivos" help={AYUDA_ANALITICA.dispositivos}>
             {reportes.dispositivos.length > 0 ? (
               <ChartDonut
                 data={reportes.dispositivos.map((d) => ({ name: d.nombre, value: d.vista }))}
@@ -511,13 +642,9 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
         </div>
 
         <div className="lg:col-span-4">
-          <DashboardCard icon={Globe} title="Países">
+          <DashboardCard icon={Globe} title="Países" help={AYUDA_ANALITICA.paises}>
             {reportes.paises.length > 0 ? (
-              <ChartDonut
-                data={reportes.paises.map((p) => ({ name: p.nombre, value: p.vista }))}
-                centerLabel="Países"
-                money={false}
-              />
+              <PaisesChart reportes={reportes} />
             ) : (
               <EmptyChart />
             )}
@@ -525,7 +652,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
         </div>
 
         <div className="lg:col-span-5">
-          <DashboardCard icon={Clock5} title="Vistas por hora">
+          <DashboardCard icon={Clock5} title="Vistas por hora" help={AYUDA_ANALITICA.horas}>
             {reportes.horas.length > 0 ? (
               <HorasChart reportes={reportes} rango={rango} />
             ) : (
@@ -535,7 +662,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
         </div>
 
         <div className="lg:col-span-7">
-          <DashboardCard icon={ArrowDownUp} title="Top páginas">
+          <DashboardCard icon={ArrowDownUp} title="Top páginas" help={AYUDA_ANALITICA.topPaginas}>
             <TopPaginas reportes={reportes} />
           </DashboardCard>
         </div>
@@ -544,6 +671,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
           <DashboardCard
             icon={ArrowDownUp}
             title="Embudo de compra"
+            help={AYUDA_ANALITICA.embudo}
             right={
               <span className="text-xs text-[var(--admin-text-dim)]">
                 último paso (compras) desde pedidos

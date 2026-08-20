@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { formatearCOPCompleto } from './chart-theme'
+import HelpTip from '../help-tip'
 
 interface KpiCardProps {
   label: string
@@ -10,6 +11,7 @@ interface KpiCardProps {
   delta?: number | null
   sub?: string
   suffix?: string
+  help?: string
 }
 
 const COLOR_STYLES: Record<string, { caja: string; icono: string }> = {
@@ -29,15 +31,19 @@ export default function KpiCard({
   delta = null,
   sub,
   suffix,
+  help,
 }: KpiCardProps) {
   const estilos = COLOR_STYLES[color]
 
   return (
     <div className="bg-[var(--admin-card)] border border-[var(--admin-card-border)] rounded-xl p-5 transition-colors hover:border-[var(--admin-card-border)]/80">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
-          {label}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--admin-text-muted)]">
+            {label}
+          </p>
+          {help && <HelpTip help={help} label={label} />}
+        </div>
         <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${estilos.caja}`}>
           <Icon size={16} className={estilos.icono} />
         </span>

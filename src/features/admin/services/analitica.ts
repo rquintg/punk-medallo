@@ -4,6 +4,15 @@ import { ESTADOS_VALIDOS, type RangoDias } from './dashboard'
 
 const SCOPES_GA4 = 'https://www.googleapis.com/auth/analytics.readonly'
 
+const FILTRO_HOSTS_LOCALES = {
+  notExpression: {
+    filter: {
+      fieldName: 'hostname',
+      inListFilter: { values: ['localhost', '127.0.0.1'] },
+    },
+  },
+} as const
+
 interface ServiceAccount {
   client_email: string
   private_key: string
@@ -90,6 +99,12 @@ interface ReporteRequest {
 
 async function runReport(propertyId: string, req: ReporteRequest): Promise<FilaReporte[]> {
   const token = await getAccessToken()
+  const body = {
+    ...req,
+    dimensionFilter: req.dimensionFilter
+      ? { andGroup: { expressions: [req.dimensionFilter, FILTRO_HOSTS_LOCALES] } }
+      : FILTRO_HOSTS_LOCALES,
+  }
   const res = await fetch(
     `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
     {
@@ -98,7 +113,7 @@ async function runReport(propertyId: string, req: ReporteRequest): Promise<FilaR
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(req),
+      body: JSON.stringify(body),
     },
   )
   const json = (await res.json()) as {
@@ -213,6 +228,8 @@ export interface ConteoAnalitica {
   nombre: string
   vista: number
   pct: number
+  usuarios?: number
+  sesiones?: number
 }
 
 export interface EmbudoPaso {
@@ -328,9 +345,9 @@ export async function getAnalitica(rango: RangoDias): Promise<AnaliticaReportes>
       runReport(propertyId, {
         dateRanges: [{ startDate: start, endDate: end }],
         dimensions: [{ name: 'sessionDefaultChannelGroup' }],
-        metrics: [{ name: 'screenPageViews' }],
+        metrics: [{ name: 'screenPageViews' }, { name: 'sessions' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: 8,
+        limit: 15,
       }),
       runReport(propertyId, {
         dateRanges: [{ startDate: start, endDate: end }],
@@ -341,9 +358,9 @@ export async function getAnalitica(rango: RangoDias): Promise<AnaliticaReportes>
       runReport(propertyId, {
         dateRanges: [{ startDate: start, endDate: end }],
         dimensions: [{ name: 'country' }],
-        metrics: [{ name: 'screenPageViews' }],
+        metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: 8,
+        limit: 15,
       }),
       runReport(propertyId, {
         dateRanges: [{ startDate: start, endDate: end }],
@@ -392,19 +409,24 @@ export async function getAnalitica(rango: RangoDias): Promise<AnaliticaReportes>
       }
     })
 
-    const conConteo = (filas: FilaReporte[], labels: Record<string, string>): ConteoAnalitica[] => {
+    const conConteo = (
+      filas: FilaReporte[],
+      labels: Record<string, string>,
+      segundo?: 'usuarios' | 'sesiones',
+    ): ConteoAnalitica[] => {
       const filasFiltradas = filas.filter((f) => f.metricas[0] > 0 && f.dimensiones[0] !== '(not set)')
       const totalFiltro = total(filasFiltradas, 0)
       return filasFiltradas.map((f) => ({
         nombre: labels[f.dimensiones[0]] ?? f.dimensiones[0],
         vista: f.metricas[0],
         pct: totalFiltro > 0 ? Math.round((f.metricas[0] / totalFiltro) * 1000) / 10 : 0,
+        ...(segundo ? { [segundo]: f.metricas[1] } : {}),
       }))
     }
 
     const topPaginas = conConteo(topRes, {})
       .sort((a, b) => b.vista - a.vista)
-      .filter((p) => p.nombre !== '/' && !p.nombre.startsWith('/admin'))
+      .filter((p) => !p.nombre.startsWith('/admin'))
       .map((p) => ({ ruta: p.nombre, vistas: p.vista, pct: p.pct }))
 
     const embudoMap = new Map(embudoRes.map((f) => [f.dimensiones[0], f.metricas[0]]))
@@ -449,9 +471,9 @@ export async function getAnalitica(rango: RangoDias): Promise<AnaliticaReportes>
       },
       serie,
       topPaginas,
-      fuentes: conConteo(fuentesRes, FUENTE_LABELS),
+      fuentes: conConteo(fuentesRes, FUENTE_LABELS, 'sesiones'),
       dispositivos: conConteo(dispositivosRes, DEVICE_LABELS),
-      paises: conConteo(paisesRes, {}),
+      paises: conConteo(paisesRes, {}, 'usuarios'),
       horas: horasRes
         .filter((f) => f.dimensiones[0] !== '(not set)')
         .map((f) => ({ hora: Number(f.dimensiones[0]), vistas: f.metricas[0] })),

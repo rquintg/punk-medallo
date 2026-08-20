@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache'
 import {
   getAnalitica,
 } from '@/features/admin/services/analitica'
+import { requirePermission } from '@/features/admin/utils/auth-server'
 import { RANGOS, type RangoDias } from '@/features/admin/services/dashboard'
 import AdminHeader from '@/components/admin/admin-header'
 import RangoSelector from '@/components/admin/dashboard/rango-selector'
@@ -14,6 +15,8 @@ interface PageProps {
 const ETIQUETA_RANGO: Record<RangoDias, string> = { 7: '7 días', 30: '30 días', 90: '90 días' }
 
 export default async function AdminAnaliticaPage({ searchParams }: PageProps) {
+  await requirePermission('view_analytics')
+
   const params = await searchParams
   const rangoParam = Number(params.rango)
   const rango: RangoDias = (RANGOS as number[]).includes(rangoParam) ? (rangoParam as RangoDias) : 30
