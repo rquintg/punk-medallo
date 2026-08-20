@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { authRedirectUrl } from '@/lib/site-url'
 
 export interface SignupState {
   error: string | null
@@ -19,7 +20,8 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
   const { error } = await supabase.auth.signUp({
     email, password,
     options: {
-      data: {name}
+      data: {name},
+      emailRedirectTo: authRedirectUrl(),
     }
   })
 
