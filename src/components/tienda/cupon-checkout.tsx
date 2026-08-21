@@ -85,7 +85,7 @@ export default function CuponCheckout({ email, subtotal, envio, onCambio }: Cupo
         onCambio({ codigo: data.cupon.codigo, descuento })
       } catch {
         if (tokenRef.current !== token) return
-        setEstado({ etapa: 'error', mensaje: 'Error de conexión. Intentá de nuevo.' })
+        setEstado({ etapa: 'error', mensaje: 'Error de conexión. Intenta de nuevo.' })
       }
     },
     [email, envio, onCambio],

@@ -71,7 +71,7 @@ export default async function MisPedidosPage() {
         <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-neutral-800 bg-[#111] p-10 text-center">
           <Package size={32} className="text-neutral-600" />
           <p className="text-sm text-neutral-400">
-            Todavía no tenés pedidos. Cuando compres en la tienda, aparecerán acá.
+            Todavía no tienes pedidos. Cuando compres en la tienda, aparecerán acá.
           </p>
           <Link
             href="/tienda"

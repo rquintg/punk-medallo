@@ -296,7 +296,7 @@ export default function EventosContent({
               SIN RESULTADOS
             </p>
             <p className="max-w-md text-sm text-neutral-500">
-              No se encontraron toques con estos filtros. Probá con otros términos.
+              No se encontraron toques con estos filtros. Prueba con otros términos.
             </p>
           </div>
         ) : mostrarGrupos ? (

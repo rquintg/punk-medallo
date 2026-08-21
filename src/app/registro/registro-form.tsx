@@ -24,7 +24,7 @@ export default function RegisterForm() {
             </div>
 
             <h1 className="text-2xl font-bold text-white mb-2">
-              Revisá tu correo
+              Revisa tu correo
             </h1>
 
             <p className="text-white/60 text-sm mb-1">
@@ -34,9 +34,17 @@ export default function RegisterForm() {
               {state.email}
             </p>
 
-            <p className="text-white/50 text-sm leading-relaxed mb-8">
+            <p className="text-white/50 text-sm leading-relaxed mb-4">
               Haz clic en el link que te llegó para activar tu cuenta.
-              Si no lo ves, revisá la carpeta de spam.
+              Si no lo ves, revisa la carpeta de spam.
+            </p>
+
+            <p className="text-white/50 text-sm leading-relaxed mb-8">
+              ¿No funciona el botón? Ingresa el código del correo en{' '}
+              <Link href="/auth/codigo" className="text-[#ff4444] hover:underline">
+                /auth/codigo
+              </Link>
+              .
             </p>
 
             <Link

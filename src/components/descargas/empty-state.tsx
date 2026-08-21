@@ -7,7 +7,7 @@ interface EmptyStateProps {
 
 export function EmptyState({
   title = "NADA EN EL ARCHIVO",
-  description = "No se encontraron lanzamientos para este filtro. Intentá con otros términos.",
+  description = "No se encontraron lanzamientos para este filtro. Intenta con otros términos.",
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 border border-dashed border-neutral-800 py-20 text-center">

@@ -7,7 +7,7 @@ import RastrearForm from './rastrear-form'
 export const metadata: Metadata = {
   title: 'Rastrear mi pedido',
   description:
-    'Seguí el estado de tu pedido en la tienda Punk Medallo: confirmado, en preparación, enviado o entregado.',
+    'Sigue el estado de tu pedido en la tienda Punk Medallo: confirmado, en preparación, enviado o entregado.',
   robots: {
     index: false,
     follow: false,
@@ -36,7 +36,7 @@ export default function RastrearPage() {
           </div>
           <h1 className="text-xl font-bold text-white">Rastrear mi pedido</h1>
           <p className="mt-1 text-sm text-neutral-400">
-            Ingresá el número de pedido y el correo con el que compraste para
+            Ingresa el número de pedido y el correo con el que compraste para
             ver el estado y la fecha estimada de entrega.
           </p>
         </div>
@@ -54,7 +54,7 @@ export default function RastrearPage() {
           <p className="mt-3 flex items-start gap-2 text-xs text-neutral-500">
             <HelpCircle size={14} className="mt-0.5 shrink-0 text-neutral-600" aria-hidden="true" />
             <span>
-              ¿Dudas? Consultá{' '}
+              ¿Dudas? Consulta{' '}
               <Link
                 href="/politica-de-cambios"
                 className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-[#dc2626]"

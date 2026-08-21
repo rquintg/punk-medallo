@@ -59,7 +59,7 @@ export default async function OrdenDetallePage({ params }: Props) {
 
       {codPendiente && (
         <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
-          Pedido <strong>contra entrega</strong> sin cobrar: confirmá por teléfono (
+          Pedido <strong>contra entrega</strong> sin cobrar: confirma por teléfono (
           <a href={`tel:${orden.telefono}`} className="underline underline-offset-2 hover:text-amber-300">
             {orden.telefono}
           </a>{' '}

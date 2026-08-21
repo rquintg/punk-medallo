@@ -56,7 +56,7 @@ export async function AvisosManager({ productoId }: AvisosManagerProps) {
           </span>
         </h2>
         <p className="text-sm text-[var(--admin-text-dim)]">
-          Nadie esperando este producto. Cuando un cliente deja su email en un producto agotado, aparece acá y se le
+          Nadie esperando este producto. Cuando un cliente deja su email en un producto agotado, aparece aca y se le
           notifica al subir stock.
         </p>
       </section>

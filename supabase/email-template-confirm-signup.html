@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirma tu correo</title>
+</head>
+<body style="margin:0;padding:0;background-color:#181818;font-family:'Krub',Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#181818;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <img
+                src="https://punkmedallo.com/logo_punk_medallo.jpg"
+                alt="Punk Medallo"
+                width="120"
+                height="120"
+                style="border-radius:50%;border:2px solid #a40202;display:block;"
+              />
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background-color:#222;border:1px solid rgba(164,2,2,0.3);border-radius:12px;padding:40px 32px;">
+
+              <!-- Title -->
+              <h1 style="margin:0 0 8px 0;font-size:24px;color:#ffffff;font-weight:700;text-align:center;">
+                Activa tu cuenta
+              </h1>
+              <p style="margin:0 0 24px 0;font-size:15px;color:rgba(255,255,255,0.6);text-align:center;line-height:1.5;">
+                Solo un paso mas para entrar a la tienda.
+              </p>
+
+              <!-- CTA Button -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px auto;">
+                <tr>
+                  <td align="center" style="background-color:#a40202;border-radius:8px;padding:0;">
+                    <a
+                      href="https://bbllqqvatxlviukofnib.supabase.co/auth/v1/verify?token={{ .TokenHash }}&amp;type=signup&amp;redirect_to={{ .RedirectTo }}"
+                      style="display:inline-block;padding:14px 40px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.5px;text-transform:uppercase;background-color:#a40202;border-radius:8px;"
+                    >
+                      Confirmar correo
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <div style="height:1px;background:linear-gradient(to right,transparent,rgba(164,2,2,0.4),transparent);margin-bottom:24px;"></div>
+
+              <!-- OTP fallback -->
+              <p style="margin:0 0 8px 0;font-size:13px;color:rgba(255,255,255,0.4);text-align:center;">
+                Si el boton no funciona, usa este codigo:
+              </p>
+              <p style="margin:0 0 8px 0;font-size:28px;color:#ff4444;font-weight:700;text-align:center;letter-spacing:6px;">
+                {{ .Token }}
+              </p>
+              <p style="margin:0 0 24px 0;font-size:13px;color:rgba(255,255,255,0.35);text-align:center;">
+                Ingresalo en
+                <a href="https://punkmedallo.com/auth/codigo" style="color:#ff4444;text-decoration:underline;">punkmedallo.com/auth/codigo</a>
+              </p>
+
+              <!-- Info -->
+              <p style="margin:0 0 4px 0;font-size:13px;color:rgba(255,255,255,0.35);text-align:center;line-height:1.5;">
+                Este codigo expira en 10 minutos.
+              </p>
+              <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.35);text-align:center;line-height:1.5;">
+                Si no pediste esto, ignora este mensaje.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="margin:0 0 4px 0;font-size:12px;color:rgba(255,255,255,0.25);">
+                Punk Medallo Tienda — Radio 24/7
+              </p>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.2);">
+                <a href="https://punkmedallo.com" style="color:#ff4444;text-decoration:none;">punkmedallo.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

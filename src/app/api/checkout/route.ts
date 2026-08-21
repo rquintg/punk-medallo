@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     if (!rl.allowed) {
       logger.warn('Checkout: rate limit excedido', { requestId: rid })
       return respond(
-        { error: 'Demasiadas solicitudes. Intentá de nuevo en un minuto.' },
+        { error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
         { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetTime - Date.now()) / 1000)) } },
       )
     }
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
 
     if (attempts >= 5) {
       return respond(
-        { error: 'Error generando número de pedido. Intentá de nuevo.' },
+        { error: 'Error generando número de pedido. Intenta de nuevo.' },
         { status: 500 },
       )
     }
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
         logger.warn('Checkout: cupón inválido', { requestId: rid, data: { codigo: cuponCodigo, motivo: validacion.motivo } })
         return respond(
           { error: validacion.motivo === 'ya_usado'
-            ? 'Ya usaste este cupón con ese correo'
+            ? 'Ya usaste este cupón'
             : validacion.motivo === 'minimo'
               ? 'Este cupón requiere un pedido mínimo'
               : 'El cupón no es válido para este pedido' },
@@ -313,7 +313,7 @@ export async function POST(request: NextRequest) {
             data: { codigo: cuponCodigo, error: reservado.errorMessage },
           })
           return respond(
-            { error: 'No se pudo aplicar el cupón. Intentá de nuevo.' },
+            { error: 'No se pudo aplicar el cupon. Intenta de nuevo.' },
             { status: 500 },
           )
         }
@@ -495,7 +495,7 @@ export async function POST(request: NextRequest) {
       await supabase.from('pedido_items').delete().eq('pedido_id', pedido.id)
       await supabase.from('pedidos').delete().eq('id', pedido.id)
       return respond(
-        { error: 'Error de configuración de pago. Contactá al administrador.' },
+        { error: 'Error de configuracion de pago. Contacta al administrador.' },
         { status: 500 },
       )
     }

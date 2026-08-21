@@ -296,7 +296,7 @@ export default function FotosContent({
           <FotosEmptyState
             mensaje={
               query || anio
-                ? "No se encontró nada con estos filtros. Probá con otros términos."
+                ? "No se encontró nada con estos filtros. Prueba con otros términos."
                 : tipo === "fotos"
                   ? "Cuando publiquen fotos en Facebook, aparecerán acá."
                   : "Cuando publiquen videos en Facebook, aparecerán acá."

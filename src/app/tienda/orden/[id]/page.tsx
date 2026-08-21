@@ -237,7 +237,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
   const notaMetodo =
     pedido.metodo_pago === 'CONTRA_ENTREGA' && estado !== 'entregado'
-      ? 'Pagás en efectivo al recibir el pedido. Tené el cambio listo para el momento de la entrega.'
+      ? 'Pagas en efectivo al recibir el pedido. Ten el cambio listo para el momento de la entrega.'
       : estado === 'pendiente'
         ? 'El pago está pendiente. Si ya pagaste, puede tardar unos minutos en confirmarse.'
         : null
@@ -349,7 +349,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
                   ¿Dudas con tu pedido?
                 </p>
                 <p className="text-xs text-neutral-500">
-                  Escribinos por WhatsApp, te respondemos rápido.
+                  Escribenos por WhatsApp, te respondemos rápido.
                 </p>
               </div>
             </div>

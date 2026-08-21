@@ -20,7 +20,7 @@ export async function verificarPedido(
   const email = (formData.get('email') as string)?.trim().toLowerCase() ?? ''
 
   if (!NUMERO_RE.test(numero) || !/^\S+@\S+\.\S+$/.test(email)) {
-    return { error: 'Revisá el número de pedido y el correo.' }
+    return { error: 'Revisa el número de pedido y el correo.' }
   }
 
   const { data, error } = await getSupabaseAdmin()
@@ -35,7 +35,7 @@ export async function verificarPedido(
   if (error || !pedido) {
     return {
       error:
-        'El número y el correo no coinciden con ningún pedido. Verificá que sean los del checkout.',
+        'El número y el correo no coinciden con ningún pedido. Verifica que sean los del checkout.',
     }
   }
 

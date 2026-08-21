@@ -218,7 +218,7 @@ export default function CheckoutContent() {
         router.push(`/tienda/compra?id=${transactionId}`)
       })
     } catch {
-      toast.error('Error de conexión. Intentá de nuevo.')
+      toast.error('Error de conexión. Intenta de nuevo.')
       setLoading(false)
     }
   }
@@ -426,7 +426,7 @@ export default function CheckoutContent() {
                       Contra entrega
                     </p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      Pagás en efectivo al recibir (+<Price amount={CONTRa_ENTREGA_RECARGO} />). Solo
+                      Pagas en efectivo al recibir (+<Price amount={CONTRa_ENTREGA_RECARGO} />). Solo
                       Medellín y área metropolitana.
                     </p>
                   </div>

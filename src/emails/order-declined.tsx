@@ -59,7 +59,7 @@ export default function OrderDeclined({
             <Hr style={divider} />
 
             <Text style={infoLine}>
-              Podés intentar nuevamente desde nuestra tienda. Si el problema
+              Puedes intentar nuevamente desde nuestra tienda. Si el problema
               persiste, contactanos en{' '}
               <a href="mailto:info@punkmedallo.com" style={linkStyle}>
                 info@punkmedallo.com

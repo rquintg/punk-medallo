@@ -17,7 +17,7 @@ export function albumDescription(album: Album): string {
           album.trackList.length === 1 ? "canción" : "canciones"
         }`
       : "";
-  return `Descargá "${album.title}" de ${album.band}${tracks}. Del archivo del punk de Medellín.`;
+  return `Descarga "${album.title}" de ${album.band}${tracks}. Del archivo del punk de Medellín.`;
 }
 
 export function albumSchema(album: Album): Record<string, unknown> {

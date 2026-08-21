@@ -81,7 +81,7 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
             Error al verificar el pago
           </h1>
           <p className="text-sm text-neutral-500">
-            No pudimos obtener el estado de tu transacción. Revisá tu correo o contactanos.
+            No pudimos obtener el estado de tu transacción. Revisa tu correo o contactanos.
           </p>
           <Link
             href="/tienda"
@@ -124,7 +124,7 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
   } else if (isDeclined) {
     icon = <XCircle size={48} className="text-red-500" />
     title = 'Pago no procesado'
-    description = 'El pago no pudo ser completado. Podés intentar nuevamente desde la tienda.'
+    description = 'El pago no pudo ser completado. Puedes intentar nuevamente desde la tienda.'
     linkUrl = '/tienda'
   }
 

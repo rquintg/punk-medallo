@@ -504,7 +504,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
       <div className="mx-auto max-w-xl">
         <DashboardCard icon={Settings2} title="Analítica sin configurar">
           <div className="space-y-3 text-sm leading-relaxed text-[var(--admin-text-muted)]">
-            <p>Para activar la analítica necesitás dos variables de entorno:</p>
+            <p>Para activar la analitica necesitas dos variables de entorno:</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>
                 <code className="rounded bg-[var(--admin-hover)] px-1.5 py-0.5 font-mono text-xs text-[var(--admin-accent)]">
@@ -532,7 +532,7 @@ export default function AnaliticaContent({ reportes, rango }: AnaliticaContentPr
         <DashboardCard icon={Settings2} title="Error consultando GA4">
           <div className="space-y-3 text-sm leading-relaxed text-[var(--admin-text-muted)]">
             <p>
-              La consulta a Google Analytics falló. Checkeá que la service account tenga acceso{' '}
+              La consulta a Google Analytics fallo. Chequea que la service account tenga acceso{' '}
               <b className="text-[var(--admin-text)]">Viewer</b> a la propiedad y que el{' '}
               <code className="rounded bg-[var(--admin-hover)] px-1.5 py-0.5 font-mono text-xs text-[var(--admin-accent)]">
                 GA4_PROPERTY_ID

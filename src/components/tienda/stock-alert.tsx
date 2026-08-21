@@ -38,7 +38,7 @@ export function StockAlert({ productoId, talla, color }: StockAlertProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      toast.error('Ingresá un correo válido')
+      toast.error('Ingresa un correo válido')
       return
     }
 
@@ -103,7 +103,7 @@ export function StockAlert({ productoId, talla, color }: StockAlertProps) {
             type="tel"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
-            placeholder="WhatsApp opcional (ej. 3014453392)"
+            placeholder="WhatsApp opcional (ej. 3001234567)"
             className="flex-1 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
           />
           <button

@@ -19,7 +19,7 @@ export async function rastrearPedido(
   const email = (formData.get('email') as string)?.trim().toLowerCase() ?? ''
 
   if (!NUMERO_RE.test(numero) || !/^\S+@\S+\.\S+$/.test(email)) {
-    return { error: 'Revisá el número de pedido y el correo.' }
+    return { error: 'Revisa el número de pedido y el correo.' }
   }
 
   const { data, error } = await getSupabaseAdmin()
@@ -34,7 +34,7 @@ export async function rastrearPedido(
   if (error || !pedido) {
     return {
       error:
-        'No encontramos un pedido con esos datos. Verificá que el número y el correo coincidan con los del checkout.',
+        'No encontramos un pedido con esos datos. Verifica que el número y el correo coincidan con los del checkout.',
     }
   }
 

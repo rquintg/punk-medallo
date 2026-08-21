@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const rl = checkRateLimit(getRateLimitKey(request))
     if (!rl.allowed) {
       return respond(
-        { error: 'Demasiadas solicitudes. Intentá de nuevo en un minuto.' },
+        { error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
         { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetTime - Date.now()) / 1000)) } },
       )
     }

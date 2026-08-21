@@ -34,7 +34,7 @@ export default function VerificarOrdenForm({ numero }: { numero: string }) {
         />
         <p className="mt-1 text-[11px] text-neutral-600">
           Es el correo que usaste al hacer el pedido. Solo se usa para
-          confirmar que sos vos.
+          confirmar que eres tu.
         </p>
       </div>
 

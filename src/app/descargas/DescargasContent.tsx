@@ -183,7 +183,7 @@ export default function DescargasContent({
             title={query ? "SIN RESULTADOS" : "NADA EN EL ARCHIVO"}
             description={
               query
-                ? `No se encontró nada para "${query}". Probá con el nombre de la banda o el álbum.`
+                ? `No se encontró nada para "${query}". Prueba con el nombre de la banda o el álbum.`
                 : "No hay lanzamientos para mostrar con este filtro."
             }
           />

@@ -102,8 +102,8 @@ export default function InstallPrompt() {
             </p>
           ) : (
             <p className="mt-0.5 text-xs text-white/60">
-              Tocá <Share size={11} className="inline text-white/70" />{" "}
-              Compartir y elegí{" "}
+              Toca <Share size={11} className="inline text-white/70" />{" "}
+              Compartir y elige{" "}
               <span className="text-white/90">Añadir a pantalla de inicio</span>.
             </p>
           )}

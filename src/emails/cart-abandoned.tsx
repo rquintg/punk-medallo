@@ -67,7 +67,7 @@ export default function CartAbandoned({
           <Section style={card}>
             <Heading style={title}>¿Olvidaste tu compra?</Heading>
             <Text style={subtitle}>
-              {customerName}, tenés un pedido pendiente en{' '}
+              {customerName}, Tienes un pedido pendiente en{' '}
               <strong style={{ color: '#dc2626' }}>Punk Medallo</strong>.
             </Text>
 
@@ -98,7 +98,7 @@ export default function CartAbandoned({
             </a>
 
             <Text style={infoLine}>
-              Podés retomar tu compra en cualquier momento. Este pedido
+              Puedes retomar tu compra en cualquier momento. Este pedido
               será cancelado automáticamente si no se completa.
             </Text>
           </Section>
