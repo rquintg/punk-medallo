@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from './supabase-admin'
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 
 export const STOCK_BAJO_UMBRAL = 10
 
@@ -250,12 +251,14 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     variantesMap.set(v.producto_id, (variantesMap.get(v.producto_id) ?? 0) + v.stock)
   }
 
+  const tiendaCfg = await getTiendaConfig()
+  const umbralStock = tiendaCfg.stockBajoUmbral ?? STOCK_BAJO_UMBRAL
   const stockBajo = productos.filter((p) => {
     if (p.activo === false) return false
     const efectivo = productosConVariantes.has(p.id)
       ? (variantesMap.get(p.id) ?? 0)
       : p.stock
-    return efectivo < STOCK_BAJO_UMBRAL
+    return efectivo < umbralStock
   }).length
 
   const codData = (codRes.data ?? []) as { total: number | null }[]

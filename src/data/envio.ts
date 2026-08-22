@@ -54,7 +54,7 @@ export const ZONAS_ENVIO: ZonaEnvio[] = [
 const TARIFA_RESTO = 20_000
 const DIAS_RESTO: [number, number] = [6, 8]
 
-export function getTarifaEnvio(departamento: string | null | undefined): number {
+function getTarifaEnvio(departamento: string | null | undefined): number {
   if (!departamento) return TARIFA_RESTO
   const found = findDepartamento(departamento)
   const zona = ZONAS_ENVIO.find((z) =>
@@ -82,6 +82,32 @@ export function calcularEnvio(
 ): number {
   if (subtotal >= ENVIO_GRATIS_UMBRAL) return 0
   return getTarifaEnvio(departamento)
+}
+
+export function calcularEnvioConConfig(
+  subtotal: number,
+  departamento: string | null | undefined,
+  config: { envioGratisUmbral: number; envioTarifaAntioquia: number; envioTarifaCentro: number; envioTarifaResto: number },
+): number {
+  if (subtotal >= config.envioGratisUmbral) return 0
+  if (!departamento) return config.envioTarifaResto
+  const found = findDepartamento(departamento)
+  const id = found?.id ?? ''
+  if (id === '05') return config.envioTarifaAntioquia
+  if (['11','25','76','08','68','17','66','63','73','15','50','41'].includes(id)) return config.envioTarifaCentro
+  return config.envioTarifaResto
+}
+
+export function calcularRecargoConConfig(
+  departamento: string | null | undefined,
+  ciudad: string | null | undefined,
+  config: { codRecargo: number; codMunicipios: string[] },
+): number {
+  if (!departamento || !ciudad) return 0
+  const found = findDepartamento(departamento)
+  if (found?.id !== '05') return 0
+  const set = new Set(config.codMunicipios.map((m) => normalizarCiudad(m)))
+  return set.has(normalizarCiudad(ciudad)) ? config.codRecargo : 0
 }
 
 // ---- Pago contra entrega (solo Medellín y área metropolitana) ----

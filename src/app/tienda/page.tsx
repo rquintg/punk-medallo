@@ -5,54 +5,59 @@ import {
   getProductosPage,
   getProductosDestacados,
   getProductosEnOferta,
+  getProductosMasPedidos,
   getPrecioLimites,
   PAGE_SIZE,
   type ProductoOrden,
 } from '@/features/tienda/services/products';
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
 import { getCategorias } from '@/features/tienda/services/categorias';
-import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
+import { breadcrumbListJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: 'Tienda',
-  description:
-    'Camisetas y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
-  openGraph: {
-    title: 'Tienda - Punk Medallo',
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: 'Tienda',
     description:
-      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
-    url: TIENDA_URL,
-    type: 'website',
-    locale: 'es_CO',
-    siteName: 'Punk Medallo',
-    images: [
-      {
-        url: `${SITE_URL}/logo_punk_medallo.jpg`,
-        width: 1200,
-        height: 630,
-        type: 'image/jpeg',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Tienda - Punk Medallo',
-    description:
-      'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
-    images: [`${SITE_URL}/logo_punk_medallo.jpg`],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: TIENDA_URL,
-  },
-};
+      'Camisetas y accesorios punk. Merch oficial de Punk Medallo. Envíos a toda Colombia.',
+    openGraph: {
+      title: 'Tienda - Punk Medallo',
+      description:
+        'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
+      url: TIENDA_URL,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Tienda - Punk Medallo',
+      description:
+        'Camisetas y accesorios punk. Merch oficial de Punk Medallo.',
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: TIENDA_URL,
+    },
+  };
+}
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -68,7 +73,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
   const sort = (params.sort as ProductoOrden) ?? 'relevancia';
   const page = Math.max(1, Number(params.page) || 1);
 
-  const [categorias, precioLimites] = await Promise.all([getCategorias(), getPrecioLimites()]);
+  const [categorias, precioLimites, tiendaConfig] = await Promise.all([getCategorias(), getPrecioLimites(), getTiendaConfig()]);
 
   if (categoriaId) {
     const categoria = categorias.find((c) => c.id === categoriaId);
@@ -101,10 +106,11 @@ export default async function TiendaPage({ searchParams }: PageProps) {
     generos.length || tallas.length || rangoPrecio.min !== undefined || rangoPrecio.max !== undefined || oferta,
   );
 
-  const [pageData, destacados, ofertas] = await Promise.all([
+  const [pageData, destacados, ofertas, masPedidos] = await Promise.all([
     getProductosPage(filters, sort, page, PAGE_SIZE),
     hasFilters ? Promise.resolve([]) : getProductosDestacados(),
-    hasFilters ? Promise.resolve([]) : getProductosEnOferta(4),
+    tiendaConfig.mostrarOfertas && !hasFilters ? getProductosEnOferta(4) : Promise.resolve([]),
+    tiendaConfig.mostrarMasPedidos && !hasFilters ? getProductosMasPedidos(4, 30) : Promise.resolve([]),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(pageData.total / PAGE_SIZE));
@@ -154,6 +160,9 @@ export default async function TiendaPage({ searchParams }: PageProps) {
         hasFilters={hasFilters}
         destacados={destacados}
         ofertas={ofertas}
+        masPedidos={masPedidos}
+        mostrarMasPedidos={tiendaConfig.mostrarMasPedidos}
+        mostrarOfertas={tiendaConfig.mostrarOfertas}
         precioLimites={precioLimites}
       />
     </>

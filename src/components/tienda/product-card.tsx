@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, X, Check } from 'lucide-react';
+import { ShoppingCart, X, Check, ImageOff } from 'lucide-react';
 import { useCart } from '@/features/tienda/store/use-cart';
 import { getCategoriaEstilo } from '@/features/tienda/utils/categorias';
 import Price from './price';
@@ -128,7 +128,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className="group relative flex flex-col rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#a40202]/50">
+    <div
+      className={`group relative flex flex-col rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-[#a40202]/50 hover:shadow-lg hover:shadow-black/20 ${showPopover ? 'z-20' : ''}`}
+    >
       <Link
         href={`/tienda/${product.slug}`}
         className="relative aspect-square overflow-hidden rounded-t-lg"
@@ -141,11 +143,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             fill
             quality={60}
             sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover transition duration-300 ease-in-out group-hover:scale-105"
+            className="object-cover transition duration-500 ease-out group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-neutral-900 text-neutral-600">
-            Sin imagen
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-neutral-900 text-neutral-500">
+            <ImageOff size={28} className="opacity-40" />
+            <span className="text-xs">Sin imagen</span>
           </div>
         )}
 
@@ -158,8 +161,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {isLowStock && (
-          <span className="absolute right-2 top-2 rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-semibold text-black shadow-sm">
-            ¡Últimas {totalStock}!
+          <span className="absolute right-2 top-2 rounded-full border border-black/10 bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-black shadow-sm">
+            ¡Ultimas {totalStock}!
           </span>
         )}
 
@@ -194,6 +197,27 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </p>
 
+        {product.coloresDisponibles.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            {product.coloresDisponibles.slice(0, 3).map((color) => {
+              const swatch = getColorHex(color);
+              return (
+                <span
+                  key={color}
+                  className="h-3 w-3 rounded-full border border-neutral-700 shadow-sm"
+                  style={{ backgroundColor: swatch }}
+                  title={color}
+                />
+              );
+            })}
+            {product.coloresDisponibles.length > 3 && (
+              <span className="text-[11px] font-medium text-neutral-500">
+                +{product.coloresDisponibles.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
         <p className="text-xs text-neutral-500">
           {product.genero === 'hombre' ? 'Hombre' : product.genero === 'mujer' ? 'Mujer' : 'Unisex'}
           {' · '}
@@ -203,7 +227,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {showPopover && needsCustomization ? (
           <div
             ref={popoverRef}
-            className="mt-auto flex flex-col gap-3 rounded-md border border-neutral-700 bg-[#1a1a1a] p-2.5"
+            className="absolute left-0 right-0 top-full z-20 mt-2 flex flex-col gap-3 rounded-md border border-neutral-700 bg-[#1a1a1a] p-2.5 shadow-xl shadow-black/50"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-neutral-400">

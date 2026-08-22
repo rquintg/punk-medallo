@@ -7,7 +7,8 @@ import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
 import { logger, generateRequestId } from '@/lib/logger'
 import { firmarPedido, ORDER_VERIFY_COOKIE } from '@/lib/order-verify'
 import { sanitizeShipping } from '@/lib/sanitize'
-import { calcularEnvio, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega } from '@/data/envio'
+import { calcularEnvio, calcularEnvioConConfig, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega, calcularRecargoConConfig } from '@/data/envio'
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 import { sendOrderConfirmation } from '@/lib/email'
 import { precioConDescuento } from '@/lib/precio'
 import { MAX_QUANTITY } from '@/features/tienda/constants'
@@ -155,20 +156,28 @@ export async function POST(request: NextRequest) {
     }
 
     const shipping = sanitizeShipping(rawShipping)
+    const tiendaCfg = await getTiendaConfig()
 
     // Método de pago: wompi (default) o contra entrega (solo Medellín y AM)
     const esCOD = body.metodoPago === 'contra_entrega'
 
-    if (esCOD && !esContraEntregaDisponible(shipping.departamento, shipping.ciudad)) {
-      logger.warn('Checkout: contra entrega no disponible', { requestId: rid, data: { departamento: shipping.departamento, ciudad: shipping.ciudad } })
-      return respond(
-        { error: 'Pago contra entrega solo disponible en Medellín y área metropolitana' },
-        { status: 400 },
-      )
+    if (esCOD) {
+      const codOk = tiendaCfg.codMunicipios.length
+        ? calcularRecargoConConfig(shipping.departamento, shipping.ciudad, { codRecargo: tiendaCfg.codRecargo, codMunicipios: tiendaCfg.codMunicipios }) > 0
+        : esContraEntregaDisponible(shipping.departamento, shipping.ciudad)
+      if (!codOk) {
+        logger.warn('Checkout: contra entrega no disponible', { requestId: rid, data: { departamento: shipping.departamento, ciudad: shipping.ciudad } })
+        return respond(
+          { error: 'Pago contra entrega solo disponible en Medellín y área metropolitana' },
+          { status: 400 },
+        )
+      }
     }
 
     const recargo = esCOD
-      ? calcularRecargoContraEntrega(shipping.departamento, shipping.ciudad)
+      ? (tiendaCfg.codMunicipios.length
+          ? calcularRecargoConConfig(shipping.departamento, shipping.ciudad, { codRecargo: tiendaCfg.codRecargo, codMunicipios: tiendaCfg.codMunicipios })
+          : calcularRecargoContraEntrega(shipping.departamento, shipping.ciudad))
       : 0
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -274,8 +283,13 @@ export async function POST(request: NextRequest) {
       0,
     )
 
-    // Envío: tarifa por zona (server-side, no confiar en el cliente) + gratis > umbral
-    const envio = calcularEnvio(total, shipping.departamento)
+    // Envío: tarifa por zona (server-side, con config DB)
+    const envio = calcularEnvioConConfig(total, shipping.departamento, {
+      envioGratisUmbral: tiendaCfg.envioGratisUmbral,
+      envioTarifaAntioquia: tiendaCfg.envioTarifaAntioquia,
+      envioTarifaCentro: tiendaCfg.envioTarifaCentro,
+      envioTarifaResto: tiendaCfg.envioTarifaResto,
+    })
 
     // 1.5. Cupón: validar, reservar cupo (atómico) y calcular descuento
     let cuponInfo: {

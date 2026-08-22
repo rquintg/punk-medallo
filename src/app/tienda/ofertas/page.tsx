@@ -7,7 +7,7 @@ import {
   type ProductoOrden,
 } from '@/features/tienda/services/products';
 import { getCategorias } from '@/features/tienda/services/categorias';
-import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
+import { breadcrumbListJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
@@ -16,40 +16,43 @@ export const revalidate = 60;
 
 const URL_OFERTAS = `${TIENDA_URL}/ofertas`;
 
-export const metadata: Metadata = {
-  title: 'Ofertas',
-  description:
-    'Productos en oferta de Punk Medallo. Camisetas y accesorios punk con descuento. Envíos a toda Colombia.',
-  openGraph: {
-    title: 'Ofertas - Punk Medallo',
-    description: 'Productos en oferta del merch oficial de Punk Medallo.',
-    url: URL_OFERTAS,
-    type: 'website',
-    locale: 'es_CO',
-    siteName: 'Punk Medallo',
-    images: [
-      {
-        url: `${SITE_URL}/logo_punk_medallo.jpg`,
-        width: 1200,
-        height: 630,
-        type: 'image/jpeg',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Ofertas - Punk Medallo',
-    description: 'Productos en oferta del merch oficial de Punk Medallo.',
-    images: [`${SITE_URL}/logo_punk_medallo.jpg`],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: URL_OFERTAS,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: 'Ofertas',
+    description:
+      'Productos en oferta de Punk Medallo. Camisetas y accesorios punk con descuento. Envíos a toda Colombia.',
+    openGraph: {
+      title: 'Ofertas - Punk Medallo',
+      description: 'Productos en oferta del merch oficial de Punk Medallo.',
+      url: URL_OFERTAS,
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Ofertas - Punk Medallo',
+      description: 'Productos en oferta del merch oficial de Punk Medallo.',
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: URL_OFERTAS,
+    },
+  };
+}
 
 interface OfertasPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

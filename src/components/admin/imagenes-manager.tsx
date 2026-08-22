@@ -31,8 +31,8 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
       toast.error('Solo se permiten archivos de imagen')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen no puede superar 5 MB')
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 10 MB')
       return
     }
     const fd = new FormData(form)
@@ -213,7 +213,7 @@ export default function ImagenesManager({ productoId, slug, imagenes, coloresDis
               {uploading ? 'Subiendo...' : 'Subir imagen'}
             </button>
             <p className="text-right text-[11px] text-[var(--admin-text-dim)] sm:text-xs">
-              JPG, PNG, WEBP o AVIF · máx 5 MB
+              JPG, PNG, WEBP o AVIF · máx 10 MB
             </p>
           </div>
         </div>

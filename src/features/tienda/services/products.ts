@@ -1,5 +1,6 @@
 import type { Producto, ProductoFilters, Talla } from '../types';
 import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin';
 import { mapDbProductoToProducto, type DbProduct } from '../utils/mapper';
 
 export type ProductoOrden =
@@ -7,7 +8,10 @@ export type ProductoOrden =
   | 'precio-asc'
   | 'precio-desc'
   | 'nombre-asc'
-  | 'nombre-desc';
+  | 'nombre-desc'
+  | 'mas-vendidos'
+  | 'novedades'
+  | 'descuento-desc';
 
 export interface ProductosPage {
   productos: Producto[]
@@ -124,6 +128,11 @@ export async function getProductosPage(
   const from = (safePage - 1) * safePageSize
   const to = from + safePageSize - 1
 
+  // Ranking mas vendidos: respeta filtros activos + ordena por ventas 30d
+  if (orden === 'mas-vendidos') {
+    return getProductosPageMasVendidos(filters, safePage, safePageSize, from, to)
+  }
+
   let query = applyFilters(filters, PRODUCTO_QUERY)
   const countQuery = applyFilters(filters, 'id')
 
@@ -147,6 +156,12 @@ export async function getProductosPage(
     case 'nombre-desc':
       query = query.order('nombre', { ascending: false })
       break
+    case 'novedades':
+      query = query.order('fecha_creacion', { ascending: false })
+      break
+    case 'descuento-desc':
+      query = query.order('descuento', { ascending: false }).order('fecha_creacion', { ascending: false })
+      break
     default:
       query = query
         .order('destacado', { ascending: false })
@@ -167,6 +182,91 @@ export async function getProductosPage(
     productos: (data ?? []).map((row) => mapDbProductoToProducto(row as unknown as DbProduct)),
     total: count ?? 0,
   }
+}
+
+const ESTADOS_VALIDOS_RANKING = ['aprobado', 'preparando', 'enviado', 'entregado'] as const
+
+function inicioDiaBogotaISO(diasAtras: number): string {
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' })
+  const d = new Date(Date.now() - diasAtras * 86_400_000)
+  return `${fmt.format(d)}T05:00:00.000Z`
+}
+
+async function getRankingIds(filters: ProductoFilters, dias = 30): Promise<string[] | null> {
+  const desde = inicioDiaBogotaISO(dias - 1)
+  const admin = getSupabaseAdmin()
+  const { data: pedidos } = await admin
+    .from('pedidos')
+    .select('id')
+    .in('estado', [...ESTADOS_VALIDOS_RANKING])
+    .gte('created_at', desde)
+  const idsPedidos = (pedidos ?? []).map((p: any) => p.id)
+  if (idsPedidos.length === 0) return []
+  const { data: items } = await (admin.from('pedido_items') as any)
+    .select('producto_id, cantidad, pedido_id')
+    .in('pedido_id', idsPedidos)
+  if (!items || items.length === 0) return []
+  const map = new Map<string, number>()
+  for (const it of items as { producto_id: string; cantidad: number }[]) {
+    if (!it.producto_id) continue
+    map.set(it.producto_id, (map.get(it.producto_id) ?? 0) + (it.cantidad ?? 0))
+  }
+  let ranking = [...map.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)
+  // Si hay filtros de categoria/genero/oferta/q: recorta ranking a los que pasan el filtro
+  if (filters.categoria_id || filters.generos?.length || filters.oferta || filters.q) {
+    const { data: filtrados } = await applyFilters(filters, 'id')
+    const setFiltrados = new Set((filtrados ?? []).map((r: any) => r.id))
+    ranking = ranking.filter((id) => setFiltrados.has(id))
+  }
+  if (filters.tallas?.length) {
+    const idsTalla = await getProductosIdsPorTallas(filters.tallas)
+    const setTalla = new Set(idsTalla)
+    ranking = ranking.filter((id) => setTalla.has(id))
+  }
+  return ranking
+}
+
+async function getProductosPageMasVendidos(
+  filters: ProductoFilters,
+  safePage: number,
+  safePageSize: number,
+  from: number,
+  to: number,
+): Promise<ProductosPage> {
+  const ranking = await getRankingIds(filters, 30)
+  if (ranking === null) return { productos: [], total: 0 }
+  if (ranking.length === 0) {
+    // Sin ventas en 30d: fallback a relevancia
+    let q = applyFilters(filters, PRODUCTO_QUERY).order('destacado', { ascending: false }).order('fecha_creacion', { ascending: false })
+    let cq = applyFilters(filters, 'id')
+    if (filters.tallas?.length) {
+      const ids = await getProductosIdsPorTallas(filters.tallas)
+      if (ids.length === 0) return { productos: [], total: 0 }
+      q = q.in('id', ids)
+      cq = cq.in('id', ids)
+    }
+    const [{ data, error }, { count }] = await Promise.all([q.range(from, to), cq])
+    if (error) return { productos: [], total: 0 }
+    return { productos: (data ?? []).map((r) => mapDbProductoToProducto(r as unknown as DbProduct)), total: count ?? 0 }
+  }
+  const total = ranking.length
+  const pageIds = ranking.slice(from, to + 1)
+  if (pageIds.length === 0) return { productos: [], total }
+  const { data, error } = await supabase.from('productos').select(PRODUCTO_QUERY).in('id', pageIds).eq('activo', true)
+  if (error || !data) return { productos: [], total }
+  const byId = new Map((data as unknown as DbProduct[]).map((r) => [r.id, r]))
+  const ordenados = pageIds.map((id) => byId.get(id)).filter(Boolean) as DbProduct[]
+  return { productos: ordenados.map(mapDbProductoToProducto), total }
+}
+
+export async function getProductosMasPedidos(limit = 4, dias = 30): Promise<Producto[]> {
+  const ranking = await getRankingIds({}, dias)
+  if (!ranking || ranking.length === 0) return []
+  const ids = ranking.slice(0, limit)
+  const { data, error } = await supabase.from('productos').select(PRODUCTO_QUERY).in('id', ids).eq('activo', true)
+  if (error || !data) return []
+  const byId = new Map((data as unknown as DbProduct[]).map((r) => [r.id, r]))
+  return ids.map((id) => byId.get(id)).filter((v): v is DbProduct => Boolean(v)).map(mapDbProductoToProducto)
 }
 
 export async function getProductosDestacados(): Promise<Producto[]> {

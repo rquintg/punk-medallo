@@ -2,32 +2,37 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Guitar, Mic, Music, Zap, Radio, FileText } from "lucide-react";
+import { getTiendaConfig, LOGO_DEFAULT } from "@/features/tienda/services/tienda-config";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
-export const metadata: Metadata = {
-  title: "Acerca de",
-  description:
-    "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín. Autenticidad, libertad, comunidad y rebeldía.",
-  alternates: {
-    canonical: "/about",
-  },
-  openGraph: {
-    title: "Acerca de Punk Medallo",
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: "Acerca de",
     description:
-      "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín.",
-    url: "/about",
-    type: "website",
-    locale: "es_CO",
-    siteName: "Punk Medallo",
-    images: [
-      {
-        url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
-      },
-    ],
-  },
-};
+      "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín. Autenticidad, libertad, comunidad y rebeldía.",
+    alternates: {
+      canonical: "/about",
+    },
+    openGraph: {
+      title: "Acerca de Punk Medallo",
+      description:
+        "Conoce la historia de Punk Medallo, la radio 24/7 que preserva y transmite lo mejor del punk local de Medellín.",
+      url: "/about",
+      type: "website",
+      locale: "es_CO",
+      siteName: "Punk Medallo",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: "image/jpeg",
+        },
+      ],
+    },
+  };
+}
 
 const values = [
   {
@@ -71,7 +76,8 @@ const offers = [
   },
 ];
 
-export default function About() {
+export default async function About() {
+  const { logoUrl } = await getTiendaConfig();
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#f8f9fa] flex flex-col">
       {/* Hero Section */}
@@ -81,14 +87,16 @@ export default function About() {
       >
         <div className="relative z-[2] text-center flex flex-col items-center gap-8">
           <div className="animate-[fadeInDown_0.8s_ease-out]">
-            <Image
-              src="/images/Logo-Punk-Medallo-2024 Blanco.png"
-              alt="Punk Medallo"
-              width={480}
-              height={160}
-              className="w-[480px] h-auto max-w-[90vw] drop-shadow-[0_4px_6px_rgba(164,2,2,0.5)]"
-              priority
-            />
+            <div className="relative w-[480px] max-w-[90vw] aspect-[2/1]">
+              <Image
+                src={logoUrl ?? LOGO_DEFAULT}
+                alt="Punk Medallo"
+                fill
+                priority
+                sizes="(max-width: 768px) 90vw, 480px"
+                className="object-contain drop-shadow-[0_4px_6px_rgba(164,2,2,0.5)]"
+              />
+            </div>
           </div>
         </div>
       </div>

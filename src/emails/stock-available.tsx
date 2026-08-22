@@ -17,6 +17,7 @@ interface StockAvailableProps {
   productName: string
   productUrl: string
   comboLabel?: string | null
+  logoUrl: string
 }
 
 export default function StockAvailable({
@@ -24,6 +25,7 @@ export default function StockAvailable({
   productName,
   productUrl,
   comboLabel,
+  logoUrl,
 }: StockAvailableProps) {
   const combo = comboLabel ? ` (${comboLabel})` : ''
   return (
@@ -43,7 +45,7 @@ export default function StockAvailable({
         <Container style={container}>
           <Section style={logoSection}>
             <Img
-              src="https://punkmedallo.com/logo_punk_medallo.jpg"
+              src={logoUrl}
               alt="Punk Medallo"
               width={100}
               height={100}
@@ -117,6 +119,7 @@ const logo: React.CSSProperties = {
   margin: '0 auto',
   borderRadius: '50%',
   border: '2px solid #a40202',
+  objectFit: 'contain',
 }
 
 const card: React.CSSProperties = {

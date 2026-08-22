@@ -4,7 +4,8 @@ import { Suspense } from 'react';
 import { getProductoBySlug, getProductosFiltrados } from '@/features/tienda/services/products';
 
 export const revalidate = 60
-import { breadcrumbListJsonLd, productJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
+import { breadcrumbListJsonLd, productJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
 import ProductClient from './product-client';
 import { RelatedProducts } from '@/components/tienda/related-products';
@@ -21,12 +22,12 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, logoOg] = await Promise.all([params, ogImageActual()]);
   const producto = await getProductoBySlug(slug);
 
   if (!producto) return {};
 
-  const imageUrl = producto.imagenes[0]?.url ?? `${SITE_URL}/logo_punk_medallo.jpg`;
+  const imageUrl = producto.imagenes[0]?.url ?? logoOg;
   const title = `${producto.nombre} - Tienda`;
 
   return {
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const producto = await getProductoBySlug(slug);
+  const [producto, tiendaCfg] = await Promise.all([getProductoBySlug(slug), getTiendaConfig()]);
 
   if (!producto) notFound();
 
@@ -89,7 +90,14 @@ export default async function ProductPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd(producto)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            productJsonLd(producto, {
+              shippingMin: tiendaCfg.envioTarifaAntioquia,
+              shippingMax: tiendaCfg.envioTarifaResto,
+            }),
+          ),
+        }}
       />
       <script
         type="application/ld+json"

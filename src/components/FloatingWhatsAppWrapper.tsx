@@ -8,7 +8,7 @@ const FloatingWhatsApp = dynamic(
   { ssr: false }
 );
 
-export default function FloatingWhatsAppWrapper() {
+export default function FloatingWhatsAppWrapper({ logoUrl }: { logoUrl?: string }) {
   return (
     <FloatingWhatsApp
       phoneNumber="573014453392"
@@ -16,7 +16,7 @@ export default function FloatingWhatsAppWrapper() {
       statusMessage="Generalmente responde rapido"
       chatMessage="Hola, ¿en qué puedo ayudarte?"
       placeholder="Escribe un mensaje..."
-      avatar="/logo_punk_medallo.jpg"
+      avatar={logoUrl ?? "/logo_punk_medallo.jpg"}
       darkMode
       allowEsc
       notification

@@ -37,6 +37,17 @@ export interface MetodoPagoInfo {
   ref: string | null;
 }
 
+export interface OrderDireccionInfo {
+  nombre: string;
+  correo: string | null;
+  direccion: string | null;
+  barrio: string | null;
+  ciudad: string | null;
+  departamento: string | null;
+  telefono: string | null;
+  notas: string | null;
+}
+
 export interface OrderDetailsProps {
   numero: string;
   subtitulo: string;
@@ -52,7 +63,7 @@ export interface OrderDetailsProps {
   items: OrderDetailsItem[];
   filasResumen: Array<{ titulo: string; valor: number | null; gratis?: boolean }>;
   total: number;
-  direccionLineas: string[];
+  direccion: OrderDireccionInfo;
   metodo: MetodoPagoInfo;
   notaMetodo: string | null;
 }
@@ -102,7 +113,7 @@ export default function OrderDetails({
   items,
   filasResumen,
   total,
-  direccionLineas,
+  direccion,
   metodo,
   notaMetodo,
 }: OrderDetailsProps) {
@@ -124,6 +135,15 @@ export default function OrderDetails({
 
   const completados = PASOS_COMPLETADOS[estado] ?? 0;
 
+  const direccionLineasFactura = [
+    direccion.nombre,
+    direccion.correo ? `Correo: ${direccion.correo}` : null,
+    [direccion.direccion, direccion.barrio].filter(Boolean).join(", ") || null,
+    [direccion.ciudad, direccion.departamento].filter(Boolean).join(", ") || null,
+    direccion.telefono ? `Tel: ${direccion.telefono}` : null,
+    ...(direccion.notas ? [`Notas: ${direccion.notas}`] : []),
+  ].filter((l): l is string => !!l);
+
   const descargarFactura = () => {
     const lineas = [
       "PUNK MEDALLO",
@@ -144,7 +164,7 @@ export default function OrderDetails({
       `Total: ${formatearPrecio(total)}`,
       "",
       "DIRECCIÓN DE ENVÍO",
-      ...direccionLineas,
+      ...direccionLineasFactura,
       "",
       metodo.linea,
       ...(metodo.detalle ? [metodo.detalle] : []),
@@ -352,12 +372,40 @@ export default function OrderDetails({
               <CardHeader className="m-0 flex w-full items-center justify-between p-6">
                 <h3 className="text-lg font-semibold">Dirección de envío</h3>
               </CardHeader>
-              <CardContent className="space-y-1 px-6 pt-0 pb-6">
-                {direccionLineas.map((linea, key) => (
-                  <p key={key} className="text-muted-foreground text-sm">
-                    {linea}
-                  </p>
-                ))}
+              <CardContent className="grid grid-cols-1 gap-x-4 gap-y-2 px-6 pt-0 pb-6 text-sm sm:grid-cols-2">
+                <div>
+                  <span className="text-muted-foreground">nombre:</span>{" "}
+                  <span className="font-medium">{direccion.nombre}</span>
+                </div>
+                {direccion.correo && (
+                  <div>
+                    <span className="text-muted-foreground">correo:</span>{" "}
+                    <span className="font-medium">{direccion.correo}</span>
+                  </div>
+                )}
+                {(direccion.direccion || direccion.ciudad) && (
+                  <div className="sm:col-span-2">
+                    <span className="text-muted-foreground">direccion:</span>{" "}
+                    <span className="font-medium">
+                      {[direccion.direccion, direccion.barrio].filter(Boolean).join(", ")}
+                      {direccion.ciudad || direccion.departamento
+                        ? ` — ${[direccion.ciudad, direccion.departamento].filter(Boolean).join(", ")}`
+                        : ""}
+                    </span>
+                  </div>
+                )}
+                {direccion.telefono && (
+                  <div>
+                    <span className="text-muted-foreground">telefono:</span>{" "}
+                    <span className="font-medium">{direccion.telefono}</span>
+                  </div>
+                )}
+                {direccion.notas && (
+                  <div className="sm:col-span-2">
+                    <span className="text-muted-foreground">notas:</span>{" "}
+                    <span>{direccion.notas}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Card>

@@ -4,12 +4,15 @@ import type { Genero, ProductoFilters, Talla } from '@/features/tienda/types';
 import {
   getProductosPage,
   getProductosDestacados,
+  getProductosEnOferta,
+  getProductosMasPedidos,
   getPrecioLimites,
   PAGE_SIZE,
   type ProductoOrden,
 } from '@/features/tienda/services/products';
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
 import { getCategorias } from '@/features/tienda/services/categorias';
-import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
+import { breadcrumbListJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
@@ -29,7 +32,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: CategoriaPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, ogImage] = await Promise.all([params, ogImageActual()]);
   const categorias = await getCategorias();
   const categoria = categorias.find((c) => c.slug === slug);
   if (!categoria) return {};
@@ -48,7 +51,7 @@ export async function generateMetadata({
       siteName: 'Punk Medallo',
       images: [
         {
-          url: `${SITE_URL}/logo_punk_medallo.jpg`,
+          url: ogImage,
           width: 1200,
           height: 630,
           type: 'image/jpeg',
@@ -59,7 +62,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: `${categoria.nombre} - Punk Medallo`,
       description: `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo.`,
-      images: [`${SITE_URL}/logo_punk_medallo.jpg`],
+      images: [ogImage],
     },
     robots: {
       index: true,
@@ -98,11 +101,13 @@ export default async function CategoriaPage({
     generos.length || tallas.length || rangoPrecio.min !== undefined || rangoPrecio.max !== undefined || oferta,
   );
 
-  const precioLimites = await getPrecioLimites();
+  const [tiendaConfig, precioLimites] = await Promise.all([getTiendaConfig(), getPrecioLimites()]);
 
-  const [pageData, destacados] = await Promise.all([
+  const [pageData, destacados, ofertas, masPedidos] = await Promise.all([
     getProductosPage(filters, sort, page, PAGE_SIZE),
     hasFilters ? Promise.resolve([]) : getProductosDestacados(),
+    tiendaConfig.mostrarOfertas && !hasFilters ? getProductosEnOferta(4) : Promise.resolve([]),
+    tiendaConfig.mostrarMasPedidos && !hasFilters ? getProductosMasPedidos(4, 30) : Promise.resolve([]),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(pageData.total / PAGE_SIZE));
@@ -158,6 +163,10 @@ export default async function CategoriaPage({
         activeCategoria={categoria.slug}
         hasFilters={hasFilters}
         destacados={destacados}
+        ofertas={ofertas}
+        masPedidos={masPedidos}
+        mostrarMasPedidos={tiendaConfig.mostrarMasPedidos}
+        mostrarOfertas={tiendaConfig.mostrarOfertas}
         precioLimites={precioLimites}
       />
     </>

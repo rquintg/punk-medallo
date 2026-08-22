@@ -15,11 +15,11 @@ import type {
   PaginaFotos,
 } from "@/features/fotos/types";
 import { srcMasCercana } from "@/features/fotos/types";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
 export const revalidate = 600;
 
 const SITE_URL = "https://punkmedallo.com";
-const LOGO_OG = `${SITE_URL}/logo_punk_medallo.jpg`;
 
 // Las estadísticas exactas del archivo (conteos + rango de años) requieren un
 // recorrido costoso de la Graph API (~15 llamadas: conteo fotos, probes
@@ -125,12 +125,12 @@ function captionExcerpt(foto: FotoFacebook, max: number): string {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { fotos } = await obtenerPaginas();
+  const [{ fotos }, logoOg] = await Promise.all([obtenerPaginas(), ogImageActual()]);
   const masReciente: FotoFacebook | undefined = fotos.items[0];
 
   const ogImage = masReciente
     ? { url: srcMasCercana(masReciente, 1200), type: "image/jpeg" }
-    : { url: LOGO_OG, width: 1200, height: 630, type: "image/jpeg" };
+    : { url: logoOg, width: 1200, height: 630, type: "image/jpeg" };
 
   return {
     title: "Registro Fotográfico",

@@ -9,6 +9,18 @@ import OrderShipped from '@/emails/order-shipped'
 import OrderDelivered from '@/emails/order-delivered'
 import StockAvailable from '@/emails/stock-available'
 import { sitioUrl } from '@/lib/site-url'
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
+
+const LOGO_EMAIL_DEFAULT = 'https://punkmedallo.com/logo_punk_medallo.jpg'
+
+/** Logo actual (config DB o default) para las plantillas de email */
+async function logoEmail(): Promise<string> {
+  try {
+    return (await getTiendaConfig()).logoUrl ?? LOGO_EMAIL_DEFAULT
+  } catch {
+    return LOGO_EMAIL_DEFAULT
+  }
+}
 
 export interface OrderConfirmationData {
   orderNumber: string
@@ -91,6 +103,7 @@ const emailFrom = process.env.EMAIL_FROM ?? 'Punk Medallo <info@punkmedallo.com>
 
 export async function sendOrderConfirmation(data: OrderConfirmationData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <OrderConfirmation
@@ -111,6 +124,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
       cuponCodigo={data.cuponCodigo}
       orderUrl={`${siteUrl}/tienda/orden/${data.orderNumber}`}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -131,6 +145,7 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
 
 export async function sendOrderApproved(data: OrderApprovedData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <OrderApproved
@@ -138,6 +153,7 @@ export async function sendOrderApproved(data: OrderApprovedData) {
       customerName={data.customerName}
       orderUrl={`${siteUrl}/tienda/orden/${data.orderNumber}`}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -157,11 +173,14 @@ export async function sendOrderApproved(data: OrderApprovedData) {
 }
 
 export async function sendOrderDeclined(data: OrderDeclinedData) {
+  const logoUrl = await logoEmail()
+
   const html = await render(
     <OrderDeclined
       orderNumber={data.orderNumber}
       customerName={data.customerName}
       reason={data.reason}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -182,6 +201,7 @@ export async function sendOrderDeclined(data: OrderDeclinedData) {
 
 export async function sendCartAbandoned(data: CartAbandonedData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <CartAbandoned
@@ -190,6 +210,7 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
       items={data.items}
       total={data.total}
       siteUrl={siteUrl}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -210,12 +231,14 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
 
 export async function sendOrderPreparing(data: OrderStatusEmailData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <OrderPreparing
       orderNumber={data.orderNumber}
       customerName={data.customerName}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -236,12 +259,14 @@ export async function sendOrderPreparing(data: OrderStatusEmailData) {
 
 export async function sendOrderShipped(data: OrderStatusEmailData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <OrderShipped
       orderNumber={data.orderNumber}
       customerName={data.customerName}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -262,12 +287,14 @@ export async function sendOrderShipped(data: OrderStatusEmailData) {
 
 export async function sendOrderDelivered(data: OrderStatusEmailData) {
   const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
 
   const html = await render(
     <OrderDelivered
       orderNumber={data.orderNumber}
       customerName={data.customerName}
       trackingUrl={`${siteUrl}/tienda/rastrear`}
+      logoUrl={logoUrl}
     />,
   )
 
@@ -287,12 +314,15 @@ export async function sendOrderDelivered(data: OrderStatusEmailData) {
 }
 
 export async function sendStockAvailable(data: StockAvailableData) {
+  const logoUrl = await logoEmail()
+
   const html = await render(
     <StockAvailable
       customerName={data.customerName}
       productName={data.productName}
       productUrl={data.productUrl}
       comboLabel={data.comboLabel ?? null}
+      logoUrl={logoUrl}
     />,
   )
 

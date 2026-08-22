@@ -17,10 +17,8 @@ const LOGOS: { src: string; alt: string; title: string; width: number; height: n
 ]
 
 export default function PaymentBadges({ highlight, label = 'Aceptamos' }: PaymentBadgesProps) {
-  const onlineActive = highlight === 'wompi'
   const efectivoActive = highlight === 'contra_entrega'
-  const atenuado = ' opacity-40 grayscale'
-  const resaltadoEfectivo = ' ring-2 ring-emerald-500'
+  const logosDim = !highlight ? ' opacity-50 grayscale' : ''
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -29,7 +27,7 @@ export default function PaymentBadges({ highlight, label = 'Aceptamos' }: Paymen
       {LOGOS.map((logo) => (
         <span
           key={logo.src}
-          className={`flex h-8 w-16 shrink-0 items-center justify-center rounded bg-white px-1 py-1${onlineActive ? '' : atenuado}`}
+          className={`flex h-8 w-16 shrink-0 items-center justify-center rounded bg-white px-1 py-1${logosDim}`}
           aria-label={logo.alt}
           title={logo.title}
         >
@@ -45,7 +43,7 @@ export default function PaymentBadges({ highlight, label = 'Aceptamos' }: Paymen
       ))}
 
       <span
-        className={`flex h-8 shrink-0 items-center gap-1 rounded border border-neutral-700 bg-[#181818] px-2 text-[11px] font-semibold text-emerald-400${efectivoActive ? resaltadoEfectivo : ''}${highlight && !efectivoActive ? atenuado : ''}`}
+        className={`flex h-8 shrink-0 items-center gap-1 rounded border px-2 text-[11px] font-semibold ${efectivoActive ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400 ring-2 ring-emerald-500' : 'border-neutral-700 bg-[#181818] text-emerald-400'}`}
         aria-label="Efectivo contra entrega"
         title="Contra entrega"
       >

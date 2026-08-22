@@ -10,6 +10,7 @@ import { HideOnAdmin } from "@/components/hide-on-admin";
 import QueryProvider from "@/components/QueryProvider";
 import { Toaster } from "sonner";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { getTiendaConfig } from "@/features/tienda/services/tienda-config";
 import "./globals.css";
 
 const krub = Krub({
@@ -135,11 +136,15 @@ const websiteSchema = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let logoUrl: string | null = null;
+  try {
+    logoUrl = (await getTiendaConfig()).logoUrl;
+  } catch {}
   return (
     <html
       lang="es"
@@ -167,7 +172,7 @@ export default function RootLayout({
           }}
         />
 
-        <HideOnAdmin><FloatingWhatsAppWrapper /></HideOnAdmin>
+        <HideOnAdmin><FloatingWhatsAppWrapper logoUrl={logoUrl ?? undefined} /></HideOnAdmin>
         <HideOnAdmin><InstallPrompt /></HideOnAdmin>
 
         <SpeedInsights />

@@ -3,12 +3,12 @@ import EventosContent from "./EventosContent";
 import { fetchInstagramPhotos } from "@/lib/axiosInstagram";
 import { parseCaptionEventos, esProximoEvento } from "@/features/eventos/parse-caption";
 import { formatearFecha, formatearPrecio } from "@/features/eventos/format";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 import type { Evento } from "@/features/eventos/types";
 
 export const revalidate = 120;
 
 const SITE_URL = "https://punkmedallo.com";
-const LOGO_OG = `${SITE_URL}/logo_punk_medallo.jpg`;
 
 async function obtenerEventos(): Promise<Evento[]> {
   try {
@@ -34,7 +34,7 @@ function captionExcerpt(evento: Evento, max: number): string {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const eventos = await obtenerEventos();
+  const [eventos, logoOg] = await Promise.all([obtenerEventos(), ogImageActual()]);
   const siguiente = proximos(eventos)[0] ?? null;
 
   const ogTitle = siguiente
@@ -67,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "Punk Medallo",
       images: siguiente?.flyer
         ? [{ url: siguiente.flyer, width: 1080, height: 1350, type: "image/jpeg" }]
-        : [{ url: LOGO_OG, width: 1200, height: 630, type: "image/jpeg" }],
+        : [{ url: logoOg, width: 1200, height: 630, type: "image/jpeg" }],
     },
   };
 }

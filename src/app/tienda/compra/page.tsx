@@ -9,46 +9,50 @@ import RedirectTimer from './redirect-timer'
 import ClearCart from './clear-cart'
 import PollTransaction from './poll-transaction'
 import PurchaseEvent from './purchase-event'
+import { ogImageActual } from '@/features/tienda/utils/seo'
 
 interface CompraPageProps {
   searchParams: Promise<{ id?: string }>
 }
 
-export const metadata: Metadata = {
-  title: 'Compra',
-  description:
-    'Estado de tu compra en la tienda Punk Medallo.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-  alternates: {
-    canonical: '/tienda/compra',
-  },
-  openGraph: {
-    title: 'Compra - Punk Medallo',
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual()
+  return {
+    title: 'Compra',
     description:
       'Estado de tu compra en la tienda Punk Medallo.',
-    url: '/tienda/compra',
-    type: 'website',
-    locale: 'es_CO',
-    siteName: 'Punk Medallo',
-    images: [
-      {
-        url: 'https://punkmedallo.com/logo_punk_medallo.jpg',
-        width: 1200,
-        height: 630,
-        type: 'image/jpeg',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Compra - Punk Medallo',
-    description:
-      'Estado de tu compra en la tienda Punk Medallo.',
-    images: ['https://punkmedallo.com/logo_punk_medallo.jpg'],
-  },
+    robots: {
+      index: false,
+      follow: false,
+    },
+    alternates: {
+      canonical: '/tienda/compra',
+    },
+    openGraph: {
+      title: 'Compra - Punk Medallo',
+      description:
+        'Estado de tu compra en la tienda Punk Medallo.',
+      url: '/tienda/compra',
+      type: 'website',
+      locale: 'es_CO',
+      siteName: 'Punk Medallo',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Compra - Punk Medallo',
+      description:
+        'Estado de tu compra en la tienda Punk Medallo.',
+      images: [ogImage],
+    },
+  }
 }
 
 export default async function CompraPage({ searchParams }: CompraPageProps) {

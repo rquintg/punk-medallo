@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getProductosFiltrados } from '@/features/tienda/services/products';
-import { breadcrumbListJsonLd, SITE_URL, TIENDA_URL } from '@/features/tienda/utils/seo';
+import { getProductosPage, PAGE_SIZE, type ProductoOrden } from '@/features/tienda/services/products';
+import { breadcrumbListJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
 import { SearchBar } from '@/components/tienda/search-bar';
+import { SortSelect } from '@/components/tienda/sort-select';
+import { Pagination } from '@/components/tienda/pagination';
 import ProductCard from '@/components/tienda/product-card';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
@@ -12,7 +14,7 @@ interface SearchPageProps {
 }
 
 export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
-  const params = await searchParams;
+  const [params, ogImage] = await Promise.all([searchParams, ogImageActual()]);
   const q = (typeof params.q === 'string' ? params.q : '').trim();
 
   const title = q
@@ -42,7 +44,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
       siteName: 'Punk Medallo',
       images: [
         {
-          url: `${SITE_URL}/logo_punk_medallo.jpg`,
+          url: ogImage,
           width: 1200,
           height: 630,
           type: 'image/jpeg',
@@ -55,20 +57,25 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
       description: q
         ? `Resultados de búsqueda para "${q}" en la tienda Punk Medallo.`
         : 'Busca productos en la tienda Punk Medallo.',
-      images: [`${SITE_URL}/logo_punk_medallo.jpg`],
+      images: [ogImage],
     },
   };
 }
 
 export default async function BuscarPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-  const q = (typeof params.q === 'string' ? params.q : '').trim();
+  const qRaw = (typeof params.q === 'string' ? params.q : '').trim().slice(0, 80);
+  const sanitizedQ = qRaw.replace(/%/g, '').replace(/,/g, '').trim()
+  const page = Math.max(1, Number(params.page) || 1)
+  const sort = (params.sort as ProductoOrden) ?? 'relevancia'
 
-  const productos = q ? await getProductosFiltrados({ q }) : [];
+  const pageData = sanitizedQ ? await getProductosPage({ q: sanitizedQ }, sort, page, PAGE_SIZE) : { productos: [], total: 0 }
+  const productos = pageData.productos
+  const totalPages = Math.max(1, Math.ceil(pageData.total / PAGE_SIZE))
 
   const breadcrumbSegments = [
     { label: 'Tienda', href: '/tienda' },
-    { label: q ? `Buscar: "${q}"` : 'Buscar' },
+    { label: sanitizedQ ? `Buscar: "${sanitizedQ}"` : 'Buscar' },
   ];
 
   return (
@@ -93,24 +100,30 @@ export default async function BuscarPage({ searchParams }: SearchPageProps) {
         </Suspense>
       </div>
 
-      {!q ? (
+      {!sanitizedQ ? (
         <p className="text-neutral-500">Escribe algo para empezar a buscar.</p>
       ) : productos.length === 0 ? (
         <p className="text-neutral-500">
           No hay productos que coincidan con{' '}
-          <span className="font-medium text-neutral-300">&quot;{q}&quot;</span>
+          <span className="font-medium text-neutral-300">&quot;{sanitizedQ}&quot;</span>
         </p>
       ) : (
         <>
-          <p className="mb-6 text-sm text-neutral-400">
-            {productos.length} resultado{productos.length !== 1 ? 's' : ''} para{' '}
-            <span className="font-medium text-neutral-300">&quot;{q}&quot;</span>
-          </p>
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <Suspense fallback={null}>
+              <SortSelect />
+            </Suspense>
+            <p className="text-sm text-neutral-400">
+              {pageData.total} resultado{pageData.total !== 1 ? 's' : ''} para{' '}
+              <span className="font-medium text-neutral-300">&quot;{sanitizedQ}&quot;</span>
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {productos.map((producto) => (
               <ProductCard key={producto.id} product={producto} />
             ))}
           </div>
+          <Pagination page={page} totalPages={totalPages} />
         </>
       )}
     </>

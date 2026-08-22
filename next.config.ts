@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   staticPageGenerationTimeout: 300,
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      bodySizeLimit: '12mb',
     },
   },
   async redirects() {

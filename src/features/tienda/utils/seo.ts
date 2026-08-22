@@ -1,7 +1,19 @@
 import { precioConDescuento } from '@/lib/precio';
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
 
 export const SITE_URL = 'https://punkmedallo.com';
 export const TIENDA_URL = `${SITE_URL}/tienda`;
+export const OG_LOGO_DEFAULT = `${SITE_URL}/logo_punk_medallo.jpg`;
+
+/** URL absoluta del logo actual (config DB o default) — para OG/Twitter/JSON-LD/emails */
+export async function ogImageActual(): Promise<string> {
+  try {
+    const cfg = await getTiendaConfig();
+    return cfg.logoUrl ?? OG_LOGO_DEFAULT;
+  } catch {
+    return OG_LOGO_DEFAULT;
+  }
+}
 
 interface BreadcrumbSegment {
   label: string;
@@ -21,17 +33,22 @@ export function breadcrumbListJsonLd(segments: BreadcrumbSegment[]) {
   };
 }
 
-export function productJsonLd(product: {
-  nombre: string;
-  descripcion: string;
-  slug: string;
-  precio: number;
-  descuento?: number;
-  stock: number;
-  imagenes: { url: string }[];
-  categoria: { nombre: string } | null;
-  genero: string;
-}) {
+export function productJsonLd(
+  product: {
+    nombre: string;
+    descripcion: string;
+    slug: string;
+    precio: number;
+    descuento?: number;
+    stock: number;
+    imagenes: { url: string }[];
+    categoria: { nombre: string } | null;
+    genero: string;
+  },
+  opts?: { shippingMin?: number; shippingMax?: number },
+) {
+  const minShip = opts?.shippingMin ?? 10000
+  const maxShip = opts?.shippingMax ?? 20000
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -60,7 +77,7 @@ export function productJsonLd(product: {
         },
         shippingRate: {
           '@type': 'MonetaryAmount',
-          value: 10000,
+          value: minShip,
           currency: 'COP',
         },
         deliveryTime: {
@@ -74,7 +91,7 @@ export function productJsonLd(product: {
           transitTime: {
             '@type': 'QuantitativeValue',
             minValue: 2,
-            maxValue: 5,
+            maxValue: maxShip === minShip ? 5 : 8,
             unitCode: 'DAY',
           },
         },

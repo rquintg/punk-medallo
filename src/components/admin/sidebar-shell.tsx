@@ -13,6 +13,7 @@ import {
   Radio,
   Ticket,
   ChartColumn,
+  Store,
 } from 'lucide-react'
 import { can, type Permission } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -69,6 +70,12 @@ const NAV_GROUPS: {
         href: '/admin/cupones',
         icon: Ticket,
         permission: 'manage_cupones',
+      },
+      {
+        label: 'Configuración',
+        href: '/admin/tienda',
+        icon: Store,
+        permission: 'edit_products',
       },
     ],
   },

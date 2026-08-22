@@ -11,6 +11,7 @@ import {
   albumTitle,
   albumUrl,
 } from "@/features/descargas/utils/seo";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
 export const revalidate = 600;
 
@@ -18,17 +19,10 @@ interface AlbumPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const FALLBACK_IMAGE = {
-  url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-  width: 1200,
-  height: 630,
-  type: "image/jpeg",
-} as const;
-
 export async function generateMetadata({
   params,
 }: AlbumPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, logoOg] = await Promise.all([params, ogImageActual()]);
   const album = await getAlbumBySlug(slug);
   if (!album) {
     return {
@@ -37,6 +31,12 @@ export async function generateMetadata({
   }
   const title = albumTitle(album);
   const url = albumUrl(album.slug);
+  const FALLBACK_IMAGE = {
+    url: logoOg,
+    width: 1200,
+    height: 630,
+    type: "image/jpeg",
+  } as const;
   return {
     title,
     description: albumDescription(album),

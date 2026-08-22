@@ -1,32 +1,36 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 import StaffComponent from "@/components/StaffComponent";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description:
-    "Ponte en contacto con el equipo de Punk Medallo. Envía tus sugerencias, comentarios o consultas sobre nuestra radio punk.",
-  alternates: {
-    canonical: "/contacto",
-  },
-  openGraph: {
-    title: "Contacto - Punk Medallo",
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: "Contacto",
     description:
-      "Ponte en contacto con el equipo de Punk Medallo.",
-    url: "/contacto",
-    type: "website",
-    locale: "es_CO",
-    siteName: "Punk Medallo",
-    images: [
-      {
-        url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
-      },
-    ],
-  },
-};
+      "Ponte en contacto con el equipo de Punk Medallo. Envía tus sugerencias, comentarios o consultas sobre nuestra radio punk.",
+    alternates: {
+      canonical: "/contacto",
+    },
+    openGraph: {
+      title: "Contacto - Punk Medallo",
+      description:
+        "Ponte en contacto con el equipo de Punk Medallo.",
+      url: "/contacto",
+      type: "website",
+      locale: "es_CO",
+      siteName: "Punk Medallo",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: "image/jpeg",
+        },
+      ],
+    },
+  };
+}
 
 export default function Contacto() {
   return (

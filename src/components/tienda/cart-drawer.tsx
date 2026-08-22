@@ -3,11 +3,12 @@
 import { useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Truck } from 'lucide-react';
 import { useCart } from '@/features/tienda/store/use-cart';
 import Price from './price';
 import CartIcon from './cart-icon';
 import AuthButton from '@/components/AuthButton';
+import { useTiendaConfig } from '@/hooks/useTiendaConfig';
 import type { CartItem, Talla } from '@/features/tienda/types';
 
 export default function CartDrawer() {
@@ -33,6 +34,10 @@ export default function CartDrawer() {
 
   const count = totalItems();
   const total = totalPrecio();
+  const { envioGratisUmbral } = useTiendaConfig();
+  const faltaEnvio = Math.max(0, envioGratisUmbral - total);
+  const progresoEnvio = Math.min(100, (total / envioGratisUmbral) * 100);
+  const envioGratis = total >= envioGratisUmbral;
 
   return (
     <>
@@ -107,7 +112,7 @@ export default function CartDrawer() {
               <ul className="flex-1 overflow-y-auto px-5 py-4">
                 {items.map((item) => (
                   <CartItemRow
-                    key={`${item.id}::${item.tallaSeleccionada ?? 'notalla'}`}
+                    key={`${item.id}::${item.tallaSeleccionada ?? 'notalla'}::${item.colorSeleccionado ?? 'nocolor'}::${(item as any).variantId ?? 'novar'}`}
                     item={item}
                     onUpdateQuantity={updateQuantity}
                     onRemove={removeItem}
@@ -115,7 +120,20 @@ export default function CartDrawer() {
                 ))}
               </ul>
 
-              <div className="border-t border-neutral-800 px-5 py-4">
+              <div className="border-t border-neutral-800 bg-[#0f0f0f] px-5 py-4 shadow-[0_-8px_16px_rgba(0,0,0,0.5)]">
+                {/* Barra envio gratis */}
+                <div className="mb-3">
+                  <div className="mb-1.5 flex items-center justify-between text-xs">
+                    <span className={`flex items-center gap-1.5 font-medium ${envioGratis ? 'text-emerald-400' : 'text-neutral-400'}`}>
+                      <Truck size={14} />
+                      {envioGratis ? '¡Envio gratis desbloqueado! 🎉' : <>Te faltan <Price amount={faltaEnvio} /> para envio gratis</>}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-800">
+                    <div className={`h-full rounded-full transition-all duration-500 ${envioGratis ? 'bg-emerald-500' : 'bg-[#dc2626]'}`} style={{ width: `${progresoEnvio}%` }} />
+                  </div>
+                </div>
+
                 <div className="mb-1 flex items-center justify-between text-sm text-neutral-400">
                   <span>Subtotal</span>
                   <span className="text-lg font-bold text-white">
@@ -123,7 +141,7 @@ export default function CartDrawer() {
                   </span>
                 </div>
                 <p className="mb-4 text-xs text-neutral-500">
-                  Impuestos y envío calculados al finalizar la compra.
+                  Envio calculado al finalizar la compra.
                 </p>
                 <Link
                   href="/tienda/checkout"

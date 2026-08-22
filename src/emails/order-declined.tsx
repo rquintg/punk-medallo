@@ -16,12 +16,14 @@ interface OrderDeclinedProps {
   orderNumber: string
   customerName: string
   reason: string
+  logoUrl: string
 }
 
 export default function OrderDeclined({
   orderNumber,
   customerName,
   reason,
+  logoUrl,
 }: OrderDeclinedProps) {
   return (
     <Html lang="es">
@@ -40,7 +42,7 @@ export default function OrderDeclined({
         <Container style={container}>
           <Section style={logoSection}>
             <Img
-              src="https://punkmedallo.com/logo_punk_medallo.jpg"
+              src={logoUrl}
               alt="Punk Medallo"
               width={100}
               height={100}
@@ -107,6 +109,7 @@ const logo: React.CSSProperties = {
   margin: '0 auto',
   borderRadius: '50%',
   border: '2px solid #a40202',
+  objectFit: 'contain',
 }
 
 const card: React.CSSProperties = {

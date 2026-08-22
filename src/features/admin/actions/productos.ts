@@ -141,8 +141,8 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
   if (file.type && !file.type.startsWith('image/')) {
     throw new Error('Solo se permiten archivos de imagen')
   }
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('La imagen no puede superar 5 MB')
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('La imagen no puede superar 10 MB')
   }
 
   const ext = file.name.split('.').pop()

@@ -96,12 +96,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productEntries: MetadataRoute.Sitemap = [];
   try {
     const productos = await getProductosFiltrados();
-    productEntries = productos.map((p) => ({
-      url: `${SITE_URL}/tienda/${p.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
+    productEntries = productos.map((p) => {
+      const t = new Date(p.fechaCreacion);
+      return {
+        url: `${SITE_URL}/tienda/${p.slug}`,
+        lastModified: Number.isNaN(t.getTime()) ? new Date() : t,
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      };
+    });
   } catch {
     productEntries = [];
   }

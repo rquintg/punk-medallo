@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,11 +11,13 @@ import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import CiudadDepartamentoSelect from '@/components/tienda/ciudad-departamento-select'
 import Price from '@/components/tienda/price'
 import {
-  calcularEnvio,
+  calcularEnvioConConfig,
   ENVIO_GRATIS_UMBRAL,
   CONTRa_ENTREGA_RECARGO,
   esContraEntregaDisponible,
+  calcularRecargoConConfig,
 } from '@/data/envio'
+import { useTiendaConfig } from '@/hooks/useTiendaConfig'
 import PaymentBadges from '@/components/tienda/payment-badges'
 import CuponCheckout from '@/components/tienda/cupon-checkout'
 import { iniciarCheckout } from '@/lib/analytics'
@@ -107,11 +109,74 @@ export default function CheckoutContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const codDisponible = esContraEntregaDisponible(form.departamento, form.ciudad)
+  const tiendaCfg = useTiendaConfig()
+  const codDisponible = tiendaCfg.codMunicipios.length
+    ? calcularRecargoConConfig(form.departamento, form.ciudad, tiendaCfg) > 0
+    : esContraEntregaDisponible(form.departamento, form.ciudad)
 
   const envioCalculado = form.departamento
-    ? calcularEnvio(totalPrecio(), form.departamento)
+    ? calcularEnvioConConfig(totalPrecio(), form.departamento, tiendaCfg)
     : 0
+  const umbralGratis = tiendaCfg.envioGratisUmbral ?? ENVIO_GRATIS_UMBRAL
+  const recargoCOD = tiendaCfg.codRecargo ?? CONTRa_ENTREGA_RECARGO
+
+  const STORAGE_KEY = 'pm_checkout_v1'
+  const [step, setStep] = useState<1 | 2>(1)
+  const [hydrated, setHydrated] = useState(false)
+
+  // Hydrate desde localStorage (cliente solo) — evita mismatch SSR
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const d = JSON.parse(raw)
+        if (d?.form) setForm((prev) => ({ ...prev, ...d.form }))
+        if (typeof d?.aceptaCambios === 'boolean') setAceptaCambios(d.aceptaCambios)
+        if (typeof d?.aceptaPrivacidad === 'boolean') setAceptaPrivacidad(d.aceptaPrivacidad)
+        if (d?.metodo === 'wompi' || d?.metodo === 'contra_entrega') setMetodo(d.metodo)
+        if (d?.cupon && typeof d.cupon.codigo === 'string') setCupon(d.cupon)
+        if (d?.step === 1 || d?.step === 2) setStep(d.step)
+      }
+    } catch {}
+    setHydrated(true)
+  }, [])
+
+  // Persiste en localStorage on change (debounced implicito por React batch)
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ form, aceptaCambios, aceptaPrivacidad, metodo, cupon, step }),
+      )
+    } catch {}
+  }, [form, aceptaCambios, aceptaPrivacidad, metodo, cupon, step, hydrated])
+
+  const validateStep1 = useCallback(() => {
+    if (!form.nombre.trim() || !form.email.trim() || !form.telefono.trim() || !form.direccion.trim() || !form.departamento || !form.ciudad) {
+      toast.error('Completa todos los campos del formulario')
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error('Ingresa un correo valido')
+      return false
+    }
+    if (form.telefono.replace(/\D/g, '').length < 10) {
+      toast.error('El telefono debe tener al menos 10 digitos (ej: 3001234567)')
+      return false
+    }
+    if (!aceptaCambios || !aceptaPrivacidad) {
+      toast.error('Debes aceptar las politicas de cambios y privacidad')
+      return false
+    }
+    return true
+  }, [form, aceptaCambios, aceptaPrivacidad])
+
+  function handleProceedToPago() {
+    if (!validateStep1()) return
+    setStep(2)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -177,6 +242,7 @@ export default function CheckoutContent() {
 
       // Contra entrega: sin Wompi — ir directo al detalle del pedido
       if (data.metodo === 'contra_entrega') {
+        try { localStorage.removeItem(STORAGE_KEY) } catch {}
         clearCart()
         router.push(`/tienda/orden/${data.numero_pedido}`)
         return
@@ -214,6 +280,7 @@ export default function CheckoutContent() {
         clearTimeout(closeGuard)
         setLoading(false)
         const transactionId = result.transaction.id
+        try { localStorage.removeItem(STORAGE_KEY) } catch {}
         clearCart()
         router.push(`/tienda/compra?id=${transactionId}`)
       })
@@ -234,226 +301,225 @@ export default function CheckoutContent() {
         />
       </div>
 
-      <h1 className="mb-8 text-3xl font-bold text-white md:text-4xl">Checkout</h1>
+      <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl">Checkout</h1>
+      <div className="mb-6 flex items-center gap-2 text-xs font-medium" aria-label="Progreso de checkout">
+        <span className={`flex h-6 w-6 items-center justify-center rounded-full ${step >= 1 ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-500'}`}>1</span>
+        <span className={step >= 1 ? 'text-white' : 'text-neutral-500'}>Datos</span>
+        <span className={`h-px w-8 ${step >= 2 ? 'bg-red-600' : 'bg-neutral-700'}`} />
+        <span className={`flex h-6 w-6 items-center justify-center rounded-full ${step >= 2 ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-400'}`}>2</span>
+        <span className={step >= 2 ? 'text-white' : 'text-neutral-500'}>Pago</span>
+        <span className="h-px w-8 bg-neutral-700" />
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-800 text-neutral-500">3</span>
+        <span className="text-neutral-500">Confirmar</span>
+      </div>
 
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
         <div className="w-full lg:w-3/5">
-          <h2 className="mb-6 text-lg font-semibold text-white">Información de envío</h2>
+          {step === 1 ? (
+            <div>
+              <h2 className="mb-6 text-lg font-semibold text-white">Información de envío</h2>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="nombre" className="mb-1.5 block text-sm text-neutral-300">
+                      Nombre completo *
+                    </label>
+                    <input
+                      id="nombre"
+                      type="text"
+                      value={form.nombre}
+                      onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                      className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                      placeholder="Tu nombre"
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="mb-1.5 block text-sm text-neutral-300">
+                      Correo electrónico *
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                      placeholder="correo@ejemplo.com"
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="nombre" className="mb-1.5 block text-sm text-neutral-300">
-                  Nombre completo *
-                </label>
-                <input
-                  id="nombre"
-                  type="text"
-                  value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                  placeholder="Tu nombre"
+                <div>
+                  <label htmlFor="telefono" className="mb-1.5 block text-sm text-neutral-300">
+                    Teléfono *
+                  </label>
+                  <input
+                    id="telefono"
+                    type="tel"
+                    value={form.telefono}
+                    onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+                    className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                    placeholder="300 123 4567"
+                    autoComplete="tel"
+                  />
+                </div>
+
+                <CiudadDepartamentoSelect
+                  departamento={form.departamento}
+                  ciudad={form.ciudad}
+                  onDepartamentoChange={(value) => setForm((prev) => ({ ...prev, departamento: value, ciudad: '' }))}
+                  onCiudadChange={(value) => setForm((prev) => ({ ...prev, ciudad: value }))}
                 />
+
+                <div>
+                  <label htmlFor="barrio" className="mb-1.5 block text-sm text-neutral-300">
+                    Barrio
+                  </label>
+                  <input
+                    id="barrio"
+                    type="text"
+                    value={form.barrio}
+                    onChange={(e) => setForm({ ...form, barrio: e.target.value })}
+                    className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                    placeholder="Opcional"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="direccion" className="mb-1.5 block text-sm text-neutral-300">
+                    Dirección *
+                  </label>
+                  <input
+                    id="direccion"
+                    type="text"
+                    value={form.direccion}
+                    onChange={(e) => setForm({ ...form, direccion: e.target.value })}
+                    className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                    placeholder="Cra 1 # 2-3"
+                    autoComplete="street-address"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="notas" className="mb-1.5 block text-sm text-neutral-300">
+                    Notas adicionales
+                  </label>
+                  <textarea
+                    id="notas"
+                    rows={3}
+                    value={form.notas}
+                    onChange={(e) => setForm({ ...form, notas: e.target.value })}
+                    className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600 focus:ring-1 focus:ring-red-600/20"
+                    placeholder="Instrucciones de entrega, referencia, etc. (opcional)"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                    <input
+                      type="checkbox"
+                      checked={aceptaCambios}
+                      onChange={(e) => setAceptaCambios(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                    />
+                    <span>
+                      Acepto la{" "}
+                      <Link href="/politica-de-cambios" target="_blank" rel="noopener noreferrer" className="text-red-500 underline underline-offset-2 hover:text-red-400">
+                        política de cambios
+                      </Link>{" "}
+                      (cambio exclusivo por talla, sin devolución, plazo de 7 días, con envíos a cargo del comprador). *
+                    </span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                    <input
+                      type="checkbox"
+                      checked={aceptaPrivacidad}
+                      onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
+                    />
+                    <span>
+                      Acepto la{" "}
+                      <Link href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-red-500 underline underline-offset-2 hover:text-red-400">
+                        política de privacidad
+                      </Link>{" "}
+                      y el tratamiento de mis datos personales. *
+                    </span>
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleProceedToPago}
+                  disabled={items.length === 0}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Proceder con el pago
+                </button>
               </div>
-              <div>
-                <label htmlFor="email" className="mb-1.5 block text-sm text-neutral-300">
-                  Correo electrónico *
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                  placeholder="correo@ejemplo.com"
-                />
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-white">Datos de envío</h3>
+                  <button type="button" onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="text-xs font-medium text-red-400 underline underline-offset-2 hover:text-red-300">
+                    Editar
+                  </button>
+                </div>
+                <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+                  <div>
+                    <span className="text-neutral-500">nombre:</span> <span className="font-medium text-neutral-200">{form.nombre}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500">correo:</span> <span className="font-medium text-neutral-200">{form.email}</span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-neutral-500">direccion:</span> <span className="font-medium text-neutral-200">{form.direccion}{form.barrio ? `, ${form.barrio}` : ''} — {form.ciudad}, {form.departamento}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500">telefono:</span> <span className="font-medium text-neutral-200">{form.telefono}</span>
+                  </div>
+                  {form.notas && (
+                    <div className="sm:col-span-2">
+                      <span className="text-neutral-500">notas:</span> <span className="text-neutral-200">{form.notas}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="telefono" className="mb-1.5 block text-sm text-neutral-300">
-                Teléfono *
-              </label>
-              <input
-                id="telefono"
-                type="tel"
-                value={form.telefono}
-                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                placeholder="300 123 4567"
-              />
-            </div>
-
-            <CiudadDepartamentoSelect
-              departamento={form.departamento}
-              ciudad={form.ciudad}
-              onDepartamentoChange={(value) => setForm((prev) => ({ ...prev, departamento: value, ciudad: '' }))}
-              onCiudadChange={(value) => setForm((prev) => ({ ...prev, ciudad: value }))}
-            />
-
-            <div>
-              <label htmlFor="barrio" className="mb-1.5 block text-sm text-neutral-300">
-                Barrio
-              </label>
-              <input
-                id="barrio"
-                type="text"
-                value={form.barrio}
-                onChange={(e) => setForm({ ...form, barrio: e.target.value })}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                placeholder="Opcional"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="direccion" className="mb-1.5 block text-sm text-neutral-300">
-                Dirección *
-              </label>
-              <input
-                id="direccion"
-                type="text"
-                value={form.direccion}
-                onChange={(e) => setForm({ ...form, direccion: e.target.value })}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                placeholder="Cra 1 # 2-3"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="notas" className="mb-1.5 block text-sm text-neutral-300">
-                Notas adicionales
-              </label>
-              <textarea
-                id="notas"
-                rows={3}
-                value={form.notas}
-                onChange={(e) => setForm({ ...form, notas: e.target.value })}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors focus:border-red-600"
-                placeholder="Instrucciones de entrega, referencia, etc. (opcional)"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
-                <input
-                  type="checkbox"
-                  checked={aceptaCambios}
-                  onChange={(e) => setAceptaCambios(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
-                />
-                <span>
-                  Acepto la{" "}
-                  <Link
-                    href="/politica-de-cambios"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-500 underline underline-offset-2 hover:text-red-400"
-                  >
-                    política de cambios
-                  </Link>{" "}
-                  (cambio exclusivo por talla, sin devolución, plazo de 7 días, con
-                  envíos a cargo del comprador). *
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
-                <input
-                  type="checkbox"
-                  checked={aceptaPrivacidad}
-                  onChange={(e) => setAceptaPrivacidad(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
-                />
-                <span>
-                  Acepto la{" "}
-                  <Link
-                    href="/politica-de-privacidad"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-500 underline underline-offset-2 hover:text-red-400"
-                  >
-                    política de privacidad
-                  </Link>{" "}
-                  y el tratamiento de mis datos personales. *
-                </span>
-              </label>
-            </div>
-
-            <div className="mt-4">
-              <h3 className="mb-3 text-sm font-semibold text-white">Método de pago</h3>
+              <h3 className="text-sm font-semibold text-white">Método de pago</h3>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label
-                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
-                    metodo === 'wompi'
-                      ? 'border-red-600 bg-red-600/10'
-                      : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="metodoPago"
-                    checked={metodo === 'wompi'}
-                    onChange={() => setMetodo('wompi')}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
-                  />
+                <label className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${metodo === 'wompi' ? 'border-red-600 bg-red-600/10' : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'}`}>
+                  <input type="radio" name="metodoPago" checked={metodo === 'wompi'} onChange={() => setMetodo('wompi')} className="mt-0.5 h-4 w-4 shrink-0 accent-red-600" />
                   <div>
-                    <p className="flex items-center gap-2 text-sm font-semibold text-white">
-                      <CreditCard size={16} className="text-neutral-400" />
-                      Pago online
-                    </p>
-                    <p className="mt-1 text-xs text-neutral-500">
-                      Procesado de forma segura por Wompi.
-                    </p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-white"><CreditCard size={16} className="text-neutral-400" /> Pago online</p>
+                    <p className="mt-1 text-xs text-neutral-500">Procesado de forma segura por Wompi.</p>
                   </div>
                 </label>
-
-                <label
-                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
-                    metodo === 'contra_entrega'
-                      ? 'border-red-600 bg-red-600/10'
-                      : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'
-                  } ${!codDisponible ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name="metodoPago"
-                    checked={metodo === 'contra_entrega'}
-                    onChange={() => setMetodo('contra_entrega')}
-                    disabled={!codDisponible}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-red-600"
-                  />
+                <label className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${metodo === 'contra_entrega' ? 'border-red-600 bg-red-600/10' : 'border-neutral-700 bg-neutral-900 hover:border-neutral-600'} ${!codDisponible ? 'cursor-not-allowed opacity-50' : ''}`}>
+                  <input type="radio" name="metodoPago" checked={metodo === 'contra_entrega'} onChange={() => setMetodo('contra_entrega')} disabled={!codDisponible} className="mt-0.5 h-4 w-4 shrink-0 accent-red-600" />
                   <div>
-                    <p className="flex items-center gap-2 text-sm font-semibold text-white">
-                      <Banknote size={16} className="text-emerald-500" />
-                      Contra entrega
-                    </p>
-                    <p className="mt-1 text-xs text-neutral-500">
-                      Pagas en efectivo al recibir (+<Price amount={CONTRa_ENTREGA_RECARGO} />). Solo
-                      Medellín y área metropolitana.
-                    </p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-white"><Banknote size={16} className="text-emerald-500" /> Contra entrega</p>
+                    <p className="mt-1 text-xs text-neutral-500">Pagas en efectivo al recibir (+<Price amount={recargoCOD} />). Solo Medellín y área metropolitana.</p>
                   </div>
                 </label>
               </div>
-
-              <div className="mt-3">
-                <PaymentBadges highlight={metodo} />
+              <PaymentBadges highlight={metodo} />
+              <div className="mt-2 flex gap-3">
+                <button type="button" onClick={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="flex-1 rounded-lg border border-neutral-700 bg-transparent px-6 py-3 text-sm font-semibold text-neutral-300 transition-colors hover:bg-neutral-800">
+                  Volver
+                </button>
+                <button type="submit" disabled={loading || items.length === 0} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                  {loading && <Loader2 size={16} className="animate-spin" />}
+                  {loading ? 'Procesando...' : metodo === 'contra_entrega' ? 'Confirmar pedido' : 'Ir a pagar'}
+                </button>
               </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || items.length === 0 || !aceptaCambios || !aceptaPrivacidad}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-            >
-              {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading
-                ? 'Procesando...'
-                : metodo === 'contra_entrega'
-                  ? 'Confirmar pedido'
-                  : 'Ir a pagar'}
-            </button>
-          </form>
+            </form>
+          )}
         </div>
 
-        <div className="w-full lg:w-2/5">
+        <div className="w-full lg:w-2/5 lg:sticky lg:top-24 lg:self-start">
           <h2 className="mb-6 text-lg font-semibold text-white">
             Resumen del pedido ({totalItems()})
           </h2>
@@ -577,23 +643,23 @@ export default function CheckoutContent() {
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-sm text-neutral-400">Envío</span>
                   {form.departamento ? (
-                    calcularEnvio(totalPrecio(), form.departamento) === 0 ? (
+                    envioCalculado === 0 ? (
                       <span className="text-sm font-medium text-emerald-400">
                         Gratis
                       </span>
                     ) : (
                       <span className="text-sm font-medium text-white">
-                        <Price amount={calcularEnvio(totalPrecio(), form.departamento)} />
+                        <Price amount={envioCalculado} />
                       </span>
                     )
                   ) : (
                     <span className="text-sm text-neutral-500">Por calcular</span>
                   )}
                 </div>
-                {totalPrecio() < ENVIO_GRATIS_UMBRAL && (
+                {totalPrecio() < umbralGratis && (
                   <p className="mt-2 text-xs text-neutral-500">
-                    Envío gratis en pedidos mayores a{' '}
-                    <Price amount={ENVIO_GRATIS_UMBRAL} />
+                    Envio gratis en pedidos mayores a{' '}
+                    <Price amount={umbralGratis} />
                   </p>
                 )}
                 <CuponCheckout
@@ -606,7 +672,7 @@ export default function CheckoutContent() {
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-sm text-neutral-400">Contra entrega</span>
                     <span className="text-sm font-medium text-white">
-                      <Price amount={CONTRa_ENTREGA_RECARGO} />
+                      <Price amount={recargoCOD} />
                     </span>
                   </div>
                 )}
@@ -616,10 +682,8 @@ export default function CheckoutContent() {
                     <Price
                       amount={
                         totalPrecio() +
-                        calcularEnvio(totalPrecio(), form.departamento) +
-                        (metodo === 'contra_entrega' && codDisponible
-                          ? CONTRa_ENTREGA_RECARGO
-                          : 0) -
+                        envioCalculado +
+                        (metodo === 'contra_entrega' && codDisponible ? recargoCOD : 0) -
                         (cupon?.descuento ?? 0)
                       }
                     />

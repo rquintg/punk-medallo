@@ -22,6 +22,7 @@ interface CartAbandonedProps {
   }>
   total: number
   siteUrl: string
+  logoUrl: string
 }
 
 function formatPrice(amount: number): string {
@@ -38,6 +39,7 @@ export default function CartAbandoned({
   items,
   total,
   siteUrl,
+  logoUrl,
 }: CartAbandonedProps) {
   return (
     <Html lang="es">
@@ -56,7 +58,7 @@ export default function CartAbandoned({
         <Container style={container}>
           <Section style={logoSection}>
             <Img
-              src="https://punkmedallo.com/logo_punk_medallo.jpg"
+              src={logoUrl}
               alt="Punk Medallo"
               width={100}
               height={100}
@@ -144,6 +146,7 @@ const logo: React.CSSProperties = {
   margin: '0 auto',
   borderRadius: '50%',
   border: '2px solid #a40202',
+  objectFit: 'contain',
 }
 
 const card: React.CSSProperties = {

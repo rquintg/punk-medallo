@@ -15,7 +15,17 @@ export async function actualizarPerfil(formData: FormData) {
   let avatar_url: string | null = null
 
   if (imagen && imagen.size > 0) {
-    const ext = imagen.name.split('.').pop()
+    if (!imagen.type.startsWith('image/')) {
+      throw new Error('Solo se permiten archivos de imagen')
+    }
+    const AVATAR_MAX_BYTES = 10 * 1024 * 1024
+    if (imagen.size > AVATAR_MAX_BYTES) {
+      throw new Error('La imagen no puede superar 10 MB')
+    }
+    const ext = (imagen.name.split('.').pop() ?? '').toLowerCase()
+    if (!['png', 'jpg', 'jpeg', 'webp', 'avif'].includes(ext)) {
+      throw new Error('Formato no permitido. Usa PNG, JPG, WEBP o AVIF')
+    }
     const path = `avatars/${user.id}.${ext}`
     const { error: uploadError } = await supabase.storage
       .from('productos')

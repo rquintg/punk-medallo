@@ -1,32 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Shirt, Timer, Undo2, Truck, MessageSquare, FileText } from "lucide-react";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
-export const metadata: Metadata = {
-  title: "Política de Cambios",
-  description:
-    "Política de cambios de Punk Medallo: cambio exclusivo por talla dentro de los 7 días posteriores a la entrega, prenda sin usar, sin daños ni modificaciones.",
-  alternates: {
-    canonical: "/politica-de-cambios",
-  },
-  openGraph: {
-    title: "Política de Cambios - Punk Medallo",
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: "Política de Cambios",
     description:
-      "Cambio exclusivo por talla en la tienda Punk Medallo: 7 días, prenda sin usar, sin daños ni modificaciones.",
-    url: "/politica-de-cambios",
-    type: "website",
-    locale: "es_CO",
-    siteName: "Punk Medallo",
-    images: [
-      {
-        url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
-      },
-    ],
-  },
-};
+      "Política de cambios de Punk Medallo: cambio exclusivo por talla dentro de los 7 días posteriores a la entrega, prenda sin usar, sin daños ni modificaciones.",
+    alternates: {
+      canonical: "/politica-de-cambios",
+    },
+    openGraph: {
+      title: "Política de Cambios - Punk Medallo",
+      description:
+        "Cambio exclusivo por talla en la tienda Punk Medallo: 7 días, prenda sin usar, sin daños ni modificaciones.",
+      url: "/politica-de-cambios",
+      type: "website",
+      locale: "es_CO",
+      siteName: "Punk Medallo",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: "image/jpeg",
+        },
+      ],
+    },
+  };
+}
 
 const sections = [
   {

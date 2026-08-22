@@ -8,17 +8,12 @@ import {
 } from "@/features/descargas/services/albums";
 import { getArchive } from "@/features/descargas/services/archivo";
 import { albumUrl } from "@/features/descargas/utils/seo";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 import type { Album, BandInfo } from "@/features/descargas/types";
 
 export const revalidate = 600;
 
 const PAGE_URL = "https://punkmedallo.com/descargas";
-const OG_IMAGE = {
-  url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-  width: 1200,
-  height: 630,
-  type: "image/jpeg",
-} as const;
 
 const DESTACADOS_SLUGS = [
   "recopilas",
@@ -29,31 +24,34 @@ const DESTACADOS_SLUGS = [
   "los-suziox-discografia",
 ];
 
-export const metadata: Metadata = {
-  title: "El Blog",
-  description:
-    "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
-  alternates: {
-    canonical: PAGE_URL,
-  },
-  openGraph: {
-    title: "El Blog - Punk Medallo",
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: "El Blog",
     description:
       "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
-    url: PAGE_URL,
-    type: "website",
-    siteName: "Punk Medallo",
-    locale: "es_CO",
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "El Blog - Punk Medallo",
-    description:
-      "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
-    images: [OG_IMAGE.url],
-  },
-};
+    alternates: {
+      canonical: PAGE_URL,
+    },
+    openGraph: {
+      title: "El Blog - Punk Medallo",
+      description:
+        "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
+      url: PAGE_URL,
+      type: "website",
+      siteName: "Punk Medallo",
+      locale: "es_CO",
+      images: [{ url: ogImage, width: 1200, height: 630, type: "image/jpeg" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "El Blog - Punk Medallo",
+      description:
+        "Archivo del punk de Medellín: más de 250 lanzamientos de bandas underground, descarga directa.",
+      images: [ogImage],
+    },
+  };
+}
 
 export default async function Descargas() {
   let albums: Album[] = [];

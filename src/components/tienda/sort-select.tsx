@@ -5,6 +5,9 @@ import { useCallback } from 'react';
 
 const SORT_OPTIONS = [
   { value: 'relevancia', label: 'Relevancia' },
+  { value: 'mas-vendidos', label: 'Mas vendidos' },
+  { value: 'novedades', label: 'Novedades' },
+  { value: 'descuento-desc', label: 'Mayor descuento' },
   { value: 'precio-asc', label: 'Precio: menor a mayor' },
   { value: 'precio-desc', label: 'Precio: mayor a menor' },
   { value: 'nombre-asc', label: 'Nombre: A-Z' },

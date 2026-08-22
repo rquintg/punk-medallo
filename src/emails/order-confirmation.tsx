@@ -39,6 +39,7 @@ interface OrderConfirmationProps {
   cuponCodigo?: string
   orderUrl: string
   trackingUrl: string
+  logoUrl: string
 }
 
 function formatPrice(amount: number): string {
@@ -63,6 +64,7 @@ export default function OrderConfirmation({
   cuponCodigo,
   orderUrl,
   trackingUrl,
+  logoUrl,
 }: OrderConfirmationProps) {
   const esContraEntrega = metodoPago === 'CONTRA_ENTREGA'
   return (
@@ -83,7 +85,7 @@ export default function OrderConfirmation({
           {/* Logo */}
           <Section style={logoSection}>
             <Img
-              src="https://punkmedallo.com/logo_punk_medallo.jpg"
+              src={logoUrl}
               alt="Punk Medallo"
               width={100}
               height={100}
@@ -260,6 +262,7 @@ const logo: React.CSSProperties = {
   margin: '0 auto',
   borderRadius: '50%',
   border: '2px solid #a40202',
+  objectFit: 'contain',
 }
 
 const card: React.CSSProperties = {

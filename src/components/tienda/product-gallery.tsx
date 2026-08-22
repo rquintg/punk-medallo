@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { ProductImage } from '@/features/tienda/types';
 
 interface ProductGalleryProps {
@@ -25,10 +25,39 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
   const index = Math.min(Math.max(imageIndex, 0), filtered.length - 1);
   const prevIndex = index > 0 ? index - 1 : filtered.length - 1;
   const nextIndex = index < filtered.length - 1 ? index + 1 : 0;
+  const [lightbox, setLightbox] = useState(false)
+  const [zoom, setZoom] = useState(false)
+  const touchX = useRef(0)
+
+  useEffect(() => {
+    if (!lightbox) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(false)
+      if (e.key === 'ArrowLeft') onImageChange(prevIndex)
+      if (e.key === 'ArrowRight') onImageChange(nextIndex)
+    }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [lightbox, prevIndex, nextIndex, onImageChange])
+
+  function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0].clientX }
+  function onTouchEnd(e: React.TouchEvent) {
+    const dx = e.changedTouches[0].clientX - touchX.current
+    if (Math.abs(dx) > 50) {
+      if (dx < 0) onImageChange(nextIndex)
+      else onImageChange(prevIndex)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-900">
+      <div
+        className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-lg bg-neutral-900"
+        onClick={() => setLightbox(true)}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         {filtered.map((img, i) => (
           <Image
             key={img.url}
@@ -69,7 +98,7 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
       </div>
 
       {filtered.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:thin]">
           {filtered.map((img, i) => (
             <button
               key={img.url}
@@ -90,6 +119,37 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
               />
             </button>
           ))}
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setLightbox(false)}>
+          <button onClick={() => setLightbox(false)} className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" aria-label="Cerrar">
+            <X size={20} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onImageChange(prevIndex) }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+            aria-label="Anterior"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <img
+            src={filtered[index]?.url}
+            alt={filtered[index]?.alt ?? nombre}
+            className={`max-h-[85vh] max-w-[90vw] object-contain transition-transform duration-300 ${zoom ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'}`}
+            onClick={(e) => { e.stopPropagation(); setZoom((z) => !z) }}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); onImageChange(nextIndex) }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20"
+            aria-label="Siguiente"
+          >
+            <ChevronRight size={24} />
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+            {index + 1} / {filtered.length}
+          </div>
         </div>
       )}
     </div>

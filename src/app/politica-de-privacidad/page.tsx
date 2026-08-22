@@ -1,32 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck, Cookie, FileText, Mail, Trash2 } from "lucide-react";
+import { ogImageActual } from "@/features/tienda/utils/seo";
 
-export const metadata: Metadata = {
-  title: "Política de Privacidad",
-  description:
-    "Política de privacidad de Punk Medallo: qué datos recopilamos, uso de cookies, publicidad de terceros (Google AdSense), derechos del usuario y procedimiento de retiro de contenido.",
-  alternates: {
-    canonical: "/politica-de-privacidad",
-  },
-  openGraph: {
-    title: "Política de Privacidad - Punk Medallo",
+export async function generateMetadata(): Promise<Metadata> {
+  const ogImage = await ogImageActual();
+  return {
+    title: "Política de Privacidad",
     description:
-      "Conoce cómo Punk Medallo maneja tus datos, las cookies y la publicidad de terceros.",
-    url: "/politica-de-privacidad",
-    type: "website",
-    locale: "es_CO",
-    siteName: "Punk Medallo",
-    images: [
-      {
-        url: "https://punkmedallo.com/logo_punk_medallo.jpg",
-        width: 1200,
-        height: 630,
-        type: "image/jpeg",
-      },
-    ],
-  },
-};
+      "Política de privacidad de Punk Medallo: qué datos recopilamos, uso de cookies, publicidad de terceros (Google AdSense), derechos del usuario y procedimiento de retiro de contenido.",
+    alternates: {
+      canonical: "/politica-de-privacidad",
+    },
+    openGraph: {
+      title: "Política de Privacidad - Punk Medallo",
+      description:
+        "Conoce cómo Punk Medallo maneja tus datos, las cookies y la publicidad de terceros.",
+      url: "/politica-de-privacidad",
+      type: "website",
+      locale: "es_CO",
+      siteName: "Punk Medallo",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          type: "image/jpeg",
+        },
+      ],
+    },
+  };
+}
 
 const sections = [
   {

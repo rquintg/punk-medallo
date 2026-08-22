@@ -23,6 +23,7 @@ import {
 import { ORDER_VERIFY_COOKIE, verificarFirma } from '@/lib/order-verify'
 import VerificarOrdenForm from '../verificar-orden-form'
 import type { PedidoItem } from '@/features/tienda/types'
+import { ogImageActual } from '@/features/tienda/utils/seo'
 
 interface OrderPageProps {
   params: Promise<{ id: string }>
@@ -33,6 +34,7 @@ export async function generateMetadata({
 }: OrderPageProps): Promise<Metadata> {
   const { id } = await params
   const url = `/tienda/orden/${id}`
+  const ogImage = await ogImageActual()
   return {
     title: 'Tu Orden',
     description:
@@ -54,7 +56,7 @@ export async function generateMetadata({
       siteName: 'Punk Medallo',
       images: [
         {
-          url: 'https://punkmedallo.com/logo_punk_medallo.jpg',
+          url: ogImage,
           width: 1200,
           height: 630,
           type: 'image/jpeg',
@@ -66,7 +68,7 @@ export async function generateMetadata({
       title: 'Tu Orden - Punk Medallo',
       description:
         'Sigue el estado de tu pedido en la tienda Punk Medallo.',
-      images: ['https://punkmedallo.com/logo_punk_medallo.jpg'],
+      images: [ogImage],
     },
   }
 }
@@ -176,21 +178,18 @@ export default async function OrderPage({ params }: OrderPageProps) {
     (authData.user?.email !== undefined &&
       authData.user.email.toLowerCase() === emailPedido)
 
-  const direccionLineas = verificado
-    ? [
-        pedido.nombre_entrega,
-        pedido.direccion,
-        ...(pedido.barrio ? [pedido.barrio] : []),
-        [pedido.ciudad, pedido.departamento].filter(Boolean).join(', '),
-        pedido.telefono,
-      ].filter((linea): linea is string => !!linea)
-    : [
-        mascararNombre(pedido.nombre_entrega),
-        mascararDireccion(pedido.direccion),
-        ...(pedido.barrio ? [mascararDireccion(pedido.barrio)] : []),
-        [pedido.ciudad, pedido.departamento].filter(Boolean).join(', '),
-        mascararTelefono(pedido.telefono),
-      ].filter((linea): linea is string => !!linea)
+  const direccion = {
+    nombre: (verificado
+      ? pedido.nombre_entrega
+      : mascararNombre(pedido.nombre_entrega)) || '—',
+    correo: verificado ? pedido.email : mascararEmail(pedido.email),
+    direccion: verificado ? pedido.direccion : mascararDireccion(pedido.direccion),
+    barrio: verificado ? pedido.barrio : mascararDireccion(pedido.barrio),
+    ciudad: pedido.ciudad,
+    departamento: pedido.departamento,
+    telefono: verificado ? pedido.telefono : mascararTelefono(pedido.telefono),
+    notas: verificado ? pedido.notas : null,
+  }
 
   const emailMostrado = mascararEmail(pedido.email)
 
@@ -332,7 +331,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
         items={items}
         filasResumen={filasResumen}
         total={pedido.total}
-        direccionLineas={direccionLineas}
+        direccion={direccion}
         metodo={metodo}
         notaMetodo={notaMetodo}
       />
