@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requirePermissionAction } from '@/features/admin/utils/auth-server'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
-const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas'] as const
+const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas', 'mostrar_live'] as const
 const NUMBER_KEYS = [
   'envio_gratis_umbral',
   'envio_tarifa_antioquia',
@@ -16,7 +16,7 @@ const NUMBER_KEYS = [
   'stock_bajo_umbral',
   'page_size',
 ] as const
-const TEXT_KEYS = ['cod_municipios'] as const
+const TEXT_KEYS = ['cod_municipios', 'live_url'] as const
 type TiendaKey = typeof BOOLEAN_KEYS[number] | typeof NUMBER_KEYS[number] | typeof TEXT_KEYS[number]
 
 const LIMITS: Record<string, { min: number; max: number; step?: number }> = {
@@ -42,6 +42,16 @@ function sanitizarMunicipios(raw: string): string {
     .filter((s) => s.length >= 2)
   if (parts.length === 0) throw new Error('Lista de municipios vacia')
   return parts.join(',')
+}
+
+// Valida la URL de la transmision: https obligatorio, max 500 chars
+function validarLiveUrl(raw: string): string {
+  const url = raw.trim()
+  if (!url) throw new Error('URL de transmision vacia')
+  if (!/^https:\/\/[^\s]+$/.test(url) || url.length > 500) {
+    throw new Error('URL invalida (debe empezar con https://)')
+  }
+  return url
 }
 
 export async function updateTiendaConfig(key: string, valor: boolean) {
@@ -73,7 +83,7 @@ export async function updateTiendaConfigValor(key: string, valorText: string) {
     storedText = String(clamped)
   } else if ((TEXT_KEYS as readonly string[]).includes(key)) {
     tipo = 'text'
-    storedText = sanitizarMunicipios(valorText)
+    storedText = key === 'live_url' ? validarLiveUrl(valorText) : sanitizarMunicipios(valorText)
   } else {
     throw new Error('Key invalida')
   }

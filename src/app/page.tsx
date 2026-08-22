@@ -5,6 +5,8 @@ import RecentTrack from "@/components/RecentTrack";
 import HomeSongButton from "./HomeSongButton";
 import { getTiendaConfig, LOGO_DEFAULT } from "@/features/tienda/services/tienda-config";
 import { ogImageActual } from "@/features/tienda/utils/seo";
+import LiveStream from "@/components/LiveStream";
+import { toEmbedUrl } from "@/lib/live-embed";
 
 export async function generateMetadata(): Promise<Metadata> {
   const ogImage = await ogImageActual();
@@ -36,9 +38,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const { logoUrl } = await getTiendaConfig();
+  const { logoUrl, mostrarLive, liveUrl } = await getTiendaConfig();
+  const liveEmbed = mostrarLive ? toEmbedUrl(liveUrl) : null;
   return (
     <>
+      {liveEmbed && <LiveStream embedUrl={liveEmbed} />}
       <section className="relative w-full overflow-hidden">
         <div
           className="relative z-0 flex items-start justify-center h-[44vh] w-screen text-white pt-[56px] mb-[39vh] max-md:mb-[41vh] xl:h-[58vh] xl:mb-[10vh] ml-[calc(-50vw+50%)] bg-cover bg-center bg-no-repeat before:absolute before:inset-0 before:bg-gradient-to-br before:from-black/50 before:to-black/60 before:z-[-1] before:pointer-events-none"

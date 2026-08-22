@@ -15,6 +15,8 @@ export interface TiendaConfig {
   stockBajoUmbral: number
   pageSize: number
   logoUrl: string | null
+  mostrarLive: boolean
+  liveUrl: string | null
 }
 
 // Logo por defecto (visible en /, /about, /amigos y secciones de marca)
@@ -34,6 +36,8 @@ const DEFAULTS: TiendaConfig = {
   stockBajoUmbral: 10,
   pageSize: 12,
   logoUrl: null,
+  mostrarLive: false,
+  liveUrl: null,
 }
 
 function toNum(v: unknown, fallback: number): number {
@@ -80,6 +84,10 @@ async function fetchTiendaConfig(): Promise<TiendaConfig> {
       pageSize: Math.min(48, Math.max(6, toNum(get('page_size'), DEFAULTS.pageSize))),
       logoUrl: typeof get('logo_url') === 'string' && (get('logo_url') as string).trim()
         ? (get('logo_url') as string).trim()
+        : null,
+      mostrarLive: toBool(get('mostrar_live'), DEFAULTS.mostrarLive),
+      liveUrl: typeof get('live_url') === 'string' && (get('live_url') as string).trim()
+        ? (get('live_url') as string).trim()
         : null,
     }
   } catch {

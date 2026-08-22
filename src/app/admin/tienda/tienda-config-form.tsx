@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { updateTiendaConfig, updateTiendaConfigValor, subirLogo, restaurarLogo } from '@/features/admin/actions/tienda-config'
 import type { TiendaConfig } from '@/features/tienda/services/tienda-config'
 import { LOGO_DEFAULT } from '@/features/tienda/services/tienda-config'
+import { toEmbedUrl } from '@/lib/live-embed'
 
 function Toggle({ checked, disabled, onChange }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -57,6 +58,7 @@ function NumberField({
 
 export default function TiendaConfigForm({ initial, puedeEditar }: { initial: TiendaConfig; puedeEditar: boolean }) {
   const [pending, start] = useTransition()
+  const [liveUrlDraft, setLiveUrlDraft] = useState(initial.liveUrl ?? '')
 
   function toggle(key: string, valor: boolean) {
     if (!puedeEditar) return toast.error('Solo super_admin puede editar')
@@ -188,6 +190,48 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
           <NumberField label="Dias ranking" hint="7-90" value={initial.masPedidosDias} min={7} max={90} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_dias', v)} />
           <NumberField label="Limite mas pedidos" hint="1-12" value={initial.masPedidosLimit} min={1} max={12} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_limit', v)} />
           <NumberField label="Productos por pagina" hint="6-48" value={initial.pageSize} min={6} max={48} disabled={pending || !puedeEditar} onSave={(v) => saveValor('page_size', v)} />
+        </div>
+      </div>
+
+      {/* Transmision en vivo */}
+      <div className="card-section space-y-5">
+        <h3 className="admin-section-title">Transmisión en vivo</h3>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-[var(--admin-text)]">Mostrar transmisión</p>
+            <p className="text-sm text-[var(--admin-text-muted)]">
+              Video embebido en el inicio + botón flotante en las demás páginas
+            </p>
+          </div>
+          <Toggle checked={initial.mostrarLive} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_live', v)} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--admin-text-dim)]">URL de la transmisión</label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={liveUrlDraft}
+              disabled={pending || !puedeEditar}
+              onChange={(e) => setLiveUrlDraft(e.target.value)}
+              placeholder="https://youtube.com/watch?v=... o link de Facebook"
+              className="w-full rounded-md border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-3 py-2 text-sm text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)] disabled:opacity-50"
+            />
+            <button
+              type="button"
+              onClick={() => saveValor('live_url', liveUrlDraft)}
+              disabled={pending || !puedeEditar}
+              className="shrink-0 rounded-md bg-[var(--admin-accent)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Guardar URL
+            </button>
+          </div>
+          <span className="text-[11px] text-[var(--admin-text-dim)]">
+            Pega el link completo de YouTube o Facebook. Se convierte a embed automáticamente.
+          </span>
+          {toEmbedUrl(liveUrlDraft) && (
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+              ✓ Embed valido: {new URL(toEmbedUrl(liveUrlDraft)!).hostname}
+            </span>
+          )}
         </div>
       </div>
 

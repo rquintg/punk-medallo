@@ -11,6 +11,7 @@ import QueryProvider from "@/components/QueryProvider";
 import { Toaster } from "sonner";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getTiendaConfig } from "@/features/tienda/services/tienda-config";
+import { LiveFabConditional } from "@/components/LiveFabConditional";
 import "./globals.css";
 
 const krub = Krub({
@@ -142,8 +143,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let logoUrl: string | null = null;
+  let mostrarLive = false;
   try {
-    logoUrl = (await getTiendaConfig()).logoUrl;
+    const cfg = await getTiendaConfig();
+    logoUrl = cfg.logoUrl;
+    mostrarLive = cfg.mostrarLive && !!cfg.liveUrl;
   } catch {}
   return (
     <html
@@ -174,6 +178,7 @@ export default async function RootLayout({
 
         <HideOnAdmin><FloatingWhatsAppWrapper logoUrl={logoUrl ?? undefined} /></HideOnAdmin>
         <HideOnAdmin><InstallPrompt /></HideOnAdmin>
+        <LiveFabConditional active={mostrarLive} />
 
         <SpeedInsights />
 
