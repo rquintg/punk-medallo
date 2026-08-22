@@ -13,7 +13,11 @@ export default function LiveStream({
   embedUrl: string
   titulo?: string | null
 }) {
-  const waShare = `https://wa.me/?text=${encodeURIComponent(`🔴 Estamos EN VIVO en Punk Medallo — ${SHARE_URL}`)}`
+  const shareUrl = SHARE_URL
+  const waMsg = titulo?.trim()
+    ? `🔴 Estamos EN VIVO ${titulo.trim()} en Punk Medallo — ${shareUrl}`
+    : `🔴 Estamos EN VIVO en Punk Medallo — ${shareUrl}`
+  const waShare = `https://wa.me/?text=${encodeURIComponent(waMsg)}`
   const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`
 
   return (
