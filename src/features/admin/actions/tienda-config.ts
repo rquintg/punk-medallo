@@ -16,7 +16,7 @@ const NUMBER_KEYS = [
   'stock_bajo_umbral',
   'page_size',
 ] as const
-const TEXT_KEYS = ['cod_municipios', 'live_url'] as const
+const TEXT_KEYS = ['cod_municipios', 'live_url', 'live_titulo'] as const
 type TiendaKey = typeof BOOLEAN_KEYS[number] | typeof NUMBER_KEYS[number] | typeof TEXT_KEYS[number]
 
 const LIMITS: Record<string, { min: number; max: number; step?: number }> = {
@@ -83,7 +83,12 @@ export async function updateTiendaConfigValor(key: string, valorText: string) {
     storedText = String(clamped)
   } else if ((TEXT_KEYS as readonly string[]).includes(key)) {
     tipo = 'text'
-    storedText = key === 'live_url' ? validarLiveUrl(valorText) : sanitizarMunicipios(valorText)
+    storedText =
+      key === 'live_url'
+        ? validarLiveUrl(valorText)
+        : key === 'live_titulo'
+          ? valorText.trim().slice(0, 120)
+          : sanitizarMunicipios(valorText)
   } else {
     throw new Error('Key invalida')
   }

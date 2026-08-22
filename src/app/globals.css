@@ -263,6 +263,49 @@ select.input {
   animation: pm-fade-in 0.45s ease-out both;
 }
 
+/* Transmision en vivo: borde del reproductor latiendo */
+@keyframes live-border {
+  0%,
+  100% {
+    border-color: rgba(220, 38, 38, 0.75);
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.25);
+  }
+  50% {
+    border-color: rgba(255, 68, 68, 1);
+    box-shadow: 0 0 32px rgba(220, 38, 38, 0.5);
+  }
+}
+
+.animate-live-border {
+  animation: live-border 2s ease-in-out infinite;
+}
+
+/* Boton flotante EN VIVO: micro-movimiento cada pocos segundos */
+@keyframes fab-wiggle {
+  0%,
+  88%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+  92% {
+    transform: rotate(-2.5deg) scale(1.05);
+  }
+  96% {
+    transform: rotate(2deg) scale(1.05);
+  }
+}
+
+.animate-fab-wiggle {
+  animation: fab-wiggle 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-live-border,
+  .animate-fab-wiggle {
+    animation: none;
+  }
+}
+
 /* Tema shadcn/ui (solo para el bloque de detalle de pedido) — dark, acorde al sitio */
 @theme inline {
   --color-background: #0a0a0a;

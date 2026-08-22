@@ -17,6 +17,7 @@ export interface TiendaConfig {
   logoUrl: string | null
   mostrarLive: boolean
   liveUrl: string | null
+  liveTitulo: string | null
 }
 
 // Logo por defecto (visible en /, /about, /amigos y secciones de marca)
@@ -38,6 +39,7 @@ const DEFAULTS: TiendaConfig = {
   logoUrl: null,
   mostrarLive: false,
   liveUrl: null,
+  liveTitulo: null,
 }
 
 function toNum(v: unknown, fallback: number): number {
@@ -88,6 +90,9 @@ async function fetchTiendaConfig(): Promise<TiendaConfig> {
       mostrarLive: toBool(get('mostrar_live'), DEFAULTS.mostrarLive),
       liveUrl: typeof get('live_url') === 'string' && (get('live_url') as string).trim()
         ? (get('live_url') as string).trim()
+        : null,
+      liveTitulo: typeof get('live_titulo') === 'string' && (get('live_titulo') as string).trim()
+        ? (get('live_titulo') as string).trim()
         : null,
     }
   } catch {

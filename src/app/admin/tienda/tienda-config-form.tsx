@@ -59,6 +59,7 @@ function NumberField({
 export default function TiendaConfigForm({ initial, puedeEditar }: { initial: TiendaConfig; puedeEditar: boolean }) {
   const [pending, start] = useTransition()
   const [liveUrlDraft, setLiveUrlDraft] = useState(initial.liveUrl ?? '')
+  const [liveTituloDraft, setLiveTituloDraft] = useState(initial.liveTitulo ?? '')
 
   function toggle(key: string, valor: boolean) {
     if (!puedeEditar) return toast.error('Solo super_admin puede editar')
@@ -232,6 +233,28 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
               ✓ Embed valido: {new URL(toEmbedUrl(liveUrlDraft)!).hostname}
             </span>
           )}
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-[var(--admin-text-dim)]">Título de la transmisión</label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={liveTituloDraft}
+              disabled={pending || !puedeEditar}
+              onChange={(e) => setLiveTituloDraft(e.target.value)}
+              placeholder="Ej: Punk Medallo en vivo — sesión acústica"
+              maxLength={120}
+              className="w-full rounded-md border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-3 py-2 text-sm text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)] disabled:opacity-50"
+            />
+            <button
+              type="button"
+              onClick={() => saveValor('live_titulo', liveTituloDraft)}
+              disabled={pending || !puedeEditar}
+              className="shrink-0 rounded-md bg-[var(--admin-accent)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Guardar título
+            </button>
+          </div>
+          <span className="text-[11px] text-[var(--admin-text-dim)]">Vacio = "En vivo ahora". Max 120 caracteres.</span>
         </div>
       </div>
 
