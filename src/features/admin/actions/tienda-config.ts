@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requirePermissionAction } from '@/features/admin/utils/auth-server'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
-const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas', 'mostrar_live'] as const
+const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas', 'mostrar_live', 'live_revive'] as const
 const NUMBER_KEYS = [
   'envio_gratis_umbral',
   'envio_tarifa_antioquia',

@@ -144,10 +144,12 @@ export default async function RootLayout({
 }>) {
   let logoUrl: string | null = null;
   let mostrarLive = false;
+  let liveRevive = false;
   try {
     const cfg = await getTiendaConfig();
     logoUrl = cfg.logoUrl;
     mostrarLive = cfg.mostrarLive && !!cfg.liveUrl;
+    liveRevive = cfg.liveRevive;
   } catch {}
   return (
     <html
@@ -178,7 +180,7 @@ export default async function RootLayout({
 
         <HideOnAdmin><FloatingWhatsAppWrapper logoUrl={logoUrl ?? undefined} /></HideOnAdmin>
         <HideOnAdmin><InstallPrompt /></HideOnAdmin>
-        <LiveFabConditional active={mostrarLive} />
+        <LiveFabConditional active={mostrarLive} revive={liveRevive} />
 
         <SpeedInsights />
 

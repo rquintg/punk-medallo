@@ -5,28 +5,34 @@ const SHARE_URL = `${SITE_URL}/#en-vivo`
 /**
  * Reproductor embebido de transmision en vivo (YouTube/Facebook/otro).
  * Server component — se renderiza solo cuando mostrarLive && liveUrl.
+ * revive=true cambia a modo replay (ambar, sin urgencia de directo).
  */
 export default function LiveStream({
   embedUrl,
   titulo,
+  revive = false,
 }: {
   embedUrl: string
   titulo?: string | null
+  revive?: boolean
 }) {
-  const shareUrl = SHARE_URL
   const waMsg = titulo?.trim()
-    ? `🔴 Estamos EN VIVO ${titulo.trim()} en Punk Medallo — ${shareUrl}`
-    : `🔴 Estamos EN VIVO en Punk Medallo — ${shareUrl}`
-  const waShare = `https://wa.me/?text=${encodeURIComponent(waMsg)}`
+    ? `🔴 Revive ${titulo.trim()} en Punk Medallo — ${SHARE_URL}`
+    : `🔴 Revive la transmisión en Punk Medallo — ${SHARE_URL}`
   const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`
+  const waShare = `https://wa.me/?text=${encodeURIComponent(waMsg)}`
 
   return (
     <section id="en-vivo" className="relative w-full overflow-hidden border-b-2 border-[#a40202] bg-[#0d0d0d] pt-20 pb-10">
-      {/* Glow rojo radial de fondo */}
+      {/* Glow radial de fondo (rojo en vivo, ambar tenue en revive) */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 35%, rgba(220,38,38,0.16), transparent 70%)' }}
+        style={{
+          background: revive
+            ? 'radial-gradient(ellipse 60% 55% at 50% 35%, rgba(245,158,11,0.10), transparent 70%)'
+            : 'radial-gradient(ellipse 60% 55% at 50% 35%, rgba(220,38,38,0.16), transparent 70%)',
+        }}
       />
 
       <div className="relative mx-auto max-w-3xl px-4 xl:max-w-4xl">
@@ -38,21 +44,38 @@ export default function LiveStream({
           punkmedallo.com · señal directa
         </p>
 
-        {/* Marco del reproductor con borde latiendo */}
-        <div className="animate-live-border relative rounded-xl border-2 border-red-600/75 p-2 sm:p-3">
-          {/* Indicador EN VIVO */}
-          <span className="absolute -top-3 left-4 z-10 flex items-center gap-1.5 rounded-full border border-red-600/60 bg-black/90 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-80" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+        {/* Marco del reproductor: borde latiendo en vivo, estatico ambar en revive */}
+        <div
+          className={`relative rounded-xl border-2 p-2 sm:p-3 ${
+            revive ? 'border-amber-600/60' : 'animate-live-border border-red-600/75'
+          }`}
+        >
+          {/* Indicador de estado */}
+          {revive ? (
+            <span className="absolute -top-3 left-4 z-10 flex items-center gap-1.5 rounded-full border border-amber-600/60 bg-black/90 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-amber-400">
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+              Ya pasó
             </span>
-            En vivo
-          </span>
+          ) : (
+            <span className="absolute -top-3 left-4 z-10 flex items-center gap-1.5 rounded-full border border-red-600/60 bg-black/90 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-80" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+              </span>
+              En vivo
+            </span>
+          )}
 
-          {/* Sticker DIRECTO */}
-          <span className="absolute -top-4 right-6 z-10 rotate-[-6deg] rounded-sm border border-black bg-[#dc2626] px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(0,0,0,0.7)]">
-            Directo
-          </span>
+          {/* Sticker */}
+          {revive ? (
+            <span className="absolute -top-4 right-6 z-10 rotate-[-6deg] rounded-sm border border-black bg-[#f59e0b] px-3 py-1 text-xs font-black uppercase tracking-wider text-black shadow-[3px_3px_0_rgba(0,0,0,0.7)]">
+              Revive
+            </span>
+          ) : (
+            <span className="absolute -top-4 right-6 z-10 rotate-[-6deg] rounded-sm border border-black bg-[#dc2626] px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(0,0,0,0.7)]">
+              Directo
+            </span>
+          )}
 
           {/* Video con esquinas visor */}
           <div className="relative overflow-hidden rounded-lg">
@@ -62,7 +85,7 @@ export default function LiveStream({
             <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 z-10 h-5 w-5 border-b-2 border-r-2 border-white/70" />
             <iframe
               src={embedUrl}
-              title="Transmisión en vivo"
+              title={revive ? 'Revive la transmisión' : 'Transmisión en vivo'}
               className="aspect-video w-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
@@ -73,7 +96,9 @@ export default function LiveStream({
 
         {/* Compartir */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <span className="text-xs uppercase tracking-widest text-neutral-500">Comparte la transmisión</span>
+          <span className="text-xs uppercase tracking-widest text-neutral-500">
+            {revive ? 'Comparte el replay' : 'Comparte la transmisión'}
+          </span>
           <a
             href={waShare}
             target="_blank"

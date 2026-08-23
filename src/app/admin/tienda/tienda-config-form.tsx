@@ -206,6 +206,17 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
           </div>
           <Toggle checked={initial.mostrarLive} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_live', v)} />
         </div>
+        {initial.mostrarLive && (
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-4 py-3">
+            <div>
+              <p className="font-medium text-[var(--admin-text)]">Ya pasó (revive)</p>
+              <p className="text-sm text-[var(--admin-text-muted)]">
+                Actívalo cuando termine el directo para mostrarlo como replay (ámbar, sin urgencia)
+              </p>
+            </div>
+            <Toggle checked={initial.liveRevive} disabled={pending || !puedeEditar} onChange={(v) => toggle('live_revive', v)} />
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-semibold uppercase tracking-wider text-[var(--admin-text-dim)]">URL de la transmisión</label>
           <div className="flex flex-col gap-2 sm:flex-row">
