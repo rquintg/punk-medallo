@@ -126,7 +126,7 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
       <div className="card-section space-y-5">
         <h3 className="admin-section-title">Marca</h3>
         <p className="-mt-3 text-sm text-[var(--admin-text-muted)]">
-          Logo visible en Inicio, Acerca de, Paginas amigas, WhatsApp flotante y al compartir en redes.
+          Logo visible en Inicio, Acerca de, Paginas amigas, al compartir en redes (og meta tags).
         </p>
         <div className="flex flex-wrap items-center gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -170,30 +170,6 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
         </div>
       </div>
 
-      {/* Catalogo */}
-      <div className="card-section space-y-5">
-        <h3 className="admin-section-title">Catalogo</h3>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-medium text-[var(--admin-text)]">Ofertas</p>
-            <p className="text-sm text-[var(--admin-text-muted)]">Grid en /tienda y categorias (la pagina /tienda/ofertas sigue viva)</p>
-          </div>
-          <Toggle checked={initial.mostrarOfertas} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_ofertas', v)} />
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-medium text-[var(--admin-text)]">Lo mas pedido</p>
-            <p className="text-sm text-[var(--admin-text-muted)]">Ranking {initial.masPedidosDias} dias (anonimos + registrados)</p>
-          </div>
-          <Toggle checked={initial.mostrarMasPedidos} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_mas_pedidos', v)} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <NumberField label="Dias ranking" hint="7-90" value={initial.masPedidosDias} min={7} max={90} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_dias', v)} />
-          <NumberField label="Limite mas pedidos" hint="1-12" value={initial.masPedidosLimit} min={1} max={12} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_limit', v)} />
-          <NumberField label="Productos por pagina" hint="6-48" value={initial.pageSize} min={6} max={48} disabled={pending || !puedeEditar} onSave={(v) => saveValor('page_size', v)} />
-        </div>
-      </div>
-
       {/* Transmision en vivo */}
       <div className="card-section space-y-5">
         <h3 className="admin-section-title">Transmisión en vivo</h3>
@@ -211,7 +187,7 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
             <div>
               <p className="font-medium text-[var(--admin-text)]">Ya pasó (revive)</p>
               <p className="text-sm text-[var(--admin-text-muted)]">
-                Actívalo cuando termine el directo para mostrarlo como replay (ámbar, sin urgencia)
+                Actívalo cuando termine el directo para mostrarlo como replay.
               </p>
             </div>
             <Toggle checked={initial.liveRevive} disabled={pending || !puedeEditar} onChange={(v) => toggle('live_revive', v)} />
@@ -237,7 +213,7 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
             </button>
           </div>
           <span className="text-[11px] text-[var(--admin-text-dim)]">
-            Pega el link completo de YouTube o Facebook. Se convierte a embed automáticamente.
+            Pega el link completo de YouTube o Facebook.
           </span>
           {toEmbedUrl(liveUrlDraft) && (
             <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
@@ -266,6 +242,30 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
             </button>
           </div>
           <span className="text-[11px] text-[var(--admin-text-dim)]">Vacio = "En vivo ahora". Max 120 caracteres.</span>
+        </div>
+      </div>
+
+      {/* Catalogo */}
+      <div className="card-section space-y-5">
+        <h3 className="admin-section-title">Catalogo</h3>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-[var(--admin-text)]">Ofertas</p>
+            <p className="text-sm text-[var(--admin-text-muted)]">Grid en /tienda y categorias (la pagina /tienda/ofertas sigue viva)</p>
+          </div>
+          <Toggle checked={initial.mostrarOfertas} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_ofertas', v)} />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-[var(--admin-text)]">Lo mas pedido</p>
+            <p className="text-sm text-[var(--admin-text-muted)]">Ranking {initial.masPedidosDias} dias (anonimos + registrados)</p>
+          </div>
+          <Toggle checked={initial.mostrarMasPedidos} disabled={pending || !puedeEditar} onChange={(v) => toggle('mostrar_mas_pedidos', v)} />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <NumberField label="Dias ranking" hint="7-90" value={initial.masPedidosDias} min={7} max={90} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_dias', v)} />
+          <NumberField label="Limite mas pedidos" hint="1-12" value={initial.masPedidosLimit} min={1} max={12} disabled={pending || !puedeEditar} onSave={(v) => saveValor('mas_pedidos_limit', v)} />
+          <NumberField label="Productos por pagina" hint="6-48" value={initial.pageSize} min={6} max={48} disabled={pending || !puedeEditar} onSave={(v) => saveValor('page_size', v)} />
         </div>
       </div>
 
