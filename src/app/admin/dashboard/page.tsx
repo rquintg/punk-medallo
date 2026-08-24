@@ -24,6 +24,8 @@ import AdminHeader from '@/components/admin/admin-header'
 import KpiCard from '@/components/admin/dashboard/kpi-card'
 import DashboardCard from '@/components/admin/dashboard/dashboard-card'
 import RangoSelector from '@/components/admin/dashboard/rango-selector'
+import BoleteriaCard from '@/components/admin/dashboard/boleteria-card'
+import { getBoleteriaStats } from '@/features/boletas/services/stats'
 import ChartIngresos from '@/components/admin/dashboard/chart-ingresos'
 import ChartOrdenesDia from '@/components/admin/dashboard/chart-ordenes-dia'
 import ChartDonut from '@/components/admin/dashboard/chart-donut'
@@ -44,7 +46,10 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams
   const rangoParam = Number(params.rango)
   const rango: RangoDias = (RANGOS as number[]).includes(rangoParam) ? (rangoParam as RangoDias) : 30
-  const analytics = await getDashboardAnalytics(rango)
+  const [analytics, boleteriaStats] = await Promise.all([
+    getDashboardAnalytics(rango),
+    getBoleteriaStats().catch(() => []),
+  ])
 
   const conVentas = analytics.totalIngresos > 0
   const etiqueta = ETIQUETA_RANGO[rango]
@@ -311,6 +316,11 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
               Gestionar cupones →
             </Link>
           </DashboardCard>
+        </div>
+
+        {/* Boletería (T7) */}
+        <div className="mb-8">
+          <BoleteriaCard stats={boleteriaStats} />
         </div>
       </div>
     </>

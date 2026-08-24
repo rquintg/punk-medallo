@@ -7,6 +7,7 @@ import { getRateLimitKey, checkRateLimit } from '@/lib/rate-limit'
 import { logger, generateRequestId } from '@/lib/logger'
 import { firmarPedido, ORDER_VERIFY_COOKIE } from '@/lib/order-verify'
 import { sanitizeShipping } from '@/lib/sanitize'
+import { generateOrderNumber } from '@/lib/order-number'
 import { calcularEnvio, calcularEnvioConConfig, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega, calcularRecargoConConfig } from '@/data/envio'
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 import { sendOrderConfirmation } from '@/lib/email'
@@ -31,15 +32,6 @@ interface CheckoutRequest {
   items: CartItem[]
   metodoPago?: 'wompi' | 'contra_entrega'
   cuponCodigo?: string
-}
-
-function generateOrderNumber(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = 'PM-'
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(randomInt(chars.length))
-  }
-  return result
 }
 
 export async function POST(request: NextRequest) {

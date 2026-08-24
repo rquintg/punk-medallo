@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { render } from '@react-email/components'
 import OrderConfirmation from '@/emails/order-confirmation'
 import OrderApproved from '@/emails/order-approved'
@@ -8,8 +9,12 @@ import OrderPreparing from '@/emails/order-preparing'
 import OrderShipped from '@/emails/order-shipped'
 import OrderDelivered from '@/emails/order-delivered'
 import StockAvailable from '@/emails/stock-available'
+import TicketEmail from '@/emails/ticket'
 import { sitioUrl } from '@/lib/site-url'
+import { construirQrPayload } from '@/lib/ticket-crypto'
+import QRCode from 'qrcode'
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
 const LOGO_EMAIL_DEFAULT = 'https://punkmedallo.com/logo_punk_medallo.jpg'
 
@@ -141,6 +146,160 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
   }
 
   return { error }
+}
+
+
+/**
+ * Reenvía el email de UNA boleta (desde /cuenta/boletas).
+ * Verifica que la boleta pertenezca al email del usuario autenticado.
+ */
+export async function reenviarTicketEmail(
+  codigo: string,
+  userEmail: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const admin = getSupabaseAdmin()
+
+    // Boleta + pedido (para nombre del titular) + tipo + evento
+    const { data: b, error: bError } = await (admin.from('boletas') as any)
+      .select('codigo, estado, titular_email, titular_nombre, pedido_id, tipo_id, evento_id')
+      .eq('codigo', codigo)
+      .maybeSingle()
+
+    if (bError || !b) return { ok: false, error: 'Boleta no encontrada' }
+    if ((b.titular_email ?? '').toLowerCase() !== userEmail.toLowerCase()) {
+      return { ok: false, error: 'Esta boleta no pertenece a tu cuenta' }
+    }
+    if (b.estado === 'anulada') return { ok: false, error: 'Esta boleta está anulada' }
+
+    const [{ data: tipo }, { data: ev }] = await Promise.all([
+      (admin.from('tipos_boleta') as any).select('nombre').eq('id', b.tipo_id).maybeSingle(),
+      (admin.from('eventos_boletos') as any)
+        .select('titulo, fecha_evento, lugar')
+        .eq('id', b.evento_id)
+        .maybeSingle(),
+    ])
+
+    const qrDataUrl = await QRCode.toDataURL(construirQrPayload(b.codigo), {
+      width: 280,
+      margin: 1,
+      color: { dark: '#111111', light: '#ffffff' },
+    })
+
+    const html = await render(
+      TicketEmail({
+        orderNumber: `Reenvío · ${b.codigo}`,
+        customerName: b.titular_nombre ?? userEmail.split('@')[0],
+        eventoTitulo: ev?.titulo ?? 'Evento Punk Medallo',
+        eventoFecha: ev?.fecha_evento
+          ? new Date(ev.fecha_evento).toLocaleString('es-CO', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '',
+        eventoLugar: ev?.lugar ?? '',
+        boletas: [
+          { codigo: b.codigo, qrDataUrl, tipoNombre: tipo?.nombre ?? 'General' },
+        ],
+        logoUrl: await logoEmail(),
+        orderUrl: `${sitioUrl()}/cuenta/boletas`,
+      }),
+    )
+
+    const resend = getResend()
+    const { error: sendError } = await resend.emails.send({
+      from: emailFrom,
+      to: userEmail,
+      subject: `Tu boleta — ${b.codigo}`,
+      html,
+    })
+    if (sendError) throw new Error(sendError.message)
+
+    return { ok: true }
+  } catch (e: any) {
+    console.error('[Boletas] Error reenviando ticket:', e?.message)
+    return { ok: false, error: 'Error al reenviar. Intenta de nuevo.' }
+  }
+}
+
+export interface TicketEmailData {
+  orderNumber: string
+  customerName: string
+  email: string
+  boletas: Array<{ codigo: string; tipoNombre: string }>
+}
+
+/**
+ * Email con las boletas del pedido (QR por boleta).
+ * Necesita el cliente supabase (service o SSR) para leer el evento asociado.
+ */
+export async function sendTicketsEmail(
+  data: TicketEmailData,
+  supabase: SupabaseClient,
+) {
+  const siteUrl = sitioUrl()
+  const logoUrl = await logoEmail()
+
+  // Evento: tomado de la primera boleta (todas son del mismo evento)
+  const { data: itemRow } = await (supabase.from('pedido_items') as any)
+    .select('evento_id')
+    .eq('nombre', data.boletas[0]?.tipoNombre ?? '')
+    .limit(1)
+    .maybeSingle()
+
+  let eventoTitulo = 'Evento Punk Medallo'
+  let eventoFecha = ''
+  let eventoLugar = ''
+
+  if (itemRow?.evento_id) {
+    const { data: ev } = await (supabase.from('eventos_boletos') as any)
+      .select('titulo, fecha_evento, lugar')
+      .eq('id', itemRow.evento_id)
+      .maybeSingle()
+    if (ev) {
+      eventoTitulo = ev.titulo
+      eventoFecha = new Date(ev.fecha_evento).toLocaleString('es-CO', {
+        weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+      })
+      eventoLugar = ev.lugar
+    }
+  }
+
+  // QR PNG data-url por boleta
+  const conQr = await Promise.all(
+    data.boletas.map(async (b) => ({
+      ...b,
+      qrDataUrl: await QRCode.toDataURL(construirQrPayload(b.codigo), {
+        width: 280,
+        margin: 1,
+        color: { dark: '#111111', light: '#ffffff' },
+      }),
+    })),
+  )
+
+  const html = await render(
+    <TicketEmail
+      orderNumber={data.orderNumber}
+      customerName={data.customerName}
+      eventoTitulo={eventoTitulo}
+      eventoFecha={eventoFecha}
+      eventoLugar={eventoLugar}
+      boletas={conQr}
+      logoUrl={logoUrl}
+      orderUrl={`${siteUrl}/cuenta/boletas`}
+    />,
+  )
+
+  const resend = getResend()
+  await resend.emails.send({
+    from: emailFrom,
+    to: data.email,
+    subject: `Tus boletas — ${data.orderNumber}`,
+    html,
+  })
 }
 
 export async function sendOrderApproved(data: OrderApprovedData) {

@@ -23,6 +23,9 @@ import {
 import { ORDER_VERIFY_COOKIE, verificarFirma } from '@/lib/order-verify'
 import VerificarOrdenForm from '../verificar-orden-form'
 import type { PedidoItem } from '@/features/tienda/types'
+import QRCode from 'qrcode'
+import BoletaOrdenView, { type PagoResumenFila } from '@/components/tienda/order-boletas'
+import { construirQrPayload } from '@/lib/ticket-crypto'
 import { ogImageActual } from '@/features/tienda/utils/seo'
 
 interface OrderPageProps {
@@ -87,6 +90,7 @@ interface PedidoDetalleItem {
   color: string | null
   cantidad: number
   imagen_url: string | null
+  tipo_boleta_id: string | null
 }
 
 interface PedidoDetalle {
@@ -155,7 +159,8 @@ export default async function OrderPage({ params }: OrderPageProps) {
         talla,
         color,
         cantidad,
-        imagen_url
+        imagen_url,
+        tipo_boleta_id
       )
     `)
     .eq('numero_pedido', id)
@@ -192,6 +197,68 @@ export default async function OrderPage({ params }: OrderPageProps) {
   }
 
   const emailMostrado = mascararEmail(pedido.email)
+
+  // ---------- Boletería: vista dedicada cuando el pedido contiene boletas ----------
+  const esPedidoBoletas = (pedido.pedido_items ?? []).some((i) => i.tipo_boleta_id)
+
+  let eventoBoleta: {
+    titulo: string
+    fechaStr: string
+    lugar: string
+    puertas: string | null
+    edadMinima: number | null
+  } | null = null
+
+  let boletasVista: Array<{
+    codigo: string
+    estado: 'valida' | 'usada' | 'anulada'
+    tipoNombre: string
+    qrDataUrl: string | null
+  }> = []
+
+  if (esPedidoBoletas) {
+    const { data: rows } = await (supabaseAdmin.from('boletas') as any)
+      .select('codigo, estado, tipos_boleta(nombre), eventos_boletos(titulo, fecha_evento, lugar, hora_puertas, edad_minima)')
+      .eq('pedido_id', pedido.id)
+      .order('created_at')
+
+    const lista = (rows ?? []) as any[]
+    const primera = lista[0]?.eventos_boletos
+
+    if (primera) {
+      eventoBoleta = {
+        titulo: primera.titulo,
+        fechaStr: new Date(primera.fecha_evento).toLocaleString('es-CO', {
+          weekday: 'long', day: 'numeric', month: 'long',
+          hour: '2-digit', minute: '2-digit',
+        }),
+        lugar: primera.lugar,
+        puertas: primera.hora_puertas,
+        edadMinima: primera.edad_minima,
+      }
+    }
+
+    // QR solo si el visitante está verificado (el QR es la credencial)
+    if (verificado) {
+      boletasVista = await Promise.all(
+        lista.map(async (b) => ({
+          codigo: b.codigo,
+          estado: b.estado,
+          tipoNombre: b.tipos_boleta?.nombre ?? 'General',
+          qrDataUrl: await QRCode.toDataURL(construirQrPayload(b.codigo), {
+            width: 320, margin: 1, color: { dark: '#111111', light: '#ffffff' },
+          }),
+        })),
+      )
+    } else {
+      boletasVista = lista.map((b) => ({
+        codigo: b.codigo,
+        estado: b.estado,
+        tipoNombre: b.tipos_boleta?.nombre ?? 'General',
+        qrDataUrl: null,
+      }))
+    }
+  }
 
   const createdDate = new Date(pedido.created_at).toLocaleDateString('es-CO', {
     dateStyle: 'long',
@@ -316,6 +383,37 @@ export default async function OrderPage({ params }: OrderPageProps) {
         </div>
       )}
 
+      {esPedidoBoletas ? (
+        (() => {
+          const esTerminal = ['rechazado', 'anulado', 'error', 'cancelado'].includes(estado)
+          const banner =
+            estado === 'pendiente'
+              ? { label: 'Pendiente de pago', tone: 'amber' as const }
+              : esTerminal
+                ? { label: 'Pedido anulado', tone: 'red' as const }
+                : { label: 'Pago confirmado', tone: 'green' as const }
+
+          return (
+            <div className="container mx-auto max-w-3xl px-4">
+              <BoletaOrdenView
+                numero={pedido.numero_pedido}
+                fechaStr={createdDate}
+                bannerLabel={banner.label}
+                bannerTone={banner.tone}
+                notaAnulado={esTerminal ? 'Las boletas asociadas fueron anuladas.' : undefined}
+                verificado={verificado}
+                titularMostrado={direccion.nombre}
+                evento={eventoBoleta}
+                boletas={boletasVista}
+                metodo={{ nombre, logo, linea }}
+                referencia={metodo.ref}
+                filasResumen={filasResumen as PagoResumenFila[]}
+                total={pedido.total}
+              />
+            </div>
+          )
+        })()
+      ) : (
       <OrderDetails
         numero={pedido.numero_pedido}
         subtitulo={subtitulo}
@@ -335,6 +433,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
         metodo={metodo}
         notaMetodo={notaMetodo}
       />
+      )}
 
       <div className="container mx-auto max-w-7xl px-4 pb-16">
         <div className="rounded-lg border border-neutral-800 bg-[#111] p-5">

@@ -14,6 +14,7 @@ import {
   Ticket,
   ChartColumn,
   Store,
+  CalendarDays,
 } from 'lucide-react'
 import { can, type Permission } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -87,6 +88,17 @@ const NAV_GROUPS: {
         href: '/admin/ordenes',
         icon: ClipboardList,
         permission: 'view_orders',
+      },
+    ],
+  },
+  {
+    label: 'Boletería',
+    items: [
+      {
+        label: 'Eventos',
+        href: '/admin/boletos',
+        icon: CalendarDays,
+        permission: 'manage_boleteria',
       },
     ],
   },

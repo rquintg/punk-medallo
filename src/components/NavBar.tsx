@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/about", label: "Acerca de" },
   { href: "/eventos", label: "Toques" },
+  { href: "/boletas", label: "Boletas" },
   { href: "/descargas", label: "Descargas" },
   { href: "/fotos", label: "Registro Fotográfico" },
   // { href: "/tienda", label: "Tienda" },
@@ -25,6 +26,7 @@ export default function NavBar() {
   const pageTitles: Record<string, string> = {
     "/": "Punk Medallo",
     "/eventos": "Próximos Eventos",
+    "/boletas": "Boletas y Conciertos",
     "/descargas": "Descargar Música",
     "/fotos": "Registro Fotográfico",
     "/about": "Acerca de",

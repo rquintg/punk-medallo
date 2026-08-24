@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { LucideUserKey, UserRoundXIcon, PackageSearch } from 'lucide-react'
+import { LucideUserKey, UserRoundXIcon, PackageSearch, Ticket } from 'lucide-react'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
@@ -43,6 +43,14 @@ export default function AuthButton() {
         >
           <PackageSearch size={18} aria-hidden="true" />
           <span className="text-xs">Pedidos</span>
+        </Link>
+        <Link
+          href="/cuenta/boletas"
+          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626] sm:flex"
+          title="Mis boletas"
+        >
+          <Ticket size={18} aria-hidden="true" />
+          <span className="text-xs">Boletas</span>
         </Link>
         <span className="text-xs text-white/50 block max-w-[100px] truncate">
           Hola {user.user_metadata?.name || user.email?.split('@')[0]}

@@ -3,10 +3,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { sendOrderApproved, sendOrderConfirmation, sendOrderDeclined } from '@/lib/email'
 import { canonicalMetodoPago } from '@/lib/metodo-pago'
 import type { WompiTransaction } from '@/lib/wompi'
+import { generarCodigoBoleta, firmarBoleta } from '@/lib/ticket-crypto'
+import { sendTicketsEmail } from '@/lib/email'
 
 // Datos del pedido que la aprobación/rechazo necesitan (mismo select que el webhook).
 export interface PedidoParaPago {
   id: string
+  usuario_id: string | null
   numero_pedido: string
   total: number
   email: string
@@ -20,7 +23,7 @@ export interface PedidoParaPago {
   created_at: string
 }
 
-export const SELECT_PEDIDO_PARA_PAGO = 'id, numero_pedido, total, email, nombre_entrega, telefono, direccion, ciudad, departamento, barrio, notas, created_at'
+export const SELECT_PEDIDO_PARA_PAGO = 'id, numero_pedido, usuario_id, total, email, nombre_entrega, telefono, direccion, ciudad, departamento, barrio, notas, created_at'
 
 type DeductedItem =
   | { producto_id: string; stockBefore: number }
@@ -131,7 +134,7 @@ export async function aprobarPedido(
 
   const { data: items, error: itemsError } = await supabase
     .from('pedido_items')
-    .select('producto_id, variante_id, cantidad')
+    .select('producto_id, variante_id, cantidad, nombre, tipo_boleta_id, evento_id')
     .eq('pedido_id', pedido.id)
 
   if (itemsError || !items) {
@@ -140,9 +143,20 @@ export async function aprobarPedido(
   }
 
   const deducted: DeductedItem[] = []
+  const boletasPorGenerar: Array<{ tipoId: string; eventoId: string; nombreTipo: string; cantidad: number }> = []
 
   try {
     for (const item of items) {
+      // Boleta: sin stock que descontar; se generan unidades tras el stock de merch
+      if (item.tipo_boleta_id) {
+        boletasPorGenerar.push({
+          tipoId: item.tipo_boleta_id,
+          eventoId: item.evento_id!,
+          nombreTipo: item.nombre,
+          cantidad: item.cantidad,
+        })
+        continue
+      }
       if (item.variante_id) {
         if (item.cantidad <= 0) continue
 
@@ -207,16 +221,90 @@ export async function aprobarPedido(
     throw err
   }
 
-  // Revalidar página del producto y catálogo (el stock cambió)
-  const { data: productosAfectados } = await supabase
-    .from('productos')
-    .select('slug')
-    .in('id', items.map((i) => i.producto_id))
+  // Boletas: 1 por unidad comprada. El trigger DEFERRABLE de la BD garantiza
+  // capacidad incluso si otro pago aprueba en paralelo; si falla, rollback de
+  // las ya insertadas + pedido rechazado (terminal, con email de declinación).
+  if (boletasPorGenerar.length > 0) {
+    const emitidas: Array<{ codigo: string; tipoNombre: string }> = []
+    try {
+      for (const lb of boletasPorGenerar) {
+        for (let i = 0; i < lb.cantidad; i++) {
+          let codigo = ''
+          for (let a = 0; a < 5; a++) {
+            const candidato = generarCodigoBoleta()
+            const { data: dup } = await supabase
+              .from('boletas')
+              .select('id')
+              .eq('codigo', candidato)
+              .maybeSingle()
+            if (!dup) {
+              codigo = candidato
+              break
+            }
+          }
+          if (!codigo) throw new Error('No se pudo generar un código único de boleta')
 
-  for (const p of productosAfectados ?? []) {
-    revalidatePath(`/tienda/${p.slug}`)
+          const { error: insertError } = await supabase.from('boletas').insert({
+            codigo,
+            firma: firmarBoleta(codigo),
+            pedido_id: pedido.id,
+            tipo_id: lb.tipoId,
+            evento_id: lb.eventoId,
+            titular_nombre: pedido.nombre_entrega,
+            titular_email: pedido.email,
+            usuario_id: pedido.usuario_id ?? null,
+            estado: 'valida',
+          })
+          if (insertError) throw new Error(insertError.message)
+          emitidas.push({ codigo, tipoNombre: lb.nombreTipo })
+        }
+      }
+
+      // Email con QR por boleta (no debe tumbar la aprobación)
+      try {
+        await sendTicketsEmail(
+          {
+            orderNumber: pedido.numero_pedido,
+            customerName: pedido.nombre_entrega,
+            email: pedido.email,
+            boletas: emitidas,
+          },
+          supabase,
+        )
+      } catch (emailErr) {
+        console.error('[Boletas] Error enviando email de boletas:', emailErr)
+      }
+    } catch (err) {
+      await supabase.from('boletas').delete().eq('pedido_id', pedido.id)
+      await supabase.from('pedidos').update({ estado: 'rechazado' }).eq('id', pedido.id)
+      await sendOrderDeclined({
+        orderNumber: pedido.numero_pedido,
+        customerName: pedido.nombre_entrega,
+        email: pedido.email,
+        reason: 'capacidad agotada al emitir las boletas',
+      })
+      return 'rechazado_stock'
+    }
+
+    revalidatePath('/boletas', 'layout')
+    revalidatePath('/cuenta/boletas')
   }
-  revalidatePath('/tienda')
+
+  // Revalidar página del producto y catálogo (el stock cambió).
+  // ⚠️ Filtrar nulls: los items de boletería no tienen producto_id y PostgREST
+  // rechaza `.in()` con nulls en el array (causó webhook 500 post-emisión).
+  const productoIds = [...new Set(items.map((i) => i.producto_id).filter((id): id is string => Boolean(id)))]
+  if (productoIds.length > 0) {
+    const { data: productosAfectados } = await supabase
+      .from('productos')
+      .select('slug')
+      .in('id', productoIds)
+
+    for (const p of productosAfectados ?? []) {
+      revalidatePath(`/tienda/${p.slug}`)
+    }
+    revalidatePath('/tienda')
+  }
 
   return 'aprobado'
 }
@@ -284,6 +372,11 @@ export async function procesarEstadoNoAprobado(
   if (updateError) throw new Error(`Error actualizando pedido: ${pedido.id}`)
   if (!actualizado) return false
 
+  // Anula las boletas del pedido cuando el pedido cae a un estado terminal
+  if (['rechazado', 'anulado', 'error'].includes(nuevoEstado)) {
+    await anularBoletasPedido(supabase, pedido.id)
+  }
+
   if (['rechazado', 'anulado', 'error'].includes(nuevoEstado)) {
     await sendOrderDeclined({
       orderNumber: pedido.numero_pedido,
@@ -298,3 +391,25 @@ export async function procesarEstadoNoAprobado(
 
   return true
 }
+// Anula las boletas activas de un pedido (pedido anulado/rechazado/cancelado).
+export async function anularBoletasPedido(
+  supabase: SupabaseClient,
+  pedidoId: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('boletas')
+    .update({ estado: 'anulada' })
+    .eq('pedido_id', pedidoId)
+    .in('estado', ['valida'])
+    .select('id')
+
+  if (error) {
+    console.error(`Error anulando boletas del pedido ${pedidoId}:`, error.message)
+    return
+  }
+  if ((data?.length ?? 0) > 0) {
+    revalidatePath('/boletas', 'layout')
+    revalidatePath('/cuenta/boletas')
+  }
+}
+

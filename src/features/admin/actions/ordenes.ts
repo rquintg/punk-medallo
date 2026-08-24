@@ -5,8 +5,12 @@ import { redirect } from 'next/navigation'
 import { getSupabaseAdmin } from '../services/supabase-admin'
 import { requirePermissionAction } from '../utils/auth-server'
 import { sendOrderPreparing, sendOrderShipped, sendOrderDelivered } from '@/lib/email'
+import { anularBoletasPedido } from '@/lib/aprobar-pedido'
 
 const EMAIL_ESTADOS = ['preparando', 'enviado', 'entregado']
+
+/** Estados que anulan las boletas asociadas al pedido (boletería) */
+const ESTADOS_ANULAN_BOLETAS = ['cancelado', 'anulado', 'rechazado', 'error']
 
 const FECHA_POR_ESTADO: Record<string, string> = {
   preparando: 'fecha_preparando',
@@ -29,6 +33,15 @@ export async function actualizarEstadoOrden(numeroPedido: string, estado: string
     .eq('numero_pedido', numeroPedido)
 
   if (error) throw new Error(error.message)
+
+  // Boletería: anula las boletas activas del pedido si cae a estado terminal
+  if (ESTADOS_ANULAN_BOLETAS.includes(estadoNormalized)) {
+    const { data: orden } = await (supabase.from('pedidos') as any)
+      .select('id')
+      .eq('numero_pedido', numeroPedido)
+      .single()
+    if (orden?.id) await anularBoletasPedido(supabase, orden.id)
+  }
 
   if (EMAIL_ESTADOS.includes(estadoNormalized)) {
     const { data: orden } = await (supabase

@@ -19,6 +19,7 @@ export type Permission =
   | 'manage_users'
   | 'manage_cupones'
   | 'manage_tienda_config'
+  | 'manage_boleteria'
 
 const PERMISSION_MATRIX: Record<string, Permission[]> = {
   super_admin: [
@@ -35,6 +36,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'manage_users',
     'manage_cupones',
     'manage_tienda_config',
+    'manage_boleteria',
   ],
   admin: [
     'view_dashboard',
@@ -47,6 +49,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'update_order_status',
     'delete_orders',
     'manage_cupones',
+    'manage_boleteria',
   ],
   publicador: [
     'view_dashboard',

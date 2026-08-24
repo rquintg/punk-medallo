@@ -21,6 +21,7 @@ import { useTiendaConfig } from '@/hooks/useTiendaConfig'
 import PaymentBadges from '@/components/tienda/payment-badges'
 import CuponCheckout from '@/components/tienda/cupon-checkout'
 import { iniciarCheckout } from '@/lib/analytics'
+import { loadWompiScript } from '@/lib/wompi-client'
 
 declare global {
   interface Window {
@@ -58,21 +59,6 @@ interface WidgetCheckoutResult {
 }
 
 
-
-function loadWompiScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src*="checkout.wompi.co/widget.js"]')) {
-      resolve()
-      return
-    }
-    const script = document.createElement('script')
-    script.src = 'https://checkout.wompi.co/widget.js'
-    script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('No se pudo cargar Wompi'))
-    document.head.appendChild(script)
-  })
-}
 
 export default function CheckoutContent() {
   const router = useRouter()
