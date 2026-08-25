@@ -9,7 +9,7 @@ import Price from '@/components/tienda/price'
  */
 export default function BoleteriaCard({ stats }: { stats: BoleteriaStatsEvento[] }) {
   return (
-    <DashboardCard icon={Ticket} title="Boletería" className="xl:col-span-12">
+    <DashboardCard icon={Ticket} title="Boletería">
       {stats.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-8 text-center">
           <CalendarDays size={32} className="text-[var(--admin-text-dim)]" />

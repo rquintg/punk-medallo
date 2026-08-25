@@ -28,6 +28,8 @@ interface EventoEscaner {
 
 type EstadoCamara = 'apagada' | 'iniciando' | 'activa' | 'pausa' | 'error'
 
+const CONTAINER_ID = 'qr-reader-lib'
+
 export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] }) {
   const [selectedEventoId, setSelectedEventoId] = useState<string>('')
   const [estado, setEstado] = useState<EstadoCamara>('apagada')
@@ -37,19 +39,42 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
   const [manualPending, setManualPending] = useState(false)
 
   const scannerRef = useRef<any>(null)
-  const divIdRef = useRef('qr-reader')
+  const selectedRef = useRef('')
+  const estadoRef = useRef<EstadoCamara>('apagada')
   const ultimoPayloadRef = useRef<{ payload: string; ts: number }>({ payload: '', ts: 0 })
+
+  // Espejos para que el callback registrado por html5-qrcode lea siempre el valor actual
+  useEffect(() => {
+    selectedRef.current = selectedEventoId
+    estadoRef.current = estado
+  }, [selectedEventoId, estado])
 
   // Persistir último evento seleccionado (localStorage)
   useEffect(() => {
     if (eventos.length === 0) return
     const guardado = localStorage.getItem('pm_escaner_evento')
     const valido = eventos.some((e) => e.id === guardado)
-    setSelectedEventoId(valido ? guardado! : eventos[0].id)
+    const inicial = valido ? guardado! : eventos[0].id
+    setSelectedEventoId(inicial)
+    selectedRef.current = inicial
   }, [eventos])
 
+  /** Secuencia de parada blindada — nunca lanza */
+  async function detenerInterno() {
+    const s = scannerRef.current
+    if (!s) return
+    try {
+      await s.stop()
+    } catch {}
+    try {
+      s.clear()
+    } catch {}
+    scannerRef.current = null
+  }
+
   async function validar(payload: string) {
-    if (!selectedEventoId) {
+    const eventoId = selectedRef.current
+    if (!eventoId) {
       setResultado({
         ok: false,
         status: 'formato_invalido',
@@ -62,7 +87,7 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
       const res = await fetch('/api/boletas/validar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payload, eventoId: selectedEventoId }),
+        body: JSON.stringify({ payload, eventoId }),
       })
       const data: ResultadoValidacion = await res.json()
       setResultado(data)
@@ -77,8 +102,8 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
       })
     }
 
-    // Pausa tras escanear: la cámara congela hasta "Escanear siguiente"
-    if (scannerRef.current && estado === 'activa') {
+    // Pausa tras escanear: congela el video hasta "Escanear siguiente"
+    if (scannerRef.current && estadoRef.current === 'activa') {
       try {
         scannerRef.current.pause(true)
         setEstado('pausa')
@@ -89,7 +114,7 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
   function siguiente() {
     setResultado(null)
     ultimoPayloadRef.current = { payload: '', ts: 0 }
-    if (estado === 'pausa' && scannerRef.current) {
+    if (estadoRef.current === 'pausa' && scannerRef.current) {
       try {
         scannerRef.current.resume()
         setEstado('activa')
@@ -97,16 +122,25 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
     }
   }
 
+  /** Callback registrado UNA vez al iniciar la cámara — usa refs, no closures */
   const onScanSuccess = useCallback(
-    (decodedText: string) => void validar(decodedText),
-    [validar, selectedEventoId, estado],
+    (decodedText: string) => {
+      try {
+        void validar(decodedText)
+      } catch (e) {
+        console.error('[Escaner] error en validación:', e)
+      }
+    },
+    [],
   )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   async function iniciar() {
+    if (!selectedRef.current) return
     setEstado('iniciando')
     try {
       const { Html5Qrcode } = await import('html5-qrcode')
-      const scanner = new Html5Qrcode(divIdRef.current)
+      const scanner = new Html5Qrcode(CONTAINER_ID)
       scannerRef.current = scanner
       await scanner.start(
         { facingMode: 'environment' },
@@ -116,7 +150,8 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
       )
       setEstado('activa')
     } catch (e: any) {
-      console.error(e?.message)
+      console.error('[Escaner] error iniciando:', e?.message)
+      await detenerInterno()
       setEstado('error')
       toast.error(
         e?.message?.includes('Permission')
@@ -127,20 +162,16 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
   }
 
   async function detener() {
-    try {
-      await scannerRef.current?.stop()
-      scannerRef.current?.clear()
-    } catch {}
-    scannerRef.current = null
+    await detenerInterno()
     setEstado('apagada')
     setResultado(null)
   }
 
   useEffect(() => {
     return () => {
-      scannerRef.current?.stop().catch(() => {})
-      scannerRef.current?.clear().catch(() => {})
+      void detenerInterno()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleManualSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -154,6 +185,7 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
     setManual('')
   }
 
+  const camaraActiva = estado === 'activa' || estado === 'pausa'
   const bordeResultado = resultado?.ok ? 'border-emerald-500 bg-emerald-950/40' : 'border-red-600 bg-red-950/40'
   const textoResultado = resultado?.ok ? 'text-emerald-400' : 'text-red-400'
 
@@ -167,24 +199,26 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
             No hay eventos activos. Crea uno en Boletería → Eventos.
           </p>
         ) : (
-          <select
-            value={selectedEventoId}
-            onChange={(e) => setSelectedEventoId(e.target.value)}
-            disabled={estado === 'activa' || estado === 'pausa'}
-            className="w-full rounded-md border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-3 py-2 text-sm text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)] disabled:opacity-60"
-            aria-label="Evento a escanear"
-          >
-            {eventos.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.titulo} · {e.fechaStr}
-              </option>
-            ))}
-          </select>
-        )}
-        {(estado === 'activa' || estado === 'pausa') && (
-          <p className="text-[11px] text-[var(--admin-text-dim)]">
-            Detén la cámara para cambiar de evento.
-          </p>
+          <>
+            <select
+              value={selectedEventoId}
+              onChange={(e) => setSelectedEventoId(e.target.value)}
+              disabled={camaraActiva}
+              className="w-full rounded-md border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-3 py-2 text-sm text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)] disabled:opacity-60"
+              aria-label="Evento a escanear"
+            >
+              {eventos.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.titulo} · {e.fechaStr}
+                </option>
+              ))}
+            </select>
+            {camaraActiva && (
+              <p className="text-[11px] text-[var(--admin-text-dim)]">
+                Detén la cámara para cambiar de evento.
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -199,34 +233,36 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
           )}
         </div>
 
-        <div
-          id={divIdRef.current}
-          className="mx-auto w-full overflow-hidden rounded-lg border border-[var(--admin-card-border)] [&>video]:w-full"
-          style={{ minHeight: 200 }}
-        >
-          {estado !== 'activa' && estado !== 'pausa' ? (
-            <button
-              type="button"
-              onClick={iniciar}
-              disabled={!selectedEventoId || estado === 'iniciando'}
-              className="flex h-[280px] w-full flex-col items-center justify-center gap-3 text-[var(--admin-text-muted)] transition-colors hover:text-[var(--admin-text)] disabled:opacity-50"
-            >
-              <Camera size={44} />
-              <span className="text-sm font-medium">
-                {!selectedEventoId
-                  ? 'Selecciona un evento'
-                  : estado === 'error'
-                    ? 'Error de cámara — reintentar'
-                    : 'Iniciar cámara'}
-              </span>
-            </button>
-          ) : null}
+        {/* Contenedor exclusivo de html5-qrcode — React jamás pone hijos aquí */}
+        <div className="relative">
+          <div id={CONTAINER_ID} style={{ minHeight: 200 }} />
+
+          {/* Overlay hermano: placeholder cuando la cámara está apagada */}
+          {(estado === 'apagada' || estado === 'error') && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <button
+                type="button"
+                onClick={iniciar}
+                disabled={!selectedRef.current}
+                className="flex h-[280px] w-full flex-col items-center justify-center gap-3 text-[var(--admin-text-muted)] transition-colors hover:text-[var(--admin-text)] disabled:opacity-50"
+              >
+                <Camera size={44} />
+                <span className="text-sm font-medium">
+                  {!selectedEventoId
+                    ? 'Selecciona un evento'
+                    : estado === 'error'
+                      ? 'Error de cámara — reintentar'
+                      : 'Iniciar cámara'}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {(estado === 'activa' || estado === 'pausa') && (
+        {camaraActiva && (
           <button
             type="button"
-            onClick={detener}
+            onClick={() => void detener()}
             className="inline-flex items-center gap-2 text-xs font-medium text-neutral-400 hover:text-red-400"
           >
             <CameraOff size={14} /> Detener cámara
@@ -252,7 +288,6 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
             <p className="mt-2 font-mono text-xs text-neutral-500">{resultado.codigo}</p>
           )}
 
-          {/* Reanudar tras pausa */}
           {estado === 'pausa' ? (
             <button
               type="button"

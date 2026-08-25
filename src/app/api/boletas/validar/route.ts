@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
   const admin = getSupabaseAdmin()
 
   // Validación ATÓMICA: solo gana si la boleta es válida Y del evento seleccionado.
-  // Una boleta de otro evento NO se marca como usada (queda intacta para su puerta).
+  // Una boleta de otro evento NO se marca como usada — queda intacta para su puerta.
   const { data: usada, error: updateError } = await (admin.from('boletas') as any)
     .update({
       estado: 'usada',

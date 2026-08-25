@@ -48,7 +48,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const rango: RangoDias = (RANGOS as number[]).includes(rangoParam) ? (rangoParam as RangoDias) : 30
   const [analytics, boleteriaStats] = await Promise.all([
     getDashboardAnalytics(rango),
-    getBoleteriaStats().catch(() => []),
+    getBoleteriaStats().catch((e) => { console.error('[Dashboard] Error cargando boletería:', e?.message); return [] }),
   ])
 
   const conVentas = analytics.totalIngresos > 0
@@ -317,11 +317,11 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
             </Link>
           </DashboardCard>
         </div>
+      </div>
 
-        {/* Boletería (T7) */}
-        <div className="mb-8">
-          <BoleteriaCard stats={boleteriaStats} />
-        </div>
+      {/* Boletería (T7) — sección propia full-width */}
+      <div className="mb-8">
+        <BoleteriaCard stats={boleteriaStats} />
       </div>
     </>
   )
