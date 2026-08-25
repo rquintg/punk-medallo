@@ -101,14 +101,6 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
         mensaje: 'Error de conexión — reintenta',
       })
     }
-
-    // Pausa tras escanear: congela el video hasta "Escanear siguiente"
-    if (scannerRef.current && estadoRef.current === 'activa') {
-      try {
-        scannerRef.current.pause(true)
-        setEstado('pausa')
-      } catch {}
-    }
   }
 
   function siguiente() {
@@ -126,6 +118,14 @@ export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] })
   const onScanSuccess = useCallback(
     (decodedText: string) => {
       try {
+        // Pausa INMEDIATA al detectar cualquier QR — antes de la validación async.
+        // Sin esto, la cámara sigue viva durante el fetch y recaptura el mismo
+        // QR en <1s → falso "ya usada" sobre el resultado verde.
+        if (scannerRef.current && estadoRef.current === 'activa') {
+          scannerRef.current.pause(true)
+          estadoRef.current = 'pausa'
+          setEstado('pausa')
+        }
         void validar(decodedText)
       } catch (e) {
         console.error('[Escaner] error en validación:', e)

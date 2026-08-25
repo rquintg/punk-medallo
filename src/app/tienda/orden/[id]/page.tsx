@@ -23,9 +23,7 @@ import {
 import { ORDER_VERIFY_COOKIE, verificarFirma } from '@/lib/order-verify'
 import VerificarOrdenForm from '../verificar-orden-form'
 import type { PedidoItem } from '@/features/tienda/types'
-import QRCode from 'qrcode'
 import BoletaOrdenView, { type PagoResumenFila } from '@/components/tienda/order-boletas'
-import { construirQrPayload } from '@/lib/ticket-crypto'
 import { ogImageActual } from '@/features/tienda/utils/seo'
 
 interface OrderPageProps {
@@ -213,7 +211,6 @@ export default async function OrderPage({ params }: OrderPageProps) {
     codigo: string
     estado: 'valida' | 'usada' | 'anulada'
     tipoNombre: string
-    qrDataUrl: string | null
   }> = []
 
   if (esPedidoBoletas) {
@@ -238,26 +235,12 @@ export default async function OrderPage({ params }: OrderPageProps) {
       }
     }
 
-    // QR solo si el visitante está verificado (el QR es la credencial)
-    if (verificado) {
-      boletasVista = await Promise.all(
-        lista.map(async (b) => ({
-          codigo: b.codigo,
-          estado: b.estado,
-          tipoNombre: b.tipos_boleta?.nombre ?? 'General',
-          qrDataUrl: await QRCode.toDataURL(construirQrPayload(b.codigo), {
-            width: 320, margin: 1, color: { dark: '#111111', light: '#ffffff' },
-          }),
-        })),
-      )
-    } else {
-      boletasVista = lista.map((b) => ({
-        codigo: b.codigo,
-        estado: b.estado,
-        tipoNombre: b.tipos_boleta?.nombre ?? 'General',
-        qrDataUrl: null,
-      }))
-    }
+    // Solo metadatos; los QR viven en el correo y en /cuenta/boletas
+    boletasVista = lista.map((b) => ({
+      codigo: b.codigo,
+      estado: b.estado,
+      tipoNombre: b.tipos_boleta?.nombre ?? 'General',
+    }))
   }
 
   const createdDate = new Date(pedido.created_at).toLocaleDateString('es-CO', {
@@ -403,8 +386,10 @@ export default async function OrderPage({ params }: OrderPageProps) {
                 notaAnulado={esTerminal ? 'Las boletas asociadas fueron anuladas.' : undefined}
                 verificado={verificado}
                 titularMostrado={direccion.nombre}
+                emailMostrado={emailMostrado}
+                cantidadBoletas={boletasVista.length}
+                codigos={boletasVista.map((b) => b.codigo)}
                 evento={eventoBoleta}
-                boletas={boletasVista}
                 metodo={{ nombre, logo, linea }}
                 referencia={metodo.ref}
                 filasResumen={filasResumen as PagoResumenFila[]}
