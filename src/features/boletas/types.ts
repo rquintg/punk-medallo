@@ -24,6 +24,8 @@ export interface TipoBoleta {
   /** Agregados calculados en servicios (no columnas de BD) */
   vendidas?: number
   disponibles?: number
+  /** Boletas escaneadas en puerta (estado='usada') */
+  usadas?: number
 }
 
 export interface Boleta {

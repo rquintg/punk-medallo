@@ -62,12 +62,13 @@ export default function TiposManager({
 
       {tipos.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-[var(--admin-card-border)] text-left text-xs uppercase tracking-wider text-[var(--admin-text-dim)]">
                 <th className="pb-2 pr-4">Nombre</th>
                 <th className="pb-2 pr-4">Precio</th>
                 <th className="pb-2 pr-4">Vendidas</th>
+                <th className="pb-2 pr-4">Usadas</th>
                 <th className="pb-2 pr-4">Cupo total</th>
                 <th className="pb-2 pr-4">Disponibles</th>
                 <th className="pb-2">Acciones</th>
@@ -88,6 +89,7 @@ export default function TiposManager({
                     <td className="py-2.5 pr-4 font-medium text-[var(--admin-text)]">{t.nombre}</td>
                     <td className="py-2.5 pr-4"><Price amount={t.precio} /></td>
                     <td className="py-2.5 pr-4 text-[var(--admin-text-muted)]">{t.vendidas ?? 0}</td>
+                    <td className="py-2.5 pr-4 text-[var(--admin-text-muted)]">{t.usadas ?? 0}</td>
                     <td className="py-2.5 pr-4 text-[var(--admin-text-muted)]">{t.cantidadTotal}</td>
                     <td className="py-2.5 pr-4">
                       <span className={`font-semibold ${(t.disponibles ?? 0) === 0 ? 'text-red-400' : 'text-emerald-400'}`}>

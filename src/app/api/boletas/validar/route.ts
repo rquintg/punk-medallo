@@ -7,6 +7,8 @@ import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
 export const runtime = 'nodejs'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function getSupabase(request: NextRequest) {
   let response = NextResponse.next({ request })
 
@@ -57,15 +59,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Demasiadas solicitudes' }, { status: 429 })
   }
 
-  // Payload: QR escaneado (`codigo|firma`) o código manual
+  // Payload + evento seleccionado en el escáner
   let raw = ''
+  let eventoId = ''
   try {
     const body = await request.json()
     raw = String(body?.payload ?? '').trim()
+    eventoId = String(body?.eventoId ?? '').trim()
   } catch {
     return NextResponse.json({ error: 'Body inválido' }, { status: 400 })
   }
+
   if (!raw) return NextResponse.json({ error: 'Payload vacío' }, { status: 400 })
+
+  if (!UUID_RE.test(eventoId)) {
+    return NextResponse.json({
+      ok: false,
+      status: 'formato_invalido',
+      mensaje: 'Selecciona el evento antes de escanear',
+    })
+  }
 
   const parsed = parseQrPayload(raw)
   const codigo = parsed?.codigo ?? (raw.startsWith('PM-TKT-') ? raw : '')
@@ -74,17 +87,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, status: 'formato_invalido', mensaje: 'Código no válido' })
   }
   if (parsed && !verificarFirmaBoleta(parsed.codigo, parsed.firma)) {
-    loggerWarn('firma inválida', codigo)
+    console.warn(`BoletasValidar: firma inválida (${codigo})`)
     return NextResponse.json({ ok: false, status: 'firma_invalida', mensaje: 'QR alterado o falso' })
   }
 
   const admin = getSupabaseAdmin()
 
-  // Validación ATÓMICA: solo gana el UPDATE si sigue 'valida'.
+  // Validación ATÓMICA: solo gana si la boleta es válida Y del evento seleccionado.
+  // Una boleta de otro evento NO se marca como usada (queda intacta para su puerta).
   const { data: usada, error: updateError } = await (admin.from('boletas') as any)
-    .update({ estado: 'usada', escaneada_en: new Date().toISOString(), escaneada_por: user.id })
+    .update({
+      estado: 'usada',
+      escaneada_en: new Date().toISOString(),
+      escaneada_por: user.id,
+    })
     .eq('codigo', codigo)
     .eq('estado', 'valida')
+    .eq('evento_id', eventoId)
     .select('titular_nombre, titular_email')
     .maybeSingle()
 
@@ -104,14 +123,25 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  // No estaba 'valida': reportar por qué
+  // No pasó el UPDATE: explicar por qué (buscando la boleta sin filtro de evento)
   const { data: actual } = await (admin.from('boletas') as any)
-    .select('estado, escaneada_en, titular_nombre')
+    .select('estado, escaneada_en, titular_nombre, evento_id, eventos_boletos(titulo)')
     .eq('codigo', codigo)
     .maybeSingle()
 
   if (!actual) {
     return NextResponse.json({ ok: false, status: 'no_encontrada', mensaje: 'Boleta no existe' })
+  }
+
+  if (actual.evento_id !== eventoId) {
+    const tituloOtro = actual.eventos_boletos?.titulo ?? 'otro evento'
+    return NextResponse.json({
+      ok: false,
+      status: 'otro_evento',
+      mensaje: `Boleta de otro evento: ${tituloOtro}`,
+      titular: actual.titular_nombre,
+      codigo,
+    })
   }
 
   if (actual.estado === 'usada') {
@@ -134,8 +164,4 @@ export async function POST(request: NextRequest) {
     titular: actual.titular_nombre,
     codigo,
   })
-}
-
-function loggerWarn(msg: string, codigo: string) {
-  console.warn(`BoletasValidar: ${msg} (${codigo})`)
 }

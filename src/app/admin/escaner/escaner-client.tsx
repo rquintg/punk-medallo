@@ -6,18 +6,30 @@ import { toast } from 'sonner'
 
 interface ResultadoValidacion {
   ok: boolean
-  status: 'valida' | 'ya_usada' | 'anulada' | 'no_encontrada' | 'firma_invalida' | 'formato_invalido'
+  status:
+    | 'valida'
+    | 'ya_usada'
+    | 'anulada'
+    | 'no_encontrada'
+    | 'firma_invalida'
+    | 'formato_invalido'
+    | 'otro_evento'
   mensaje: string
   titular?: string
   email?: string
   codigo?: string
 }
 
-type EstadoCamara = 'apagada' | 'iniciando' | 'activa' | 'error'
+interface EventoEscaner {
+  id: string
+  titulo: string
+  fechaStr: string
+}
 
-const COOLDOWN_MS = 3000
+type EstadoCamara = 'apagada' | 'iniciando' | 'activa' | 'pausa' | 'error'
 
-export default function EscanerClient() {
+export default function EscanerClient({ eventos }: { eventos: EventoEscaner[] }) {
+  const [selectedEventoId, setSelectedEventoId] = useState<string>('')
   const [estado, setEstado] = useState<EstadoCamara>('apagada')
   const [resultado, setResultado] = useState<ResultadoValidacion | null>(null)
   const [contadorOk, setContadorOk] = useState(0)
@@ -28,30 +40,34 @@ export default function EscanerClient() {
   const divIdRef = useRef('qr-reader')
   const ultimoPayloadRef = useRef<{ payload: string; ts: number }>({ payload: '', ts: 0 })
 
+  // Persistir último evento seleccionado (localStorage)
+  useEffect(() => {
+    if (eventos.length === 0) return
+    const guardado = localStorage.getItem('pm_escaner_evento')
+    const valido = eventos.some((e) => e.id === guardado)
+    setSelectedEventoId(valido ? guardado! : eventos[0].id)
+  }, [eventos])
+
   async function validar(payload: string) {
-    // Debounce: mismo QR dentro del cooldown se ignora (evita doble envío)
-    const ahora = Date.now()
-    if (
-      payload === ultimoPayloadRef.current.payload &&
-      ahora - ultimoPayloadRef.current.ts < COOLDOWN_MS
-    ) {
+    if (!selectedEventoId) {
+      setResultado({
+        ok: false,
+        status: 'formato_invalido',
+        mensaje: 'Selecciona el evento primero',
+      })
       return
     }
-    ultimoPayloadRef.current = { payload, ts: ahora }
 
     try {
       const res = await fetch('/api/boletas/validar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payload }),
+        body: JSON.stringify({ payload, eventoId: selectedEventoId }),
       })
       const data: ResultadoValidacion = await res.json()
       setResultado(data)
-      if (data.ok && data.status === 'valida') {
-        setContadorOk((c) => c + 1)
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(120)
-      } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([80, 60, 80])
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(data.ok ? 120 : [80, 60, 80])
       }
     } catch {
       setResultado({
@@ -60,11 +76,30 @@ export default function EscanerClient() {
         mensaje: 'Error de conexión — reintenta',
       })
     }
+
+    // Pausa tras escanear: la cámara congela hasta "Escanear siguiente"
+    if (scannerRef.current && estado === 'activa') {
+      try {
+        scannerRef.current.pause(true)
+        setEstado('pausa')
+      } catch {}
+    }
+  }
+
+  function siguiente() {
+    setResultado(null)
+    ultimoPayloadRef.current = { payload: '', ts: 0 }
+    if (estado === 'pausa' && scannerRef.current) {
+      try {
+        scannerRef.current.resume()
+        setEstado('activa')
+      } catch {}
+    }
   }
 
   const onScanSuccess = useCallback(
     (decodedText: string) => void validar(decodedText),
-    [],
+    [validar, selectedEventoId, estado],
   )
 
   async function iniciar() {
@@ -76,16 +111,18 @@ export default function EscanerClient() {
       await scanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decodedText) => onScanSuccess(decodedText),
-        () => {}, // errores por-frame (sin QR a la vista) se ignoran
+        onScanSuccess,
+        () => {},
       )
       setEstado('activa')
     } catch (e: any) {
       console.error(e?.message)
       setEstado('error')
-      toast.error(e?.message?.includes('Permission')
-        ? 'Permiso de cámara denegado — actívalo en el navegador'
-        : 'No se pudo iniciar la cámara')
+      toast.error(
+        e?.message?.includes('Permission')
+          ? 'Permiso de cámara denegado — actívalo en el navegador'
+          : 'No se pudo iniciar la cámara',
+      )
     }
   }
 
@@ -96,6 +133,7 @@ export default function EscanerClient() {
     } catch {}
     scannerRef.current = null
     setEstado('apagada')
+    setResultado(null)
   }
 
   useEffect(() => {
@@ -121,38 +159,76 @@ export default function EscanerClient() {
 
   return (
     <div className="space-y-6">
+      {/* Selector de evento */}
+      <div className="card-section space-y-3">
+        <h3 className="admin-section-title">Evento</h3>
+        {eventos.length === 0 ? (
+          <p className="rounded-lg border border-amber-700/50 bg-amber-950/20 px-4 py-3 text-sm text-amber-300">
+            No hay eventos activos. Crea uno en Boletería → Eventos.
+          </p>
+        ) : (
+          <select
+            value={selectedEventoId}
+            onChange={(e) => setSelectedEventoId(e.target.value)}
+            disabled={estado === 'activa' || estado === 'pausa'}
+            className="w-full rounded-md border border-[var(--admin-card-border)] bg-[var(--admin-input-bg)] px-3 py-2 text-sm text-[var(--admin-text)] outline-none focus:border-[var(--admin-accent)] disabled:opacity-60"
+            aria-label="Evento a escanear"
+          >
+            {eventos.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.titulo} · {e.fechaStr}
+              </option>
+            ))}
+          </select>
+        )}
+        {(estado === 'activa' || estado === 'pausa') && (
+          <p className="text-[11px] text-[var(--admin-text-dim)]">
+            Detén la cámara para cambiar de evento.
+          </p>
+        )}
+      </div>
+
       {/* Cámara */}
       <div className="card-section space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="admin-section-title">Cámara</h3>
-          {estado === 'activa' && contadorOk > 0 && (
+          {contadorOk > 0 && (
             <span className="rounded-full border border-emerald-600/50 bg-emerald-950/30 px-2.5 py-0.5 text-xs font-bold text-emerald-400">
               ✓ {contadorOk} escaneadas
             </span>
           )}
         </div>
 
-        <div id={divIdRef.current} className="mx-auto w-full overflow-hidden rounded-lg border border-[var(--admin-card-border)] [&>video]:w-full" style={{ minHeight: 200 }}>
-          {estado !== 'activa' && estado !== 'iniciando' ? (
+        <div
+          id={divIdRef.current}
+          className="mx-auto w-full overflow-hidden rounded-lg border border-[var(--admin-card-border)] [&>video]:w-full"
+          style={{ minHeight: 200 }}
+        >
+          {estado !== 'activa' && estado !== 'pausa' ? (
             <button
               type="button"
               onClick={iniciar}
+              disabled={!selectedEventoId || estado === 'iniciando'}
               className="flex h-[280px] w-full flex-col items-center justify-center gap-3 text-[var(--admin-text-muted)] transition-colors hover:text-[var(--admin-text)] disabled:opacity-50"
             >
               <Camera size={44} />
               <span className="text-sm font-medium">
-                {estado === 'error' ? 'Error de cámara — reintentar' : 'Iniciar cámara'}
+                {!selectedEventoId
+                  ? 'Selecciona un evento'
+                  : estado === 'error'
+                    ? 'Error de cámara — reintentar'
+                    : 'Iniciar cámara'}
               </span>
             </button>
-          ) : (
-            <div className="flex h-[280px] w-full items-center justify-center text-sm text-[var(--admin-text-dim)]">
-              Iniciando cámara...
-            </div>
-          )}
+          ) : null}
         </div>
 
-        {estado === 'activa' && (
-          <button type="button" onClick={detener} className="inline-flex items-center gap-2 text-xs font-medium text-neutral-400 hover:text-red-400">
+        {(estado === 'activa' || estado === 'pausa') && (
+          <button
+            type="button"
+            onClick={detener}
+            className="inline-flex items-center gap-2 text-xs font-medium text-neutral-400 hover:text-red-400"
+          >
             <CameraOff size={14} /> Detener cámara
           </button>
         )}
@@ -174,6 +250,25 @@ export default function EscanerClient() {
           )}
           {resultado.codigo && (
             <p className="mt-2 font-mono text-xs text-neutral-500">{resultado.codigo}</p>
+          )}
+
+          {/* Reanudar tras pausa */}
+          {estado === 'pausa' ? (
+            <button
+              type="button"
+              onClick={siguiente}
+              className="mt-4 w-full rounded-lg bg-[var(--admin-accent)] px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-opacity hover:opacity-90"
+            >
+              Escanear siguiente
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setResultado(null)}
+              className="mx-auto mt-4 flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300"
+            >
+              <RotateCcw size={12} /> Limpiar resultado
+            </button>
           )}
         </div>
       )}
@@ -204,17 +299,6 @@ export default function EscanerClient() {
           Fallback si el QR está dañado. El código aparece en la boleta y en el correo.
         </p>
       </div>
-
-      {/* Reset resultado */}
-      {resultado && (
-        <button
-          type="button"
-          onClick={() => setResultado(null)}
-          className="mx-auto flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300"
-        >
-          <RotateCcw size={12} /> Limpiar resultado
-        </button>
-      )}
     </div>
   )
 }

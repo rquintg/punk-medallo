@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'Compra tus boletas para los conciertos de Punk Medallo. Pago seguro con Wompi, QR único por boleta.',
     alternates: { canonical: '/boletas' },
+    robots: { index: false, follow: true }, // boletería sin lanzar públicamente
     openGraph: {
       title: 'Boletas y Conciertos - Punk Medallo',
       description: 'Consigue tus boletas para los próximos toques.',

@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     alternates: { canonical: `/boletas/${evento.slug}` },
+    robots: { index: false, follow: true }, // boletería sin lanzar públicamente
     openGraph: {
       title,
       description,

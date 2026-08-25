@@ -57,31 +57,38 @@ function mapEvento(row: DbEvento): EventoBoleto {
   }
 }
 
-/** Conteo de boletas activas (valida+usada) por tipo — para vendidas/disponibles */
-async function contarVendidasPorEvento(eventoId: string): Promise<Map<string, number>> {
+/** Conteo de boletas por estado — vendidas (valida+usada) y usadas (escaneadas) */
+async function contarBoletasPorEvento(
+  eventoId: string,
+): Promise<{ vendidas: Map<string, number>; usadas: Map<string, number> }> {
   const supabase = getSupabaseAdmin()
   const { data } = await (supabase.from('boletas') as any)
-    .select('tipo_id')
+    .select('tipo_id, estado')
     .eq('evento_id', eventoId)
     .neq('estado', 'anulada')
 
-  const map = new Map<string, number>()
-  for (const b of (data ?? []) as { tipo_id: string }[]) {
-    map.set(b.tipo_id, (map.get(b.tipo_id) ?? 0) + 1)
+  const vendidas = new Map<string, number>()
+  const usadas = new Map<string, number>()
+  for (const b of (data ?? []) as { tipo_id: string; estado: string }[]) {
+    vendidas.set(b.tipo_id, (vendidas.get(b.tipo_id) ?? 0) + 1)
+    if (b.estado === 'usada') {
+      usadas.set(b.tipo_id, (usadas.get(b.tipo_id) ?? 0) + 1)
+    }
   }
-  return map
+  return { vendidas, usadas }
 }
 
 function conDisponibilidad(
   tipos: DbTipo[],
-  vendidas: Map<string, number>,
+  conteo: { vendidas: Map<string, number>; usadas: Map<string, number> },
 ): TipoBoleta[] {
   return tipos.map((t) => {
-    const v = vendidas.get(t.id) ?? 0
+    const v = conteo.vendidas.get(t.id) ?? 0
     return {
       ...mapTipo(t),
       vendidas: v,
       disponibles: Math.max(0, t.cantidad_total - v),
+      usadas: conteo.usadas.get(t.id) ?? 0,
     }
   })
 }
@@ -114,7 +121,7 @@ export async function getEventoAdminById(id: string): Promise<{
 
   const [tiposRes, vendidas] = await Promise.all([
     (supabase.from('tipos_boleta') as any).select('*').eq('evento_id', id).order('orden'),
-    contarVendidasPorEvento(id),
+    contarBoletasPorEvento(id),
   ])
 
   return {
@@ -218,7 +225,7 @@ export async function updateTipo(
 
   // Regla: no se puede bajar el cupo por debajo de las ya vendidas
   if (input.cantidadTotal !== undefined && input.cantidadTotal < actual.cantidad_total) {
-    const vendidas = (await contarVendidasPorEvento(actual.evento_id)).get(id) ?? 0
+    const vendidas = (await contarBoletasPorEvento(actual.evento_id)).vendidas.get(id) ?? 0
     if (input.cantidadTotal < vendidas) {
       throw new Error(`Ya hay ${vendidas} boletas vendidas: no puedes bajar el cupo a ${input.cantidadTotal}`)
     }
@@ -243,7 +250,7 @@ export async function deleteTipo(id: string): Promise<void> {
     .single()
   if (!actual) return
 
-  const vendidas = (await contarVendidasPorEvento(actual.evento_id)).get(id) ?? 0
+  const vendidas = (await contarBoletasPorEvento(actual.evento_id)).vendidas.get(id) ?? 0
   if (vendidas > 0) {
     throw new Error(`No puedes eliminarlo: tiene ${vendidas} boletas vendidas. Desactívalo.`)
   }

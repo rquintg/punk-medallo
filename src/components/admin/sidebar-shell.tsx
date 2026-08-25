@@ -15,6 +15,7 @@ import {
   ChartColumn,
   Store,
   CalendarDays,
+  QrCode,
 } from 'lucide-react'
 import { can, type Permission } from '@/features/admin/utils/permissions'
 import ThemeToggle from './theme-toggle'
@@ -98,6 +99,12 @@ const NAV_GROUPS: {
         label: 'Eventos',
         href: '/admin/boletos',
         icon: CalendarDays,
+        permission: 'manage_boleteria',
+      },
+      {
+        label: 'Escáner QR',
+        href: '/admin/escaner',
+        icon: QrCode,
         permission: 'manage_boleteria',
       },
     ],

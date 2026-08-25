@@ -150,6 +150,29 @@ export async function sendOrderConfirmation(data: OrderConfirmationData) {
 
 
 /**
+ * Genera el PNG del QR de una boleta y lo hospeda en Supabase Storage.
+ * Los clientes de correo (Gmail/Outlook) bloquean data-URIs: se necesita
+ * URL pública. Path estable `boletas/{codigo}.png` + upsert (sin duplicados).
+ */
+async function qrHosteado(codigo: string): Promise<string> {
+  const png = await QRCode.toBuffer(construirQrPayload(codigo), {
+    width: 320,
+    margin: 1,
+    color: { dark: '#111111', light: '#ffffff' },
+    type: 'png' as const,
+  })
+
+  const admin = getSupabaseAdmin()
+  const path = `boletas/${codigo}.png`
+  const { error: upError } = await admin.storage
+    .from('productos')
+    .upload(path, png, { contentType: 'image/png', upsert: true })
+  if (upError) throw new Error(`Error subiendo QR: ${upError.message}`)
+
+  return admin.storage.from('productos').getPublicUrl(path).data.publicUrl
+}
+
+/**
  * Reenvía el email de UNA boleta (desde /cuenta/boletas).
  * Verifica que la boleta pertenezca al email del usuario autenticado.
  */
@@ -180,11 +203,7 @@ export async function reenviarTicketEmail(
         .maybeSingle(),
     ])
 
-    const qrDataUrl = await QRCode.toDataURL(construirQrPayload(b.codigo), {
-      width: 280,
-      margin: 1,
-      color: { dark: '#111111', light: '#ffffff' },
-    })
+    const qrUrl = await qrHosteado(b.codigo)
 
     const html = await render(
       TicketEmail({
@@ -202,7 +221,7 @@ export async function reenviarTicketEmail(
           : '',
         eventoLugar: ev?.lugar ?? '',
         boletas: [
-          { codigo: b.codigo, qrDataUrl, tipoNombre: tipo?.nombre ?? 'General' },
+          { codigo: b.codigo, qrDataUrl: qrUrl, tipoNombre: tipo?.nombre ?? 'General' },
         ],
         logoUrl: await logoEmail(),
         orderUrl: `${sitioUrl()}/cuenta/boletas`,
@@ -272,11 +291,7 @@ export async function sendTicketsEmail(
   const conQr = await Promise.all(
     data.boletas.map(async (b) => ({
       ...b,
-      qrDataUrl: await QRCode.toDataURL(construirQrPayload(b.codigo), {
-        width: 280,
-        margin: 1,
-        color: { dark: '#111111', light: '#ffffff' },
-      }),
+      qrDataUrl: await qrHosteado(b.codigo),
     })),
   )
 

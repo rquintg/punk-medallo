@@ -10,7 +10,7 @@ const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/about", label: "Acerca de" },
   { href: "/eventos", label: "Toques" },
-  { href: "/boletas", label: "Boletas" },
+  // { href: "/boletas", label: "Boletas" }, — oculto hasta lanzar la boletería
   { href: "/descargas", label: "Descargas" },
   { href: "/fotos", label: "Registro Fotográfico" },
   // { href: "/tienda", label: "Tienda" },
