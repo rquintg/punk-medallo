@@ -18,6 +18,7 @@ interface DbEvento {
   hora_puertas: string | null
   edad_minima: number | null
   imagen_url: string | null
+  imagen_card_url: string | null
 }
 
 function mapEvento(row: DbEvento): EventoBoleto {
@@ -31,6 +32,7 @@ function mapEvento(row: DbEvento): EventoBoleto {
     horaPuertas: row.hora_puertas,
     edadMinima: row.edad_minima,
     imagenUrl: row.imagen_url,
+    imagenCardUrl: row.imagen_card_url,
     activo: true,
   }
 }
@@ -174,17 +176,22 @@ export async function contarCompradasPorUsuario(
   return count ?? 0
 }
 
-/** Máximo comprable ahora mismo por tipo para este usuario */
+/** Máximo comprable ahora mismo por tipo para este usuario + conteo global */
+export interface MaximoComprableResult {
+  maximos: Record<string, number>
+  ya: number
+  restante: number
+}
 export async function maximoComprable(
   usuarioId: string,
   evento: EventoConTipos,
-): Promise<Record<string, number>> {
+): Promise<MaximoComprableResult> {
   const ya = await contarCompradasPorUsuario(usuarioId, evento.id)
-  const restanteUsuario = Math.max(0, MAX_BOLETAS_POR_PERSONA - ya)
+  const restante = Math.max(0, MAX_BOLETAS_POR_PERSONA - ya)
 
-  const resultado: Record<string, number> = {}
+  const maximos: Record<string, number> = {}
   for (const t of evento.tipos) {
-    resultado[t.id] = Math.min(restanteUsuario, t.disponibles)
+    maximos[t.id] = Math.min(restante, t.disponibles)
   }
-  return resultado
+  return { maximos, ya, restante }
 }

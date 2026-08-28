@@ -27,7 +27,7 @@ export async function getBoleteriaStats(): Promise<BoleteriaStatsEvento[]> {
       .order('fecha_evento', { ascending: false })
       .limit(20),
     (admin.from('tipos_boleta') as any).select('id, evento_id, precio, cantidad_total'),
-    (admin.from('boletas') as any).select('tipo_id, evento_id, estado'),
+    (admin.from('boletas') as any).select('id, tipo_id, evento_id, estado').neq('estado', 'anulada').limit(10000),
     (admin.from('pedido_items') as any).select('tipo_boleta_id, precio, cantidad').not('tipo_boleta_id', 'is', null),
   ])
 

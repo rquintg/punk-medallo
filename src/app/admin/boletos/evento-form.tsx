@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ImageIcon } from 'lucide-react'
-import { crearEventoAction, actualizarEventoAction, subirImagenEventoAction } from '@/features/boletas/actions'
+import { crearEventoAction, actualizarEventoAction, subirImagenEventoAction, subirImagenCardEventoAction } from '@/features/boletas/actions'
 import type { EventoBoleto } from '@/features/boletas/types'
 
 /**
@@ -18,8 +18,11 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
   const [pending, start] = useTransition()
   const [subiendo, setSubiendo] = useState(false)
   const [imagenUrl, setImagenUrl] = useState(initial?.imagenUrl ?? '')
+  const [imagenCardUrl, setImagenCardUrl] = useState(initial?.imagenCardUrl ?? '')
   const [titulo, setTitulo] = useState(initial?.titulo ?? '')
   const fileRef = useRef<HTMLInputElement>(null)
+  const fileRefCard = useRef<HTMLInputElement>(null)
+  const [subiendoCard, setSubiendoCard] = useState(false)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -68,6 +71,29 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
       toast.error(e?.message ?? 'Error al subir')
     } finally {
       setSubiendo(false)
+    }
+  }
+
+  async function handleUploadCard() {
+    if (!initial) return
+    const file = fileRefCard.current?.files?.[0]
+    if (!file || file.size === 0) return toast.error('Selecciona una imagen primero')
+    if (!file.type.startsWith('image/')) return toast.error('Solo imágenes')
+    if (file.size > 10 * 1024 * 1024) return toast.error('Máximo 10 MB')
+
+    setSubiendoCard(true)
+    try {
+      const fd = new FormData()
+      fd.set('file', file)
+      const { url } = await subirImagenCardEventoAction(initial.id, initial.slug, fd)
+      setImagenCardUrl(url)
+      toast.success('Imagen cuadrada subida')
+      if (fileRefCard.current) fileRefCard.current.value = ''
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Error al subir')
+    } finally {
+      setSubiendoCard(false)
     }
   }
 
@@ -123,9 +149,13 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
         </div>
       </div>
 
-      {/* Imagen (solo edición) */}
+      {/* Imagen flyer (solo edición) */}
       <div className="card-section space-y-4">
-        <h3 className="admin-section-title">Portada</h3>
+        <h3 className="admin-section-title">Portada — Flyer del evento</h3>
+        <p className="-mt-2 text-xs text-[var(--admin-text-dim)]">
+          Se muestra en el hero del detalle del evento. Si usas un flyer vertical (ej: un póster),
+          el hero lo recortará a 21:9 — esto es intencional para cubrir el ancho.
+        </p>
         {esEdicion ? (
           <>
             {imagenUrl && (
@@ -134,19 +164,54 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
             )}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp"
-                disabled={subiendo || pending || !puede()}
+                disabled={subiendo || pending || subiendoCard || !puede()}
                 className="block w-full text-sm text-[var(--admin-text-muted)] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--admin-accent)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white disabled:opacity-50" />
               <button type="button" onClick={handleUpload} disabled={subiendo || pending}
                 className="shrink-0 rounded-md border border-[var(--admin-card-border)] px-4 py-2 text-sm font-semibold text-[var(--admin-text)] transition-colors hover:bg-[var(--admin-hover)] disabled:opacity-50">
-                {subiendo ? 'Subiendo...' : 'Subir'}
+                {subiendo ? 'Subiendo...' : 'Subir flyer'}
               </button>
             </div>
-            <span className="text-[11px] text-[var(--admin-text-dim)]">PNG, JPG o WebP. Max 10 MB. Ideal horizontal.</span>
+            <span className="text-[11px] text-[var(--admin-text-dim)]">PNG, JPG o WebP. Max 10 MB.</span>
           </>
         ) : (
           <p className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)]">
             <ImageIcon size={16} />
             Guarda el evento primero para poder subir la portada.
+          </p>
+        )}
+      </div>
+
+      {/* Imagen cuadrada para cards (solo edición) */}
+      <div className="card-section space-y-4">
+        <h3 className="admin-section-title">Imagen Card — Cuadrada 1:1</h3>
+        <p className="-mt-2 text-xs text-[var(--admin-text-dim)]">
+          Se muestra en las cards de /boletas con <code className="font-mono">aspect-square</code> (igual que los productos). Usa una foto recortada centrada en el motivo.
+        </p>
+        {esEdicion ? (
+          <>
+            {imagenCardUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imagenCardUrl} alt="Card del evento" className="h-40 w-40 rounded-lg border border-[var(--admin-card-border)] object-cover" />
+            ) : (
+              <p className="text-sm text-[var(--admin-text-dim)]">
+                Sin imagen cuadrada — la card usará el flyer como fallback (<code className="font-mono">imagenCardUrl ?? imagenUrl</code>).
+              </p>
+            )}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input ref={fileRefCard} type="file" accept="image/png,image/jpeg,image/webp"
+                disabled={subiendoCard || pending || !puede()}
+                className="block w-full text-sm text-[var(--admin-text-muted)] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--admin-accent)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white disabled:opacity-50" />
+              <button type="button" onClick={handleUploadCard} disabled={subiendoCard || pending}
+                className="shrink-0 rounded-md border border-[var(--admin-card-border)] px-4 py-2 text-sm font-semibold text-[var(--admin-text)] transition-colors hover:bg-[var(--admin-hover)] disabled:opacity-50">
+                {subiendoCard ? 'Subiendo...' : 'Subir cuadrada'}
+              </button>
+            </div>
+            <span className="text-[11px] text-[var(--admin-text-dim)]">PNG, JPG o WebP. Max 10 MB. Ideal 800×800.</span>
+          </>
+        ) : (
+          <p className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)]">
+            <ImageIcon size={16} />
+            Guarda el evento primero para poder subir la imagen cuadrada.
           </p>
         )}
       </div>

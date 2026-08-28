@@ -248,6 +248,8 @@ export interface TicketEmailData {
   orderNumber: string
   customerName: string
   email: string
+  /** Evento de las boletas — determinista, nunca inferir por nombre de tipo */
+  eventoId: string
   boletas: Array<{ codigo: string; tipoNombre: string }>
 }
 
@@ -262,21 +264,15 @@ export async function sendTicketsEmail(
   const siteUrl = sitioUrl()
   const logoUrl = await logoEmail()
 
-  // Evento: tomado de la primera boleta (todas son del mismo evento)
-  const { data: itemRow } = await (supabase.from('pedido_items') as any)
-    .select('evento_id')
-    .eq('nombre', data.boletas[0]?.tipoNombre ?? '')
-    .limit(1)
-    .maybeSingle()
-
+  // Evento: por id directo (todas las boletas son del mismo evento)
   let eventoTitulo = 'Evento Punk Medallo'
   let eventoFecha = ''
   let eventoLugar = ''
 
-  if (itemRow?.evento_id) {
+  if (data.eventoId) {
     const { data: ev } = await (supabase.from('eventos_boletos') as any)
       .select('titulo, fecha_evento, lugar')
-      .eq('id', itemRow.evento_id)
+      .eq('id', data.eventoId)
       .maybeSingle()
     if (ev) {
       eventoTitulo = ev.titulo

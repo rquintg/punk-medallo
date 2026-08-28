@@ -5,20 +5,22 @@ import { listarEventosActivos } from '@/features/boletas/services/public'
 import { formatearFecha } from '@/features/eventos/format'
 import Price from '@/components/tienda/price'
 import { ogImageActual } from '@/features/tienda/utils/seo'
+import CartDrawer from '@/components/tienda/cart-drawer'
+import { BoletasFilters } from '@/components/boletas/boletas-filters'
 
 export const revalidate = 60
 
 export async function generateMetadata(): Promise<Metadata> {
   const ogImage = await ogImageActual()
   return {
-    title: 'Boletas y Conciertos',
+    title: 'La Boleteria - Punk Medallo',
     description:
-      'Compra tus boletas para los conciertos de Punk Medallo. Pago seguro con Wompi, QR único por boleta.',
+      'Compra tus entradas para los conciertos de Punk Medallo.',
     alternates: { canonical: '/boletas' },
-    robots: { index: false, follow: true }, // boletería sin lanzar públicamente
+    robots: { index: false, follow: true },
     openGraph: {
-      title: 'Boletas y Conciertos - Punk Medallo',
-      description: 'Consigue tus boletas para los próximos toques.',
+      title: 'La Boleteria - Punk Medallo',
+      description: 'Compra tus entradas para los conciertos de Punk Medallo.',
       url: '/boletas',
       type: 'website',
       locale: 'es_CO',
@@ -37,112 +39,179 @@ const fechaCorta = (iso: string) =>
     minute: '2-digit',
   })
 
-export default async function BoletasPage() {
+function mesLabel(value: string) {
+  const [y, m] = value.split('-')
+  const d = new Date(Number(y), Number(m) - 1, 1)
+  return d.toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
+}
+
+export default async function BoletasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const activeMes = typeof params.mes === 'string' ? params.mes : ''
+  const activeLugar = typeof params.lugar === 'string' ? params.lugar : ''
+  const disponiblesOnly = params.disponibles === '1'
+
   const eventos = await listarEventosActivos()
 
+  // Opciones para filtros (derivadas de todos los eventos)
+  const mesesMap = new Map<string, string>()
+  const lugaresSet = new Set<string>()
+  for (const e of eventos) {
+    const key = e.fechaEvento.slice(0, 7)
+    if (!mesesMap.has(key)) mesesMap.set(key, mesLabel(key))
+    lugaresSet.add(e.lugar)
+  }
+  const meses = [...mesesMap.entries()].map(([value, label]) => ({ value, label })).sort((a, b) => a.value.localeCompare(b.value))
+  const lugares = [...lugaresSet].sort((a, b) => a.localeCompare(b))
+
+  // Filtrado server-side (seguridad + URL compartible, igual que /tienda)
+  let filtrados = eventos
+  if (activeMes) filtrados = filtrados.filter((e) => e.fechaEvento.slice(0, 7) === activeMes)
+  if (activeLugar) filtrados = filtrados.filter((e) => e.lugar.toLowerCase() === activeLugar.toLowerCase())
+  if (disponiblesOnly) filtrados = filtrados.filter((e) => e.tipos.some((t) => t.disponibles > 0))
+
+  const hasFilters = !!activeMes || !!activeLugar || disponiblesOnly
+
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-20 pb-16">
-      <header className="mb-10 text-center">
-        <p className="mb-2 font-mono text-xs uppercase tracking-[0.35em] text-[#dc2626]">
-          Boletería
-        </p>
-        <h1 className="text-3xl font-black uppercase tracking-wide text-white md:text-4xl">
-          Boletas y Conciertos
-        </h1>
-        <p className="mt-3 text-neutral-400">
-          Consigue tu boleta con QR único. Pago seguro, sin filas.
-        </p>
-      </header>
-
-      {eventos.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-800 bg-surface py-20 text-center">
-          <Ticket size={44} className="text-neutral-600" />
-          <div>
-            <p className="font-semibold text-neutral-300">No hay boletas a la venta ahora</p>
-            <p className="mt-1 text-sm text-neutral-500">
-              Mantente atento — anunciamos los próximos conciertos aquí.
-            </p>
+    <div className="min-h-screen bg-[#181818]">
+      {/* Hero negro como /blog y /eventos */}
+      <section className="border-b border-neutral-800 bg-[#101010]">
+        <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">Punk Medallo — Boletería</p>
+              <h1 className="mt-3 text-7xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
+                La <span className="text-[#dc2626]">Boleteria</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
+                Consigue tus entradas para los mejores eventos de las ciudad
+              </p>
+            </div>
+            <div className="shrink-0">
+              <CartDrawer />
+            </div>
           </div>
-          <Link
-            href="/eventos"
-            className="text-sm font-medium text-red-500 underline underline-offset-4 hover:text-red-400"
-          >
-            Ver agenda de toques
-          </Link>
+
+
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {eventos.map((e) => {
-            // precio "desde": el más barato entre los tipos con disponibilidad
-            const desde = e.tipos
-              .filter((t) => t.disponibles > 0)
-              .reduce<number | null>(
-                (min, t) => (min === null || t.precio < min ? t.precio : min),
-                null,
-              )
-            const agotado = e.tipos.every((t) => t.disponibles === 0)
+      </section>
 
-            return (
-              <Link
-                key={e.id}
-                href={`/boletas/${e.slug}`}
-                className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-surface transition-all duration-300 hover:border-[#a40202]/60 hover:shadow-lg hover:shadow-black/30"
-              >
-                <div className="relative aspect-[21/9] w-full overflow-hidden bg-neutral-900">
-                  {e.imagenUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={e.imagenUrl}
-                      alt={e.titulo}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <CalendarDays size={40} className="text-neutral-700" />
-                    </div>
-                  )}
-                  {agotado && (
-                    <span className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 text-lg font-black uppercase tracking-widest text-white">
-                      Agotado
-                    </span>
-                  )}
-                </div>
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="lg:flex lg:gap-8">
+          <aside className="hidden w-[250px] shrink-0 lg:block">
+            <div className="sticky top-24">
+              <BoletasFilters meses={meses} lugares={lugares} />
+            </div>
+          </aside>
 
-                <div className="flex flex-1 flex-col gap-2 p-5">
-                  <h2 className="text-lg font-bold leading-tight text-white transition-colors group-hover:text-[#dc2626]">
-                    {e.titulo}
-                  </h2>
+          <div className="min-w-0 flex-1">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <p className="font-mono text-xs uppercase tracking-widest text-neutral-500">
+                {hasFilters ? `Filtrados ${filtrados.length} de ${eventos.length}` : `${filtrados.length} evento${filtrados.length !== 1 ? 's' : ''}`}
+              </p>
+              <div className="lg:hidden">
+                <BoletasFilters meses={meses} lugares={lugares} />
+              </div>
+            </div>
 
-                  <p className="flex items-center gap-2 text-sm capitalize text-neutral-400">
-                    <CalendarDays size={15} className="shrink-0 text-neutral-500" />
-                    {fechaCorta(e.fechaEvento)}
+            {filtrados.length === 0 ? (
+              <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-800 bg-[#101010] py-16 text-center">
+                <Ticket size={44} className="text-neutral-600" />
+                <div>
+                  <p className="font-semibold text-neutral-300">
+                    {hasFilters ? 'No hay resultados con esos filtros' : 'No hay boletas a la venta ahora'}
                   </p>
-                  <p className="flex items-center gap-2 text-sm text-neutral-400">
-                    <MapPin size={15} className="shrink-0 text-neutral-500" />
-                    {e.lugar}
+                  <p className="mt-1 text-sm text-neutral-500">
+                    {hasFilters ? 'Prueba limpiando o cambiando los filtros.' : 'Mantente atento — anunciamos los próximos conciertos aquí.'}
                   </p>
-
-                  <div className="mt-auto flex items-end justify-between pt-3">
-                    <span className="text-xs uppercase tracking-wider text-neutral-500">
-                      {e.tipos.length} tipo{e.tipos.length !== 1 ? 's' : ''}
-                    </span>
-                    {desde !== null ? (
-                      <p className="text-right">
-                        <span className="mr-1.5 text-xs text-neutral-500">Desde</span>
-                        <span className="text-lg font-bold text-[#dc2626]">
-                          <Price amount={desde} />
-                        </span>
-                      </p>
-                    ) : (
-                      <span className="text-sm font-semibold text-neutral-500">Sin cupo</span>
-                    )}
-                  </div>
                 </div>
-              </Link>
-            )
-          })}
+                {hasFilters ? (
+                  <Link href="/boletas" className="text-sm font-medium text-red-500 underline underline-offset-4 hover:text-red-400">
+                    Limpiar filtros
+                  </Link>
+                ) : (
+                  <Link href="/eventos" className="text-sm font-medium text-red-500 underline underline-offset-4 hover:text-red-400">
+                    Ver agenda de toques
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2">
+                {filtrados.map((e) => {
+                  const desde = e.tipos
+                    .filter((t) => t.disponibles > 0)
+                    .reduce<number | null>((min, t) => (min === null || t.precio < min ? t.precio : min), null)
+                  const agotado = e.tipos.every((t) => t.disponibles === 0)
+                  const dia = new Date(e.fechaEvento).getDate()
+                  const mes = new Date(e.fechaEvento).toLocaleDateString('es-CO', { month: 'short' })
+
+                  return (
+                    <Link
+                      key={e.id}
+                      href={`/boletas/${e.slug}`}
+                      className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-[#101010] transition-all duration-300 hover:border-[#a40202]/60 hover:shadow-lg hover:shadow-black/30 hover:-translate-y-1"
+                    >
+                      <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-900">
+                        {(e.imagenCardUrl ?? e.imagenUrl) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={(e.imagenCardUrl ?? e.imagenUrl)!}
+                            alt={e.titulo}
+                            className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <CalendarDays size={40} className="text-neutral-700" />
+                          </div>
+                        )}
+                        <div className="absolute left-3 top-3 flex flex-col items-center rounded-lg bg-white px-2.5 py-1.5 text-center shadow-md">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-red-600">{mes}</span>
+                          <span className="text-xl font-black leading-none text-black">{dia}</span>
+                        </div>
+                        {agotado && (
+                          <span className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 text-lg font-black uppercase tracking-widest text-white">
+                            Agotado
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="h-px w-full bg-neutral-800" />
+
+                      <div className="flex flex-1 flex-col gap-2 p-5">
+                        <h2 className="text-lg font-bold leading-tight text-white transition-colors group-hover:text-[#dc2626]">{e.titulo}</h2>
+                        <p className="flex items-center gap-2 text-sm capitalize text-neutral-400">
+                          <CalendarDays size={15} className="shrink-0 text-neutral-500" />
+                          {fechaCorta(e.fechaEvento)}
+                        </p>
+                        <p className="flex items-center gap-2 text-sm text-neutral-400">
+                          <MapPin size={15} className="shrink-0 text-neutral-500" />
+                          {e.lugar}
+                        </p>
+                        <div className="mt-auto flex items-end justify-between pt-3">
+                          <span className="rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                            {e.tipos.length} tipo{e.tipos.length !== 1 ? 's' : ''}
+                          </span>
+                          {desde !== null ? (
+                            <span className="rounded-full bg-[#dc2626] px-3 py-1 text-xs font-bold text-white">
+                              Desde <Price amount={desde} />
+                            </span>
+                          ) : (
+                            <span className="text-sm font-semibold text-neutral-500">Sin cupo</span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </main>
     </div>
   )
 }

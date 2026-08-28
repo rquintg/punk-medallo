@@ -52,7 +52,7 @@ export default function BoleteriaCard({ stats }: { stats: BoleteriaStatsEvento[]
                       )}
                     </td>
                     <td className="py-2.5 pr-4 text-[var(--admin-text-muted)]">
-                      {new Date(e.fechaEvento).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {new Date(e.fechaEvento).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="py-2.5 pr-4">
                       <span className="font-semibold text-[var(--admin-text)]">{e.vendidas}</span>

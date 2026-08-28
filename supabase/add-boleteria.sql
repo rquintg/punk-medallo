@@ -14,6 +14,7 @@ create table if not exists eventos_boletos (
   hora_puertas text,
   edad_minima integer,
   imagen_url text,
+  imagen_card_url text,
   activo boolean not null default true,
   created_at timestamptz not null default now()
 );

@@ -52,9 +52,17 @@ const sections = [
     body: (
       <>
         <strong>Información que nos proporcionas:</strong> cuando usas nuestro
-        formulario de contacto o creas una cuenta en la tienda, recopilamos los
-        datos que envías voluntariamente (nombre, correo electrónico, mensaje,
-        dirección de envío cuando realizas una compra).
+        formulario de contacto, creas una cuenta en la tienda o compras
+        merch o boletas, recopilamos los datos que envías voluntariamente
+        (nombre, correo electrónico, mensaje, teléfono, dirección de envío
+        cuando aplica, y para boletería: titular de la boleta, evento,
+        tipo de boleta, código QR PM-TKT y estado de validación).
+        <br />
+        <br />
+        <strong>Finalidades de boletería:</strong> emisión y validación de
+        boletas nominativas, control anti-reventa (límite 4 por persona y
+        evento), envío del QR por correo y soporte en puerta, y prevención
+        de fraude.
         <br />
         <br />
         <strong>Información técnica:</strong> podemos recopilar de forma
@@ -75,7 +83,8 @@ const sections = [
         <br />
         <br />
         <strong>Cookies propias:</strong> utilizadas para el funcionamiento de
-        la tienda (carrito, sesión de usuario) y las preferencias del sitio.
+        la tienda (carrito, sesión de usuario, persistencia del checkout de
+        boletas pm-boletas-checkout-v2) y las preferencias del sitio.
         <br />
         <br />
         <strong>Cookies de terceros:</strong> terceros, incluido Google, pueden
@@ -212,7 +221,7 @@ export default function PoliticaDePrivacidad() {
         Política de Privacidad
       </h1>
       <p className="mt-3 font-mono text-xs text-neutral-500">
-        Última actualización: agosto de 2026
+        Última actualización: septiembre de 2026
       </p>
 
       <div className="mt-10 flex flex-col gap-8">
@@ -236,6 +245,10 @@ export default function PoliticaDePrivacidad() {
         Consulta también nuestra{" "}
         <Link href="/politica-de-cambios" className="text-[#dc2626] underline underline-offset-2">
           política de cambios
+        </Link>{" "}
+        y nuestros{" "}
+        <Link href="/terminos-boleteria" className="text-[#dc2626] underline underline-offset-2">
+          términos de boletería
         </Link>
         . Preguntas sobre esta política: usa nuestra página de{" "}
         <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">

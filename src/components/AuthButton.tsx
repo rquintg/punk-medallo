@@ -68,14 +68,6 @@ export default function AuthButton() {
   return (
     <div className="flex items-center gap-2">
       <Link
-        href="/tienda/rastrear"
-        className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
-        title="Rastrear pedido"
-      >
-        <PackageSearch size={18} aria-hidden="true" />
-        <span className="hidden text-xs md:inline">Rastrear</span>
-      </Link>
-      <Link
         href="/login"
         className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
       >

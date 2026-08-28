@@ -10,6 +10,7 @@ export interface EventoBoleto {
   horaPuertas: string | null
   edadMinima: number | null
   imagenUrl: string | null
+  imagenCardUrl: string | null
   activo: boolean
 }
 

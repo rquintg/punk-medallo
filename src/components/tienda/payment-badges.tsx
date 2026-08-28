@@ -4,6 +4,7 @@ import { Banknote } from 'lucide-react'
 interface PaymentBadgesProps {
   highlight?: 'wompi' | 'contra_entrega'
   label?: string
+  hideEfectivo?: boolean
 }
 
 const LOGOS: { src: string; alt: string; title: string; width: number; height: number }[] = [
@@ -16,7 +17,7 @@ const LOGOS: { src: string; alt: string; title: string; width: number; height: n
   { src: '/pagos/Qr.svg', alt: 'QR Bancolombia', title: 'QR Bancolombia', width: 48, height: 48 },
 ]
 
-export default function PaymentBadges({ highlight, label = 'Aceptamos' }: PaymentBadgesProps) {
+export default function PaymentBadges({ highlight, label = 'Aceptamos', hideEfectivo = false }: PaymentBadgesProps) {
   const efectivoActive = highlight === 'contra_entrega'
   const logosDim = !highlight ? ' opacity-50 grayscale' : ''
 
@@ -42,14 +43,16 @@ export default function PaymentBadges({ highlight, label = 'Aceptamos' }: Paymen
         </span>
       ))}
 
-      <span
-        className={`flex h-8 shrink-0 items-center gap-1 rounded border px-2 text-[11px] font-semibold ${efectivoActive ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400 ring-2 ring-emerald-500' : 'border-neutral-700 bg-[#181818] text-emerald-400'}`}
-        aria-label="Efectivo contra entrega"
-        title="Contra entrega"
-      >
-        <Banknote size={13} />
-        Efectivo
-      </span>
+      {!hideEfectivo && (
+        <span
+          className={`flex h-8 shrink-0 items-center gap-1 rounded border px-2 text-[11px] font-semibold ${efectivoActive ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400 ring-2 ring-emerald-500' : 'border-neutral-700 bg-[#181818] text-emerald-400'}`}
+          aria-label="Efectivo contra entrega"
+          title="Contra entrega"
+        >
+          <Banknote size={13} />
+          Efectivo
+        </span>
+      )}
     </div>
   )
 }

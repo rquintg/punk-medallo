@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
 
   if (actual.estado === 'usada') {
     const cuando = actual.escaneada_en
-      ? new Date(actual.escaneada_en).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'medium' })
+      ? new Date(actual.escaneada_en).toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'short', timeStyle: 'medium' })
       : ''
     return NextResponse.json({
       ok: false,

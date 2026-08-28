@@ -111,6 +111,7 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     ultimasRes,
     itemsUltimasRes,
     codRes,
+    boleteriaPedidosRes,
   ] = await Promise.all([
     supabase.from('pedidos').select(seleccionPedido).in('estado', ESTADOS_VALIDOS).gte('created_at', desde),
     supabase.from('pedidos').select(seleccionPedido).in('estado', ESTADOS_VALIDOS).gte('created_at', desdePrev).lt('created_at', desde),
@@ -121,14 +122,16 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
       'cantidad, precio, pedido_id, productos!inner(nombre, slug, categorias(nombre))',
     ),
     supabase.from('pedidos').select('id, descuento').not('cupon_id', 'is', null),
-    supabase.from('pedidos').select('estado, acepta_politicas'),
-    supabase.from('pedidos').select('id, numero_pedido, nombre_entrega, total, estado, metodo_pago, created_at').order('created_at', { ascending: false }).limit(5),
+    supabase.from('pedidos').select('id, estado, acepta_politicas'),
+    supabase.from('pedidos').select('id, numero_pedido, nombre_entrega, total, estado, metodo_pago, created_at').order('created_at', { ascending: false }).limit(20),
     (supabase.from('pedido_items') as any).select('pedido_id'),
     supabase.from('pedidos').select('total').in('estado', ['aprobado', 'preparando', 'enviado']).eq('metodo_pago', 'CONTRA_ENTREGA'),
+    (supabase.from('pedido_items') as any).select('pedido_id').not('tipo_boleta_id', 'is', null),
   ])
 
-  const pedidosRango = (rangoRes.data ?? []) as PedidoAnalytics[]
-  const pedidosPrevios = (previoRes.data ?? []) as PedidoAnalytics[]
+  const boleteriaIds = new Set(((boleteriaPedidosRes.data ?? []) as { pedido_id: string }[]).map((r) => r.pedido_id))
+  const pedidosRango = ((rangoRes.data ?? []) as PedidoAnalytics[]).filter((p) => !boleteriaIds.has(p.id))
+  const pedidosPrevios = ((previoRes.data ?? []) as PedidoAnalytics[]).filter((p) => !boleteriaIds.has(p.id))
 
   let totalIngresos = 0
   let totalOrdenes = 0
@@ -208,7 +211,8 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     .map(([nombre, v]) => ({ nombre, ingresos: v.ingresos }))
     .sort((a, b) => b.ingresos - a.ingresos)
 
-  const estadosRaw = (estadosRes.data ?? []) as { estado: string; acepta_politicas: boolean | null }[]
+  const estadosRawAll = (estadosRes.data ?? []) as { id: string; estado: string; acepta_politicas: boolean | null }[]
+  const estadosRaw = estadosRawAll.filter((r) => !boleteriaIds.has(r.id))
   const ordenesPorEstado = Object.entries(
     estadosRaw.reduce((acc: Record<string, number>, item) => {
       const e = item.estado
@@ -222,10 +226,12 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     ? Math.round((estadosRaw.filter((p) => p.acepta_politicas === true).length / politicasTotal) * 100)
     : 0
 
-  const cuponesData = (cuponesRes.data ?? []) as { id: string; descuento: number | null }[]
+  const cuponesDataAll = (cuponesRes.data ?? []) as { id: string; descuento: number | null }[]
+  const cuponesData = cuponesDataAll.filter((r) => !boleteriaIds.has(r.id))
   const cuponesDescontado = cuponesData.reduce((sum, c) => sum + (c.descuento ?? 0), 0)
 
-  const ultimasOrdenesRaw = (ultimasRes.data as unknown as (UltimaOrdenInfo & { id: string })[]) ?? []
+  const ultimasOrdenesAll = (ultimasRes.data as unknown as (UltimaOrdenInfo & { id: string })[]) ?? []
+  const ultimasOrdenesRaw = ultimasOrdenesAll.filter((r) => !boleteriaIds.has(r.id)).slice(0, 5)
   const itemsUltimas = (itemsUltimasRes.data ?? []) as { pedido_id: string }[]
   const itemsPorPedido = new Map<string, number>()
   for (const i of itemsUltimas) {
@@ -264,6 +270,7 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
   const codData = (codRes.data ?? []) as { total: number | null }[]
   const contraEntregaPorCobrar = codData.reduce((sum, p) => sum + (p.total ?? 0), 0)
 
+  const porEnviarFiltrado = ((porEnviarRes.data ?? []) as { id: string }[]).filter((r) => !boleteriaIds.has(r.id)).length
   return {
     rango,
     totalIngresos,
@@ -280,7 +287,7 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     cuponesUsados: cuponesData.length,
     cuponesDescontado,
     ultimasOrdenes,
-    porEnviar: (porEnviarRes.data as unknown as unknown[])?.length ?? 0,
+    porEnviar: porEnviarFiltrado,
     stockBajo,
     contraEntregaPorCobrar,
     contraEntregaPedidos: codData.length,

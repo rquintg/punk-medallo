@@ -102,6 +102,12 @@ const NAV_GROUPS: {
         permission: 'manage_boleteria',
       },
       {
+        label: 'Informe',
+        href: '/admin/boletos/reporte',
+        icon: ChartColumn,
+        permission: 'manage_boleteria',
+      },
+      {
         label: 'Escáner QR',
         href: '/admin/escaner',
         icon: QrCode,

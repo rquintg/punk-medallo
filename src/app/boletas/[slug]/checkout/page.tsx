@@ -19,14 +19,8 @@ export default async function CheckoutBoletasPage({
   if (!evento) notFound()
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-20 pb-16">
-      <h1 className="mb-1 text-2xl font-black uppercase italic tracking-wide text-white md:text-3xl">
-        Pago de boletas
-      </h1>
-      <p className="mb-8 text-sm text-neutral-400">
-        {evento.titulo} · {evento.lugar}
-      </p>
-      <CheckoutBoletas slug={slug} />
+    <div className="mx-auto max-w-7xl px-4 pt-20 pb-16">
+      <CheckoutBoletas slug={slug} eventoTitulo={evento.titulo} eventoLugar={evento.lugar} />
     </div>
   )
 }

@@ -16,6 +16,7 @@ interface DbEvento {
   hora_puertas: string | null
   edad_minima: number | null
   imagen_url: string | null
+  imagen_card_url: string | null
   activo: boolean
 }
 
@@ -53,6 +54,7 @@ function mapEvento(row: DbEvento): EventoBoleto {
     horaPuertas: row.hora_puertas,
     edadMinima: row.edad_minima,
     imagenUrl: row.imagen_url,
+    imagenCardUrl: row.imagen_card_url,
     activo: row.activo,
   }
 }
@@ -139,6 +141,7 @@ export interface EventoInput {
   horaPuertas: string | null
   edadMinima: number | null
   imagenUrl: string | null
+  imagenCardUrl: string | null
   activo: boolean
 }
 
@@ -154,6 +157,7 @@ export async function createEvento(input: EventoInput): Promise<string> {
       hora_puertas: input.horaPuertas,
       edad_minima: input.edadMinima,
       imagen_url: input.imagenUrl,
+      imagen_card_url: input.imagenCardUrl,
       activo: input.activo,
     })
     .select('id')
@@ -175,6 +179,7 @@ export async function updateEvento(id: string, input: Partial<EventoInput>): Pro
   if (input.horaPuertas !== undefined) payload.hora_puertas = input.horaPuertas
   if (input.edadMinima !== undefined) payload.edad_minima = input.edadMinima
   if (input.imagenUrl !== undefined) payload.imagen_url = input.imagenUrl
+  if (input.imagenCardUrl !== undefined) payload.imagen_card_url = input.imagenCardUrl
   if (input.activo !== undefined) payload.activo = input.activo
 
   const { error } = await (supabase.from('eventos_boletos') as any).update(payload).eq('id', id)

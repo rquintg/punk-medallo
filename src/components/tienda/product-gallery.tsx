@@ -11,9 +11,10 @@ interface ProductGalleryProps {
   selectedColor?: string | null;
   imageIndex: number;
   onImageChange: (index: number) => void;
+  aspect?: 'square' | 'portrait';
 }
 
-export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, onImageChange }: ProductGalleryProps) {
+export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, onImageChange, aspect = 'square' }: ProductGalleryProps) {
   const filtered = useMemo(() => {
     if (!selectedColor) return imagenes
     const color = imagenes.filter((i) => i.color === selectedColor)
@@ -53,7 +54,7 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
   return (
     <div className="flex flex-col gap-4">
       <div
-        className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-lg bg-neutral-900"
+        className={`relative w-full cursor-zoom-in overflow-hidden rounded-lg bg-neutral-900 ${aspect === 'portrait' ? 'aspect-[3/4]' : 'aspect-square'}`}
         onClick={() => setLightbox(true)}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}

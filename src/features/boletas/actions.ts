@@ -46,6 +46,7 @@ export async function crearEventoAction(formData: FormData): Promise<{ id: strin
     horaPuertas: (formData.get('horaPuertas') as string)?.trim() || null,
     edadMinima: formData.get('edadMinima') ? Number(formData.get('edadMinima')) : null,
     imagenUrl: null,
+    imagenCardUrl: null,
     activo: true,
   })
 
@@ -104,6 +105,38 @@ export async function subirImagenEventoAction(eventoId: string, slug: string, fo
 
   const { data: { publicUrl } } = supabase.storage.from('productos').getPublicUrl(path)
   await updateEvento(eventoId, { imagenUrl: publicUrl })
+
+  revalidate()
+  return { url: publicUrl }
+}
+
+/** Sube la imagen cuadrada de la card (1:1) y la guarda como imagen_card_url */
+export async function subirImagenCardEventoAction(
+  eventoId: string,
+  slug: string,
+  formData: FormData,
+): Promise<{ url: string }> {
+  await requirePermissionAction('manage_boleteria')
+  const supabase = getSupabaseAdmin()
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) throw new Error('Archivo requerido')
+  if (!file.type.startsWith('image/')) throw new Error('Solo se permiten archivos de imagen')
+  if (file.size > 10 * 1024 * 1024) throw new Error('La imagen no puede superar 10 MB')
+
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  if (!ext || !['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
+    throw new Error('Formato no permitido. Usa PNG, JPG o WebP')
+  }
+
+  const path = `eventos/${slug}/card-${crypto.randomUUID()}.${ext}`
+  const { error: uploadError } = await supabase.storage.from('productos').upload(path, file, {
+    contentType: file.type,
+  })
+  if (uploadError) throw new Error(uploadError.message)
+
+  const { data: { publicUrl } } = supabase.storage.from('productos').getPublicUrl(path)
+  await updateEvento(eventoId, { imagenCardUrl: publicUrl })
 
   revalidate()
   return { url: publicUrl }

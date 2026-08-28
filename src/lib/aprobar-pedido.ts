@@ -267,6 +267,7 @@ export async function aprobarPedido(
             orderNumber: pedido.numero_pedido,
             customerName: pedido.nombre_entrega,
             email: pedido.email,
+            eventoId: boletasPorGenerar[0]?.eventoId ?? '',
             boletas: emitidas,
           },
           supabase,

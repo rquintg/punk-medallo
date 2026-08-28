@@ -23,6 +23,8 @@ const MAX_ITEMS = 10
 interface BoletaCheckoutRequest {
   items: Array<{ tipoId: string; cantidad: number }>
   cuponCodigo?: string
+  nombre?: string
+  telefono?: string
 }
 
 function getSupabase(request: NextRequest) {
@@ -280,9 +282,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. Insert pedido (envio/recargo 0; dirección placeholder — la boleta no se envía)
+    const rawNombre = typeof body.nombre === 'string' ? body.nombre.trim().slice(0, 60) : ''
+    const rawTelefono = typeof body.telefono === 'string' ? body.telefono.replace(/\D/g, '').slice(0, 15) : ''
     const nombreUsuario =
-      (user.user_metadata?.name as string | undefined)?.trim() ||
-      (user.email.split('@')[0] ?? 'Comprador')
+      rawNombre.length >= 2
+        ? rawNombre
+        : ((user.user_metadata?.name as string | undefined)?.trim() ||
+          (user.email.split('@')[0] ?? 'Comprador'))
+    const telefonoLimpio = rawTelefono.length >= 10 ? rawTelefono : ''
 
     const { data: pedidoInsertado, error: pedidoError } = await (admin.from('pedidos') as any)
       .insert({
@@ -290,7 +297,7 @@ export async function POST(request: NextRequest) {
         numero_pedido: orderNumber,
         nombre_entrega: nombreUsuario,
         email: user.email,
-        telefono: '—',
+        telefono: telefonoLimpio || '—',
         direccion: '—',
         ciudad: '—',
         departamento: '—',
@@ -331,7 +338,7 @@ export async function POST(request: NextRequest) {
       variante_id: null,
       tipo_boleta_id: t.id,
       evento_id: t.evento_id,
-      nombre: t.nombre,
+      nombre: `${evento.titulo} — ${t.nombre}`,
       precio: t.precio,
       talla: null,
       color: null,
