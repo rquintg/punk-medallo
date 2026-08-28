@@ -1,8 +1,10 @@
+import { formatBogota } from '@/lib/format-bogota'
+
 /** Formato solo dia/mes/anio para boletas (sin hora). fecha_evento es timestamptz. */
 export function formatearFechaBoleta(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const s = d.toLocaleDateString('es-CO', {
+  const s = formatBogota(iso, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

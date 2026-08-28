@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, ShieldCheck, AlertTriangle, Ticket, User, Mail, Phone } from 'lucide-react'
+import { Loader2, ShieldCheck, AlertTriangle, Ticket, Mail, Phone } from 'lucide-react'
 import { toast } from 'sonner'
 import Price from '@/components/tienda/price'
 import CuponCheckout from '@/components/tienda/cupon-checkout'
@@ -24,6 +24,7 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
     aceptaTerminosBoleteria,
     cupon,
     step,
+    hydrated,
     setField,
     setCupon,
     setStep,
@@ -35,13 +36,17 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
 
   const [clienteEmail, setClienteEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [hydrated, setHydrated] = useState(false)
+  const closeGuardRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Hydration gate + compat con sessionStorage legacy + prefill email/nombre
+  useEffect(() => () => {
+    if (closeGuardRef.current) clearTimeout(closeGuardRef.current)
+  }, [])
+
+  // compat: migra legacy sessionStorage si el store esta vacio (un efecto aislado)
   useEffect(() => {
-    // compat: si el store esta vacio pero sessionStorage tiene seleccion, migrar
-    try {
-      if ((!items || items.length === 0) && storedSlug !== slug) {
+    if (!hydrated) return
+    if ((items.length === 0) && storedSlug !== slug) {
+      try {
         const raw = sessionStorage.getItem('pm_boletas_checkout')
         if (raw) {
           const data = JSON.parse(raw)
@@ -49,22 +54,26 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
             useBoletasCheckout.getState().setItems(data.items, slug)
           }
         }
-      }
-    } catch {}
-    // prefill desde auth (email siempre fresco, nombre solo si vacio)
+      } catch {}
+    }
+  }, [hydrated, slug, items, storedSlug])
+
+  // prefill email/nombre desde auth (con abort para evitar setState en slug viejo)
+  useEffect(() => {
+    const ctrl = new AbortController()
     ;(async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
+      if (ctrl.signal.aborted) return
       if (user) {
         setClienteEmail(user.email ?? '')
         const metaName = (user.user_metadata?.name as string) ?? ''
-        if (metaName && !useBoletasCheckout.getState().clienteNombre) {
-          setField({ clienteNombre: metaName })
-        }
+        const cur = useBoletasCheckout.getState().clienteNombre
+        if (metaName && !cur) setField({ clienteNombre: metaName })
       }
     })()
-    setHydrated(true)
-  }, [slug, items, storedSlug, setField])
+    return () => ctrl.abort()
+  }, [setField])
 
   const subtotal = getSubtotal()
   const total = getTotal()
@@ -130,13 +139,14 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
           fullName: clienteNombre.trim(),
           email: clienteEmail,
           phoneNumber: phoneDigits,
+          phoneNumberPrefix: '+57',
         },
       })
 
-      const closeGuard = setTimeout(() => setLoading(false), 30000)
+      closeGuardRef.current = setTimeout(() => setLoading(false), 30000)
 
       checkout.open((result) => {
-        clearTimeout(closeGuard)
+        if (closeGuardRef.current) clearTimeout(closeGuardRef.current)
         setLoading(false)
         clear()
         try {
@@ -261,9 +271,9 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
                   <span>
                     Acepto los{' '}
                     <Link href="/terminos-boleteria" target="_blank" rel="noopener noreferrer" className="text-red-500 underline underline-offset-2 hover:text-red-400">
-                      terminos de boleteria
+                      terminos y usos
                     </Link>{' '}
-                    (boleta nominativa, QR unico, limite 4 por persona, no reembolsable). *
+                    de la boleteria *
                   </span>
                 </label>
 

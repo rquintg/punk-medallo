@@ -23,15 +23,15 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
     return [...color, ...rest]
   }, [imagenes, selectedColor])
 
-  const index = Math.min(Math.max(imageIndex, 0), filtered.length - 1);
-  const prevIndex = index > 0 ? index - 1 : filtered.length - 1;
-  const nextIndex = index < filtered.length - 1 ? index + 1 : 0;
+  const index = filtered.length > 0 ? Math.min(Math.max(imageIndex, 0), filtered.length - 1) : 0
+  const prevIndex = filtered.length > 0 ? (index > 0 ? index - 1 : filtered.length - 1) : 0
+  const nextIndex = filtered.length > 0 ? (index < filtered.length - 1 ? index + 1 : 0) : 0
   const [lightbox, setLightbox] = useState(false)
   const [zoom, setZoom] = useState(false)
   const touchX = useRef(0)
 
   useEffect(() => {
-    if (!lightbox) return
+    if (!lightbox || filtered.length === 0) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightbox(false)
       if (e.key === 'ArrowLeft') onImageChange(prevIndex)
@@ -40,7 +40,7 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
-  }, [lightbox, prevIndex, nextIndex, onImageChange])
+  }, [lightbox, filtered.length, prevIndex, nextIndex, onImageChange])
 
   function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0].clientX }
   function onTouchEnd(e: React.TouchEvent) {
@@ -135,10 +135,13 @@ export function ProductGallery({ imagenes, nombre, selectedColor, imageIndex, on
           >
             <ChevronLeft size={24} />
           </button>
-          <img
-            src={filtered[index]?.url}
+          <Image
+            src={filtered[index]?.url ?? ''}
             alt={filtered[index]?.alt ?? nombre}
-            className={`max-h-[85vh] max-w-[90vw] object-contain transition-transform duration-300 ${zoom ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'}`}
+            width={1200}
+            height={900}
+            unoptimized
+            className={`max-h-[85vh] max-w-[90vw] w-auto h-auto object-contain transition-transform duration-300 ${zoom ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'}`}
             onClick={(e) => { e.stopPropagation(); setZoom((z) => !z) }}
           />
           <button

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { CalendarDays, MapPin, Ticket } from 'lucide-react'
 import { listarEventosActivos } from '@/features/boletas/services/public'
-import { formatearFecha } from '@/features/eventos/format'
 import Price from '@/components/tienda/price'
+import { formatBogota } from '@/lib/format-bogota'
 import { ogImageActual } from '@/features/tienda/utils/seo'
 import CartDrawer from '@/components/tienda/cart-drawer'
 import { BoletasFilters } from '@/components/boletas/boletas-filters'
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const fechaCorta = (iso: string) =>
-  new Date(iso).toLocaleDateString('es-CO', {
+  formatBogota(iso, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -42,7 +43,7 @@ const fechaCorta = (iso: string) =>
 function mesLabel(value: string) {
   const [y, m] = value.split('-')
   const d = new Date(Number(y), Number(m) - 1, 1)
-  return d.toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
+  return formatBogota(d.toISOString(), { month: 'short', year: 'numeric' })
 }
 
 export default async function BoletasPage({
@@ -146,8 +147,8 @@ export default async function BoletasPage({
                     .filter((t) => t.disponibles > 0)
                     .reduce<number | null>((min, t) => (min === null || t.precio < min ? t.precio : min), null)
                   const agotado = e.tipos.every((t) => t.disponibles === 0)
-                  const dia = new Date(e.fechaEvento).getDate()
-                  const mes = new Date(e.fechaEvento).toLocaleDateString('es-CO', { month: 'short' })
+                  const dia = formatBogota(e.fechaEvento, { day: 'numeric' })
+                  const mes = formatBogota(e.fechaEvento, { month: 'short' })
 
                   return (
                     <Link
@@ -155,12 +156,14 @@ export default async function BoletasPage({
                       href={`/boletas/${e.slug}`}
                       className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-[#101010] transition-all duration-300 hover:border-[#a40202]/60 hover:shadow-lg hover:shadow-black/30 hover:-translate-y-1"
                     >
-                      <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-900">
+                       <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-900">
                         {(e.imagenCardUrl ?? e.imagenUrl) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={(e.imagenCardUrl ?? e.imagenUrl)!}
                             alt={e.titulo}
+                            width={800}
+                            height={800}
+                            unoptimized
                             className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-105"
                           />
                         ) : (

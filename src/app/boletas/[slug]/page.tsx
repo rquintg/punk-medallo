@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, CalendarDays, Clock, MapPin, ShieldCheck } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getEventoPublicoBySlug, maximoComprable } from '@/features/boletas/services/public'
 import { getProductosDestacados } from '@/features/tienda/services/products'
@@ -75,7 +74,7 @@ export default async function EventoBoletasPage({ params }: PageProps) {
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
         <div className="w-full lg:w-3/5">
           {imagenes.length > 0 ? (
-            <BoletasGalleryClient imagenes={imagenes as any} nombre={evento.titulo} />
+            <BoletasGalleryClient imagenes={imagenes as unknown as import('@/features/tienda/types').ProductImage[]} nombre={evento.titulo} />
           ) : (
             <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900">
               <CalendarDays size={48} className="text-neutral-700" />

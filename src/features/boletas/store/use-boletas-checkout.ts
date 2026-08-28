@@ -71,6 +71,9 @@ export const useBoletasCheckout = create<BoletasCheckoutState>()(
         cupon: state.cupon,
         step: state.step,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true)
+      },
     },
   ),
 )

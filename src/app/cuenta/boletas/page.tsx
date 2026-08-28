@@ -108,9 +108,10 @@ export default async function MisBoletasPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h2 className="font-bold leading-tight text-white">{b.evento_titulo}</h2>
-                      <p className="mt-1.5 flex items-center gap-1.5 text-xs capitalize text-neutral-400">
+                       <p className="mt-1.5 flex items-center gap-1.5 text-xs capitalize text-neutral-400">
                         <CalendarDays size={13} className="text-[#dc2626]" />
                         {new Date(b.evento_fecha).toLocaleString('es-CO', {
+                          timeZone: 'America/Bogota',
                           weekday: 'long',
                           day: 'numeric',
                           month: 'long',
@@ -153,6 +154,7 @@ export default async function MisBoletasPage() {
                     <p className="mt-0.5 text-[11px] text-neutral-600">
                       Comprada el{' '}
                       {new Date(b.created_at).toLocaleDateString('es-CO', {
+                        timeZone: 'America/Bogota',
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',

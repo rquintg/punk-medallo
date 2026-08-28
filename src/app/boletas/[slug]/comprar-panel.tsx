@@ -75,10 +75,6 @@ export default function ComprarPanel({
     if (items.length === 0) return
 
     useBoletasCheckout.getState().setItems(items, slug)
-    // compat: mantener sessionStorage para deep-links antiguos
-    try {
-      sessionStorage.setItem('pm_boletas_checkout', JSON.stringify({ slug, items }))
-    } catch {}
     router.push(`/boletas/${slug}/checkout`)
   }
 
