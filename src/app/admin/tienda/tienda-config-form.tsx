@@ -122,6 +122,26 @@ export default function TiendaConfigForm({ initial, puedeEditar }: { initial: Ti
 
   return (
     <div className="space-y-6">
+      {/* Visibilidad */}
+      <div className="card-section space-y-5">
+        <h3 className="admin-section-title">Visibilidad</h3>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-[var(--admin-text)]">Tienda</p>
+            <p className="text-sm text-[var(--admin-text-muted)]">Muestra /tienda en navbar. Si está off, se ve “Tienda en mantenimiento”.</p>
+          </div>
+          <Toggle checked={initial.tiendaActiva} disabled={pending || !puedeEditar} onChange={(v) => toggle('tienda_activa', v)} />
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-[var(--admin-text)]">Boletería</p>
+            <p className="text-sm text-[var(--admin-text-muted)]">Muestra /boletas en navbar. Si está off, se ve “Boletería en mantenimiento”.</p>
+          </div>
+          <Toggle checked={initial.boleteriaActiva} disabled={pending || !puedeEditar} onChange={(v) => toggle('boleteria_activa', v)} />
+        </div>
+        <p className="text-[11px] text-[var(--admin-text-dim)]">Cuando está en mantenimiento, la API de checkout también responde 503 — nadie puede pagar por URL directa.</p>
+      </div>
+
       {/* Marca */}
       <div className="card-section space-y-5">
         <h3 className="admin-section-title">Marca</h3>

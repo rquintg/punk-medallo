@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
+import { formatBogota } from '@/lib/format-bogota'
 
 export default function ReporteFilters({
   eventos,
@@ -19,6 +20,14 @@ export default function ReporteFilters({
   const sp = useSearchParams()
   const [q, setQ] = useState(defaultQ)
   const [isPending, startTransition] = useTransition()
+  const opciones = useMemo(
+    () =>
+      eventos.map((e) => ({
+        id: e.id,
+        label: `${e.titulo} — ${formatBogota(e.fechaEvento, { day: '2-digit', month: 'short', year: 'numeric' })}`,
+      })),
+    [eventos],
+  )
 
   function push(params: Record<string, string>) {
     const next = new URLSearchParams(sp.toString())
@@ -40,9 +49,9 @@ export default function ReporteFilters({
           className="input"
         >
           <option value="">Selecciona un evento</option>
-          {eventos.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.titulo} — {new Date(e.fechaEvento).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric' })}
+          {opciones.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
             </option>
           ))}
         </select>

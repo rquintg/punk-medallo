@@ -22,12 +22,16 @@ export async function getBoleteriaStats(): Promise<BoleteriaStatsEvento[]> {
 
   // Eventos con sus tipos y cupos
   const [{ data: eventos }, { data: tipos }, { data: boletas }, { data: items }] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (admin.from('eventos_boletos') as any)
       .select('id, slug, titulo, fecha_evento, activo')
       .order('fecha_evento', { ascending: false })
       .limit(20),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (admin.from('tipos_boleta') as any).select('id, evento_id, precio, cantidad_total'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (admin.from('boletas') as any).select('id, tipo_id, evento_id, estado').neq('estado', 'anulada').limit(10000),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (admin.from('pedido_items') as any).select('tipo_boleta_id, precio, cantidad').not('tipo_boleta_id', 'is', null),
   ])
 
@@ -76,7 +80,7 @@ export async function getBoleteriaStats(): Promise<BoleteriaStatsEvento[]> {
     if (tipo) ensure(tipo.evento_id).ingresos += monto
   }
 
-  return eventos.map((e: any) => {
+  return (eventos as Array<{ id: string; slug: string; titulo: string; fecha_evento: string; activo: boolean }>).map((e) => {
     const s = stats.get(e.id) ?? { vendidas: new Set(), usadas: 0, ingresos: 0, cupo: 0 }
     return {
       eventoId: e.id,

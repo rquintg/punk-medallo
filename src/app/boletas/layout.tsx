@@ -1,13 +1,13 @@
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 import Mantenimiento from '@/components/mantenimiento'
 
-export default async function TiendaLayout({ children }: { children: React.ReactNode }) {
+export default async function BoletasLayout({ children }: { children: React.ReactNode }) {
   try {
     const cfg = await getTiendaConfig()
-    if (!cfg.tiendaActiva) {
+    if (!cfg.boleteriaActiva) {
       return (
         <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
-          <Mantenimiento titulo="Tienda en mantenimiento" mensaje="Estamos preparando la tienda para volver pronto. Gracias por tu paciencia." />
+          <Mantenimiento titulo="Boletería en mantenimiento" mensaje="Estamos preparando la boletería para el próximo evento. Vuelve pronto." />
         </div>
       )
     }

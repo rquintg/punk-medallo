@@ -9,6 +9,8 @@ interface PublicTiendaConfig {
   envioTarifaResto: number
   codRecargo: number
   codMunicipios: string[]
+  tiendaActiva: boolean
+  boleteriaActiva: boolean
 }
 
 const DEFAULTS: PublicTiendaConfig = {
@@ -18,6 +20,8 @@ const DEFAULTS: PublicTiendaConfig = {
   envioTarifaResto: 20_000,
   codRecargo: 5_000,
   codMunicipios: ['medellin', 'bello', 'itagui', 'envigado', 'sabaneta'],
+  tiendaActiva: false,
+  boleteriaActiva: false,
 }
 
 let cache: PublicTiendaConfig | null = null

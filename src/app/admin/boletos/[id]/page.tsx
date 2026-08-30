@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
@@ -7,7 +8,7 @@ import { getEventoAdminById } from '@/features/boletas/services/admin'
 import EventoForm from '../evento-form'
 import TiposManager from '../tipos-manager'
 
-export const metadata = { title: 'Editar evento — Boletería' }
+export const metadata: Metadata = { title: 'Editar evento — Boletería' }
 
 export default async function EditarEventoPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission('manage_boleteria')

@@ -78,6 +78,7 @@ async function vendidasPorTipo(
 ): Promise<Map<string, Map<string, number>>> {
   if (eventoIds.length === 0) return new Map()
   const supabaseAdmin = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabaseAdmin.from('boletas') as any)
     .select('evento_id, tipo_id')
     .in('evento_id', eventoIds)
@@ -98,11 +99,13 @@ export async function listarEventosActivos(): Promise<EventoConTipos[]> {
   const ahoraIso = new Date().toISOString()
 
   const [eventosRes, tiposRes] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('eventos_boletos') as any)
       .select('*')
       .eq('activo', true)
       .gte('fecha_evento', ahoraIso)
       .order('fecha_evento', { ascending: true }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('tipos_boleta') as any)
       .select('*')
       .eq('activo', true)
@@ -133,6 +136,7 @@ export async function getEventoPublicoBySlug(slug: string): Promise<EventoConTip
   const supabase = await createClient()
   const ahoraIso = new Date().toISOString()
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabase.from('eventos_boletos') as any)
     .select('*')
     .eq('slug', slug)
@@ -143,6 +147,7 @@ export async function getEventoPublicoBySlug(slug: string): Promise<EventoConTip
 
   const evento = mapEvento(data as DbEvento)
   const [tiposRes, vendidas] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('tipos_boleta') as any).select('*').eq('evento_id', evento.id).eq('activo', true).order('orden'),
     vendidasPorTipo([evento.id]),
   ])
@@ -167,6 +172,7 @@ export async function contarCompradasPorUsuario(
   eventoId: string,
 ): Promise<number> {
   const supabaseAdmin = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { count } = await (supabaseAdmin.from('boletas') as any)
     .select('id', { count: 'exact', head: true })
     .eq('usuario_id', usuarioId)

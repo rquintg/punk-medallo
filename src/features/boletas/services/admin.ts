@@ -64,6 +64,7 @@ async function contarBoletasPorEvento(
   eventoId: string,
 ): Promise<{ vendidas: Map<string, number>; usadas: Map<string, number> }> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabase.from('boletas') as any)
     .select('tipo_id, estado')
     .eq('evento_id', eventoId)
@@ -98,9 +99,11 @@ function conDisponibilidad(
 export async function getEventosAdmin(): Promise<(EventoBoleto & { totalTipos: number })[]> {
   const supabase = getSupabaseAdmin()
   const [eventosRes, tiposRes] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('eventos_boletos') as any)
       .select('*')
       .order('fecha_evento', { ascending: false }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('tipos_boleta') as any).select('evento_id, cantidad_total'),
   ])
 
@@ -118,10 +121,12 @@ export async function getEventoAdminById(id: string): Promise<{
   tipos: TipoBoleta[]
 } | null> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabase.from('eventos_boletos') as any).select('*').eq('id', id).maybeSingle()
   if (!data) return null
 
   const [tiposRes, vendidas] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('tipos_boleta') as any).select('*').eq('evento_id', id).order('orden'),
     contarBoletasPorEvento(id),
   ])
@@ -147,6 +152,7 @@ export interface EventoInput {
 
 export async function createEvento(input: EventoInput): Promise<string> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data, error } = await (supabase.from('eventos_boletos') as any)
     .insert({
       slug: input.slug,
@@ -182,6 +188,7 @@ export async function updateEvento(id: string, input: Partial<EventoInput>): Pro
   if (input.imagenCardUrl !== undefined) payload.imagen_card_url = input.imagenCardUrl
   if (input.activo !== undefined) payload.activo = input.activo
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('eventos_boletos') as any).update(payload).eq('id', id)
   if (error) throw new Error(error.message)
   revalidateBoletas()
@@ -190,6 +197,7 @@ export async function updateEvento(id: string, input: Partial<EventoInput>): Pro
 /** Soft delete: nunca se borra un evento con ventas (historial de boletas) */
 export async function desactivarEvento(id: string): Promise<void> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('eventos_boletos') as any).update({ activo: false }).eq('id', id)
   if (error) throw new Error(error.message)
   revalidateBoletas()
@@ -199,12 +207,14 @@ export async function desactivarEvento(id: string): Promise<void> {
 
 export async function createTipo(eventoId: string, input: { nombre: string; precio: number; cantidadTotal: number }): Promise<void> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data: maxOrden } = await (supabase.from('tipos_boleta') as any)
     .select('orden')
     .eq('evento_id', eventoId)
     .order('orden', { ascending: false })
     .limit(1)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('tipos_boleta') as any).insert({
     evento_id: eventoId,
     nombre: input.nombre,
@@ -222,6 +232,7 @@ export async function updateTipo(
   input: { nombre?: string; precio?: number; cantidadTotal?: number },
 ): Promise<void> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data: actual } = await (supabase.from('tipos_boleta') as any)
     .select('cantidad_total, evento_id')
     .eq('id', id)
@@ -241,6 +252,7 @@ export async function updateTipo(
   if (input.precio !== undefined) payload.precio = input.precio
   if (input.cantidadTotal !== undefined) payload.cantidad_total = input.cantidadTotal
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('tipos_boleta') as any).update(payload).eq('id', id)
   if (error) throw new Error(error.message)
   revalidateBoletas()
@@ -249,6 +261,7 @@ export async function updateTipo(
 /** Solo permite eliminar si tiene 0 ventas; si no, desactivar */
 export async function deleteTipo(id: string): Promise<void> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data: actual } = await (supabase.from('tipos_boleta') as any)
     .select('evento_id, activo')
     .eq('id', id)
@@ -260,6 +273,7 @@ export async function deleteTipo(id: string): Promise<void> {
     throw new Error(`No puedes eliminarlo: tiene ${vendidas} boletas vendidas. Desactívalo.`)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('tipos_boleta') as any).delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidateBoletas()

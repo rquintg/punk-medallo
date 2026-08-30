@@ -67,6 +67,7 @@ export async function getBoletasPorEvento(params: BoletasReporteParams): Promise
   const to = from + pageSize - 1
 
   // resumen cupo desde tipos_boleta
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data: tipos } = await (supabase.from('tipos_boleta') as any)
     .select('id, nombre, cantidad_total')
     .eq('evento_id', eventoId)
@@ -79,6 +80,7 @@ export async function getBoletasPorEvento(params: BoletasReporteParams): Promise
   }
 
   // boletas con filtros
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   let query = (supabase.from('boletas') as any)
     .select('id, codigo, estado, tipo_id, titular_nombre, titular_email, pedido_id, created_at, escaneada_en, escaneada_por, pedidos(numero_pedido)', { count: 'exact' })
     .eq('evento_id', eventoId)
@@ -137,17 +139,21 @@ export async function getBoletasPorEvento(params: BoletasReporteParams): Promise
   }))
 
   // resumen total (sin paginacion) — 3 counts ligeros
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { count: totalCount } = await (supabase.from('boletas') as any)
     .select('id', { count: 'exact', head: true })
     .eq('evento_id', eventoId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { count: usadasCount } = await (supabase.from('boletas') as any)
     .select('id', { count: 'exact', head: true })
     .eq('evento_id', eventoId)
     .eq('estado', 'usada')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { count: validasCount } = await (supabase.from('boletas') as any)
     .select('id', { count: 'exact', head: true })
     .eq('evento_id', eventoId)
     .eq('estado', 'valida')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { count: anuladasCount } = await (supabase.from('boletas') as any)
     .select('id', { count: 'exact', head: true })
     .eq('evento_id', eventoId)
@@ -168,6 +174,7 @@ export async function getBoletasPorEvento(params: BoletasReporteParams): Promise
 
 export async function getEventosParaReporte(): Promise<Array<{ id: string; titulo: string; fechaEvento: string; lugar: string }>> {
   const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabase.from('eventos_boletos') as any)
     .select('id, titulo, fecha_evento, lugar')
     .order('fecha_evento', { ascending: false })

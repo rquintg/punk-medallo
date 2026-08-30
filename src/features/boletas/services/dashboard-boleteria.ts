@@ -51,31 +51,27 @@ function deltaPct(a: number, b: number): number | null {
   if (b <= 0) return null
   return Math.round(((a - b) / b) * 1000) / 10
 }
-function ingresoDeBoleteria(pedido: { total: number | null; estado: string }): number {
-  return ESTADOS_VALIDOS.includes(pedido.estado) ? (pedido.total ?? 0) : 0
-}
 
 export async function getDashboardBoleteriaAnalytics(rango: RangoDias): Promise<BoleteriaAnalytics> {
   const supabase = getSupabaseAdmin()
   const desde = inicioDiaBogota(rango - 1)
   const desdePrev = inicioDiaBogota(rango - 1 + rango)
 
-  const [boletasRangoRes, boletasPrevRes, boletasTodasRes, tiposRes, eventosRes, pedidoItemsBoleteriaRes, pedidosBoleteriaRes, pedidosPrevRes] =
+  const [boletasRangoRes, boletasPrevRes, boletasTodasRes, tiposRes, eventosRes, pedidoItemsBoleteriaRes] =
     await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('boletas') as any).select('id, evento_id, tipo_id, estado, created_at, escaneada_en').gte('created_at', desde),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('boletas') as any).select('id').gte('created_at', desdePrev).lt('created_at', desde),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('boletas') as any).select('id, evento_id, estado'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('tipos_boleta') as any).select('id, evento_id, nombre, precio, cantidad_total'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('eventos_boletos') as any).select('id, titulo, fecha_evento, activo'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
       (supabase.from('pedido_items') as any)
         .select('pedido_id, tipo_boleta_id, precio, cantidad, pedidos!inner(id, created_at, estado, total)')
-        .not('tipo_boleta_id', 'is', null),
-      (supabase.from('pedido_items') as any)
-        .select('pedido_id, pedidos!inner(id, estado, total, created_at)')
-        .not('tipo_boleta_id', 'is', null),
-      // previo pedidos ids for delta ingresos
-      (supabase.from('pedido_items') as any)
-        .select('pedido_id, precio, cantidad, pedidos!inner(id, created_at, estado)')
         .not('tipo_boleta_id', 'is', null),
     ])
 
@@ -171,31 +167,13 @@ export async function getDashboardBoleteriaAnalytics(rango: RangoDias): Promise<
   const ahora = Date.now()
   const eventosActivos = eventos.filter((e) => e.activo && new Date(e.fecha_evento).getTime() >= ahora).length
 
-  // ultimas 5 boletas del rango
-  const ultimasBoletas = [...boletasRango]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5)
-    .map((b) => {
-      const tipo = tipoMap.get(b.tipo_id)
-      return {
-        codigo: `PM-TKT-...${b.id.slice(0, 4)}`,
-        evento: eventoTitulo.get(b.evento_id) ?? b.evento_id,
-        tipo: tipo?.nombre ?? b.tipo_id,
-        estado: b.estado,
-        created_at: b.created_at,
-        titular: b.estado,
-      }
-    })
-
-  // placeholder: fetch titulares reales para ultimas (limit 5) — segundo query ligero
-  // para no complicar, dejamos ultimas vacias si no hay boletas con titular, el dashboard puede usar otra query
-  // hacemos fetch real de ultimas con titular
   let ultimasConTitular: BoleteriaAnalytics['ultimasBoletas'] = []
   if (boletasRango.length > 0) {
     const ids = [...boletasRango]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 5)
       .map((b) => b.id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     const { data: ultimasDetalle } = await (supabase.from('boletas') as any)
       .select('codigo, estado, created_at, titular_nombre, tipos_boleta(nombre), eventos_boletos(titulo)')
       .in('id', ids)

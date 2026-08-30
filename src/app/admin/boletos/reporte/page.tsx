@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Ticket, CalendarDays } from 'lucide-react'
 import AdminHeader from '@/components/admin/admin-header'
@@ -5,9 +6,10 @@ import { requirePermission } from '@/features/admin/utils/auth-server'
 import { getBoletasPorEvento, getEventosParaReporte, formatearBogota } from '@/features/boletas/services/reporte'
 import ReporteFilters from './reporte-filters'
 import ExportButton from './export-button'
+import { formatBogota } from '@/lib/format-bogota'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Boletería — Informe' }
+export const metadata: Metadata = { title: 'Boletería — Informe' }
 
 const PAGE_SIZE = 50
 
@@ -77,7 +79,7 @@ export default async function ReporteBoletasPage({
           <div className="card-section py-3">
             <p className="text-xs uppercase tracking-wider text-[var(--admin-text-dim)]">Evento</p>
             <p className="truncate text-sm font-semibold text-[var(--admin-text)]">{eventoSel.titulo}</p>
-            <p className="text-xs text-[var(--admin-text-dim)]">{eventoSel.lugar} · {new Date(eventoSel.fechaEvento).toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="text-xs text-[var(--admin-text-dim)]">{eventoSel.lugar} · {formatBogota(eventoSel.fechaEvento, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
           </div>
         </div>
       )}

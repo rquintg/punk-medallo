@@ -6,22 +6,26 @@ import { useState, useEffect } from "react";
 import { Radio, Menu, X } from "lucide-react";
 import SongRequest from "./SongRequest";
 
-const navLinks = [
+const navLinksBase = [
   { href: "/", label: "Inicio" },
   { href: "/about", label: "Acerca de" },
   { href: "/eventos", label: "Toques" },
-  // { href: "/boletas", label: "Boletas" }, — oculto hasta lanzar la boletería
   { href: "/descargas", label: "Descargas" },
   { href: "/fotos", label: "Registro Fotográfico" },
-  // { href: "/tienda", label: "Tienda" },
-  { href: "/amigos", label: "Páginas Amigas" },
 ];
 
-export default function NavBar() {
+export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva?: boolean } = {}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSongRequestOpen, setIsSongRequestOpen] = useState(false);
   const pathname = usePathname();
+
+  const navLinks = [
+    ...navLinksBase.slice(0, 3),
+    { href: "/boletas", label: "Boletas" } as const,
+    ...navLinksBase.slice(3),
+    { href: "/tienda", label: "Tienda" } as const,
+  ]
 
   const pageTitles: Record<string, string> = {
     "/": "Punk Medallo",
@@ -30,9 +34,8 @@ export default function NavBar() {
     "/descargas": "Descargar Música",
     "/fotos": "Registro Fotográfico",
     "/about": "Acerca de",
-    "/amigos": "Páginas Amigas",
     "/contacto": "Contacto",
-    // "/tienda": "Tienda",
+    "/tienda": "Tienda",
   };
 
   const pageTitle = pageTitles[pathname];

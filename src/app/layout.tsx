@@ -145,11 +145,15 @@ export default async function RootLayout({
   let logoUrl: string | null = null;
   let mostrarLive = false;
   let liveRevive = false;
+  let tiendaActiva = false;
+  let boleteriaActiva = false;
   try {
     const cfg = await getTiendaConfig();
     logoUrl = cfg.logoUrl;
     mostrarLive = cfg.mostrarLive && !!cfg.liveUrl;
     liveRevive = cfg.liveRevive;
+    tiendaActiva = cfg.tiendaActiva;
+    boleteriaActiva = cfg.boleteriaActiva;
   } catch {}
   return (
     <html
@@ -163,7 +167,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://a3.asurahosting.com" />
       </head>
       <body className="min-h-full flex flex-col bg-[#181818] text-white">
-        <HideOnAdmin><NavBar /></HideOnAdmin>
+        <HideOnAdmin><NavBar tiendaActiva={tiendaActiva} boleteriaActiva={boleteriaActiva} /></HideOnAdmin>
         <main className="flex-1">
           <QueryProvider>{children}</QueryProvider>
         </main>

@@ -1,14 +1,16 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarDays, Plus } from 'lucide-react'
 import AdminHeader from '@/components/admin/admin-header'
 import { requirePermission } from '@/features/admin/utils/auth-server'
 import { getEventosAdmin } from '@/features/boletas/services/admin'
 import DesactivarEventoButton from './desactivar-evento-button'
+import { formatBogota } from '@/lib/format-bogota'
 
-export const metadata = { title: 'Boletería — Eventos' }
+export const metadata: Metadata = { title: 'Boletería — Eventos' }
 
 const fechaFmt = (iso: string) =>
-  new Date(iso).toLocaleDateString('es-CO', {
+  formatBogota(iso, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -20,6 +22,7 @@ const fechaFmt = (iso: string) =>
 export default async function AdminBoletosPage() {
   await requirePermission('manage_boleteria')
   const eventos = await getEventosAdmin()
+  // eslint-disable-next-line react-hooks/purity -- per-request server time for "Pasado" badge
   const ahora = Date.now()
 
   return (

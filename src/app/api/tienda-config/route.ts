@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   const config = await getTiendaConfig()
 
-  // Solo expone lo necesario para checkout cliente (envio + COD)
+  // Solo expone lo necesario para checkout cliente (envio + COD + visibilidad)
   const publicConfig = {
     envioGratisUmbral: config.envioGratisUmbral,
     envioTarifaAntioquia: config.envioTarifaAntioquia,
@@ -14,6 +14,8 @@ export async function GET() {
     envioTarifaResto: config.envioTarifaResto,
     codRecargo: config.codRecargo,
     codMunicipios: config.codMunicipios,
+    tiendaActiva: config.tiendaActiva,
+    boleteriaActiva: config.boleteriaActiva,
   }
 
   return NextResponse.json(publicConfig, {

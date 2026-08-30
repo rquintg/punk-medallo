@@ -15,6 +15,7 @@ import {
 } from '@/features/cupones/services/cupones'
 import { calcularDescuento, normalizarCodigo } from '@/features/cupones/calculo'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 
 export const runtime = 'nodejs'
 
@@ -76,6 +77,11 @@ export async function POST(request: NextRequest) {
       { error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' },
       { status: 429 },
     )
+  }
+
+  const cfg = await getTiendaConfig()
+  if (!cfg.boleteriaActiva) {
+    return respond({ error: 'Boletería en mantenimiento' }, { status: 503 })
   }
 
   // Login OBLIGATORIO

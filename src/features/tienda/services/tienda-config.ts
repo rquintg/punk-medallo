@@ -19,6 +19,8 @@ export interface TiendaConfig {
   liveUrl: string | null
   liveTitulo: string | null
   liveRevive: boolean
+  tiendaActiva: boolean
+  boleteriaActiva: boolean
 }
 
 // Logo por defecto (visible en /, /about, /amigos y secciones de marca)
@@ -42,6 +44,8 @@ const DEFAULTS: TiendaConfig = {
   liveUrl: null,
   liveTitulo: null,
   liveRevive: false,
+  tiendaActiva: true,
+  boleteriaActiva: true,
 }
 
 function toNum(v: unknown, fallback: number): number {
@@ -59,6 +63,7 @@ function toBool(v: unknown, fallback: boolean): boolean {
 async function fetchTiendaConfig(): Promise<TiendaConfig> {
   try {
     const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     const { data, error } = await (supabase.from('tienda_config') as any).select('key, valor, valor_text, tipo')
     if (error || !data) return DEFAULTS
     const rows = data as { key: string; valor: boolean; valor_text: string | null; tipo: string | null }[]
@@ -97,6 +102,8 @@ async function fetchTiendaConfig(): Promise<TiendaConfig> {
       liveTitulo: typeof get('live_titulo') === 'string' && (get('live_titulo') as string).trim()
         ? (get('live_titulo') as string).trim()
         : null,
+      tiendaActiva: toBool(get('tienda_activa'), DEFAULTS.tiendaActiva),
+      boleteriaActiva: toBool(get('boleteria_activa'), DEFAULTS.boleteriaActiva),
     }
   } catch {
     return DEFAULTS

@@ -202,6 +202,7 @@ async function getRankingIds(filters: ProductoFilters, dias = 30): Promise<strin
     .gte('created_at', desde)
   const idsPedidos = (pedidos ?? []).map((p: any) => p.id)
   if (idsPedidos.length === 0) return []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data: items } = await (admin.from('pedido_items') as any)
     .select('producto_id, cantidad, pedido_id')
     .in('pedido_id', idsPedidos)

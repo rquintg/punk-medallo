@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requirePermissionAction } from '@/features/admin/utils/auth-server'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
-const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas', 'mostrar_live', 'live_revive'] as const
+const BOOLEAN_KEYS = ['mostrar_mas_pedidos', 'mostrar_ofertas', 'mostrar_live', 'live_revive', 'tienda_activa', 'boleteria_activa'] as const
 const NUMBER_KEYS = [
   'envio_gratis_umbral',
   'envio_tarifa_antioquia',
@@ -64,6 +64,8 @@ export async function updateTiendaConfig(key: string, valor: boolean) {
   )
   if (error) throw new Error(error.message)
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/boletas', 'layout')
+  revalidatePath('/', 'layout')
   revalidatePath('/admin/tienda')
 }
 

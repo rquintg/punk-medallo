@@ -79,7 +79,7 @@ export default async function BuscarPage({ searchParams }: SearchPageProps) {
   ];
 
   return (
-    <>
+    <div className="min-h-screen bg-[#181818]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -87,18 +87,33 @@ export default async function BuscarPage({ searchParams }: SearchPageProps) {
         }}
       />
 
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <Breadcrumbs segments={breadcrumbSegments} />
-        <CartDrawer />
-      </div>
+      <section className="border-b border-neutral-800 bg-[#101010]">
+        <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">Punk Medallo — Tienda</p>
+              <h1 className="mt-3 text-5xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
+                Buscar <span className="text-[#dc2626]">productos</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">Encuentra tu talla, estilo y merch oficial.</p>
+            </div>
+            <div className="shrink-0">
+              <CartDrawer />
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <h1 className="mb-6 text-3xl font-bold text-white md:text-4xl">Buscar productos</h1>
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <Breadcrumbs segments={breadcrumbSegments} />
+        </div>
 
-      <div className="mb-8">
-        <Suspense fallback={null}>
-          <SearchBar />
-        </Suspense>
-      </div>
+        <div className="mb-8">
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
+        </div>
 
       {!sanitizedQ ? (
         <p className="text-neutral-500">Escribe algo para empezar a buscar.</p>
@@ -124,8 +139,9 @@ export default async function BuscarPage({ searchParams }: SearchPageProps) {
             ))}
           </div>
           <Pagination page={page} totalPages={totalPages} />
-        </>
-      )}
-    </>
+          </>
+        )}
+      </main>
+    </div>
   );
 }

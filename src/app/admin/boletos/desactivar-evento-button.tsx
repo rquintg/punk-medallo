@@ -24,8 +24,8 @@ export default function DesactivarEventoButton({ id, titulo }: { id: string; tit
         await desactivarEventoAction(id)
         toast.success('Evento desactivado')
         router.refresh()
-      } catch (e: any) {
-        toast.error(e?.message ?? 'Error al desactivar')
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Error al desactivar')
       } finally {
         setConfirming(false)
       }

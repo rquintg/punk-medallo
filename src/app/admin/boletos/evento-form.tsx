@@ -34,8 +34,8 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
           await actualizarEventoAction(initial.id, fd)
           toast.success('Evento actualizado')
           router.refresh()
-        } catch (err: any) {
-          toast.error(err?.message ?? 'Error al guardar')
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'Error al guardar')
         }
       })
     } else {
@@ -44,8 +44,8 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
           const { id } = await crearEventoAction(fd)
           toast.success('Evento creado — agrega los tipos de boleta')
           router.push(`/admin/boletos/${id}`)
-        } catch (err: any) {
-          toast.error(err?.message ?? 'Error al crear')
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'Error al crear')
         }
       })
     }
@@ -67,8 +67,8 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
       toast.success('Imagen subida')
       if (fileRef.current) fileRef.current.value = ''
       router.refresh()
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Error al subir')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al subir')
     } finally {
       setSubiendo(false)
     }
@@ -90,8 +90,8 @@ export default function EventoForm({ initial }: { initial?: EventoBoleto }) {
       toast.success('Imagen cuadrada subida')
       if (fileRefCard.current) fileRefCard.current.value = ''
       router.refresh()
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Error al subir')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Error al subir')
     } finally {
       setSubiendoCard(false)
     }

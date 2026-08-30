@@ -35,8 +35,8 @@ export default function TiposManager({
         await fn()
         toast.success(msg)
         router.refresh()
-      } catch (e: any) {
-        toast.error(e?.message ?? 'Error')
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Error')
       }
     })
   }
@@ -56,7 +56,7 @@ export default function TiposManager({
       {tipos.length === 0 && !agregando && (
         <p className="flex items-center gap-2 py-8 text-sm text-[var(--admin-text-muted)]">
           <Ticket size={18} />
-          Sin tipos todavía — agrega al menos uno (ej: "General").
+          Sin tipos todavía — agrega al menos uno (ej: &quot;General&quot;).
         </p>
       )}
 

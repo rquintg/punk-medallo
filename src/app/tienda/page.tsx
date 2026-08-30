@@ -129,7 +129,7 @@ export default async function TiendaPage({ searchParams }: PageProps) {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#181818]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd(breadcrumbSegments)) }}
@@ -141,30 +141,41 @@ export default async function TiendaPage({ searchParams }: PageProps) {
         />
       )}
 
-      <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white md:text-4xl">Tienda</h1>
-          <p className="mt-2 text-neutral-400">
-            Camisetas, accesorios y merch oficial de punk medallo.
-          </p>
+      <section className="border-b border-neutral-800 bg-[#101010]">
+        <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">Punk Medallo — Tienda</p>
+              <h1 className="mt-3 text-5xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
+                La <span className="text-[#dc2626]">Tienda</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
+                Camisetas, accesorios y merch oficial de punk medallo. Envios a toda Colombia.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <CartDrawer />
+            </div>
+          </div>
         </div>
-        <CartDrawer />
-      </div>
+      </section>
 
-      <Catalog
-        categorias={categorias}
-        productos={pageData.productos}
-        total={pageData.total}
-        page={page}
-        totalPages={totalPages}
-        hasFilters={hasFilters}
-        destacados={destacados}
-        ofertas={ofertas}
-        masPedidos={masPedidos}
-        mostrarMasPedidos={tiendaConfig.mostrarMasPedidos}
-        mostrarOfertas={tiendaConfig.mostrarOfertas}
-        precioLimites={precioLimites}
-      />
-    </>
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <Catalog
+          categorias={categorias}
+          productos={pageData.productos}
+          total={pageData.total}
+          page={page}
+          totalPages={totalPages}
+          hasFilters={hasFilters}
+          destacados={destacados}
+          ofertas={ofertas}
+          masPedidos={masPedidos}
+          mostrarMasPedidos={tiendaConfig.mostrarMasPedidos}
+          mostrarOfertas={tiendaConfig.mostrarOfertas}
+          precioLimites={precioLimites}
+        />
+      </main>
+    </div>
   );
 }

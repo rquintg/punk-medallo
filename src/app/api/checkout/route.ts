@@ -149,6 +149,9 @@ export async function POST(request: NextRequest) {
 
     const shipping = sanitizeShipping(rawShipping)
     const tiendaCfg = await getTiendaConfig()
+    if (!tiendaCfg.tiendaActiva) {
+      return respond({ error: 'Tienda en mantenimiento' }, { status: 503 })
+    }
 
     // Método de pago: wompi (default) o contra entrega (solo Medellín y AM)
     const esCOD = body.metodoPago === 'contra_entrega'
