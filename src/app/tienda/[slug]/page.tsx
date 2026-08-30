@@ -87,7 +87,7 @@ export default async function ProductPage({ params }: PageProps) {
   ];
 
   return (
-    <>
+    <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -117,6 +117,6 @@ export default async function ProductPage({ params }: PageProps) {
           excludeId={producto.id}
         />
       </Suspense>
-    </>
+    </div>
   );
 }

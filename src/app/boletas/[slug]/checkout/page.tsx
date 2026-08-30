@@ -19,7 +19,7 @@ export default async function CheckoutBoletasPage({
   if (!evento) notFound()
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pt-20 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
       <CheckoutBoletas slug={slug} eventoTitulo={evento.titulo} eventoLugar={evento.lugar} />
     </div>
   )
