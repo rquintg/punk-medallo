@@ -326,7 +326,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   ]
 
   return (
-    <div>
+    <div  className="mx-auto max-w-6xl px-4 pt-20 pb-8">
       <ScrollToTop />
       <div className="mx-auto max-w-7xl px-4 pt-6">
         <Breadcrumbs

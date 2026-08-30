@@ -72,7 +72,7 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
 
   if (!transaction) {
     return (
-      <div>
+      <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
         <Breadcrumbs
           segments={[
             { label: 'Tienda', href: '/tienda' },
@@ -133,7 +133,7 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
       <div className="mb-6">
         <Breadcrumbs
           segments={[
