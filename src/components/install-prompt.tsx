@@ -73,7 +73,7 @@ export default function InstallPrompt() {
   };
 
   return (
-    <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[1200] w-[calc(100%-2rem)] max-w-[340px] border border-[rgba(164,2,2,0.4)] bg-[#111] rounded-lg p-4 shadow-[0_0_25px_rgba(164,2,2,0.15)]">
+    <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-[rgba(164,2,2,0.4)] bg-[#111] rounded-lg p-4 shadow-[0_0_25px_rgba(164,2,2,0.15)]">
       <button
         type="button"
         onClick={() => setDismissed(true)}
