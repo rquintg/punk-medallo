@@ -381,6 +381,7 @@ export async function sendCartAbandoned(data: CartAbandonedData) {
       total={data.total}
       siteUrl={siteUrl}
       logoUrl={logoUrl}
+      recoveryUrl={`${siteUrl}/recuperar-pedido/${data.orderNumber}`}
     />,
   )
 

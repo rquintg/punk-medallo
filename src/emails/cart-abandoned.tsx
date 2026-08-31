@@ -23,6 +23,7 @@ interface CartAbandonedProps {
   total: number
   siteUrl: string
   logoUrl: string
+  recoveryUrl: string
 }
 
 function formatPrice(amount: number): string {
@@ -95,8 +96,8 @@ export default function CartAbandoned({
 
             <Text style={orderRef}>Pedido: {orderNumber}</Text>
 
-            <a href={siteUrl} style={cta}>
-              Volver a la tienda
+            <a href={recoveryUrl} style={cta}>
+              Completar mi compra
             </a>
 
             <Text style={infoLine}>
