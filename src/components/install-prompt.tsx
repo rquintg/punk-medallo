@@ -73,52 +73,67 @@ export default function InstallPrompt() {
   };
 
   return (
-    <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-[rgba(164,2,2,0.4)] bg-[#111] rounded-lg p-4 shadow-[0_0_25px_rgba(164,2,2,0.15)]">
-      <button
-        type="button"
+    <>
+      <div 
+        className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 cursor-pointer" 
+        aria-hidden="true" 
         onClick={() => setDismissed(true)}
-        aria-label="Cerrar aviso de instalación"
-        className="absolute top-2 right-2 text-white/50 hover:text-[#ff4444] transition-colors"
-      >
-        <X size={16} />
-      </button>
-
-      <div className="flex items-start gap-3">
-        <Image
-          src="/logo_punk_medallo.jpg"
-          alt="Punk Medallo"
-          width={44}
-          height={44}
-          className="rounded shrink-0"
-        />
-        <div className="min-w-0">
-          <p className="font-bold text-sm text-white uppercase tracking-wide">
-            Punk Medallo
-          </p>
-          {installPrompt ? (
-            <p className="mt-0.5 text-xs text-white/60">
-              Instala la app para entrar directo a la radio al archivo y a la tienda.
-            </p>
-          ) : (
-            <p className="mt-0.5 text-xs text-white/60">
-              Toca <Share size={11} className="inline text-white/70" />{" "}
-              Compartir y elige{" "}
-              <span className="text-white/90">Añadir a pantalla de inicio</span>.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {installPrompt && (
+      />
+      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-white/10 bg-[#111] rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-10 duration-500 ease-out">
+        {/* Handle decorativo para dar sensación de "Bottom Sheet" */}
+        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/20 rounded-full" />
+        
         <button
           type="button"
-          onClick={handleInstall}
-          className="mt-3 flex w-full items-center justify-center gap-2 border border-[#a40202] text-[#ff4444] font-bold tracking-[0.5px] uppercase px-4 py-2 rounded text-xs transition-all duration-300 bg-[rgba(164,2,2,0.1)] hover:bg-[rgba(164,2,2,0.25)] hover:border-[#ff4444]"
+          onClick={() => setDismissed(true)}
+          aria-label="Cerrar aviso de instalación"
+          className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors p-1"
         >
-          <Download size={14} />
-          Instalar app
+          <X size={18} />
         </button>
-      )}
-    </div>
+
+        <div className="flex items-center gap-4 mt-1">
+          <div className="relative shrink-0">
+            <Image
+              src="/logo_punk_medallo.jpg"
+              alt="Punk Medallo"
+              width={52}
+              height={52}
+              className="rounded-xl shadow-lg"
+            />
+            <div className="absolute -bottom-1 -right-1 bg-[#a40202] p-1 rounded-full border-2 border-[#111]">
+              <Download size={10} className="text-white" />
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-base text-white uppercase tracking-tight">
+              Punk Medallo
+            </p>
+            {installPrompt ? (
+              <p className="mt-0.5 text-xs text-white/60 leading-relaxed">
+                Instala la app para entrar directo a la radio, el archivo y la tienda.
+              </p>
+            ) : (
+              <p className="mt-0.5 text-xs text-white/60 leading-relaxed">
+                Toca <Share size={11} className="inline text-white/70" />{" "}
+                Compartir y elige{" "}
+                <span className="text-white/90 font-medium">Añadir a pantalla de inicio</span>.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {installPrompt && (
+          <button
+            type="button"
+            onClick={handleInstall}
+            className="mt-4 flex w-full items-center justify-center gap-2 bg-[#a40202] text-white font-bold tracking-wider uppercase px-4 py-3 rounded-xl text-xs transition-all duration-300 hover:bg-[#cc0303] active:scale-95 shadow-[0_4px_12px_rgba(164,2,2,0.3)]"
+          >
+            <Download size={14} />
+            Instalar Aplicación
+          </button>
+        )}
+      </div>
+    </>
   );
 }
