@@ -1,8 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '../services/supabase-admin'
-import { requirePermissionAction } from '../utils/auth-server'
+import { getRolActual, getUsuarioActual, requirePermissionAction } from '../utils/auth-server'
 import { notificarStockDisponible } from '../services/avisos-stock'
 
 function genSlug(text: string) {
@@ -12,8 +13,29 @@ function genSlug(text: string) {
     .replace(/^-|-$/g, '')
 }
 
+async function assertOwner(productoId: string) {
+  const rol = await getRolActual()
+  if (rol !== 'publicador') return
+  const usuario = await getUsuarioActual()
+  if (!usuario) throw new Error('No autenticado')
+  const supabase = getSupabaseAdmin()
+  const { data } = await (supabase.from('productos') as any).select('owner_id').eq('id', productoId).maybeSingle()
+  if (!data || data.owner_id !== usuario.id) throw new Error('No tienes permiso para modificar este producto')
+}
+
+async function assertOwnerByImagen(imagenId: string) {
+  const rol = await getRolActual()
+  if (rol !== 'publicador') return
+  const usuario = await getUsuarioActual()
+  if (!usuario) throw new Error('No autenticado')
+  const supabase = getSupabaseAdmin()
+  const { data: imagen } = await (supabase.from('producto_imagenes') as any).select('producto_id').eq('id', imagenId).maybeSingle()
+  if (!imagen) throw new Error('Imagen no encontrada')
+  await assertOwner(imagen.producto_id)
+}
+
 export async function createProducto(formData: FormData) {
-  await requirePermissionAction('create_products')
+  const rol = await requirePermissionAction('create_products')
   const supabase = getSupabaseAdmin()
 
   const nombre = formData.get('nombre') as string
@@ -32,6 +54,8 @@ export async function createProducto(formData: FormData) {
   const tallas_disponibles = tallas_raw.split(',').map((t) => t.trim()).filter(Boolean)
   const colores_disponibles = colores_raw.split(',').map((c) => c.trim()).filter(Boolean)
 
+  const owner_id = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+
   const { data, error } = await (supabase.from('productos') as any).insert({
     slug,
     nombre,
@@ -45,6 +69,7 @@ export async function createProducto(formData: FormData) {
     activo,
     tallas_disponibles,
     colores_disponibles,
+    owner_id,
   }).select('id').single()
 
   if (error) throw new Error(error.message)
@@ -57,6 +82,7 @@ export async function createProducto(formData: FormData) {
 
 export async function updateProducto(id: string, formData: FormData) {
   await requirePermissionAction('edit_products')
+  await assertOwner(id)
   const supabase = getSupabaseAdmin()
 
   const nombre = formData.get('nombre') as string
@@ -103,6 +129,7 @@ export async function updateProducto(id: string, formData: FormData) {
 
 export async function deleteProducto(id: string) {
   await requirePermissionAction('delete_products')
+  await assertOwner(id)
   const supabase = getSupabaseAdmin()
 
   const { data: imagenes } = await (supabase.from('producto_imagenes') as any)
@@ -131,6 +158,7 @@ function storagePathFromUrl(url: string): string {
 
 export async function subirImagen(productoId: string, slug: string, formData: FormData) {
   await requirePermissionAction('edit_products')
+  await assertOwner(productoId)
   const supabase = getSupabaseAdmin()
 
   const file = formData.get('file') as File | null
@@ -187,6 +215,7 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
 
 export async function eliminarImagen(imagenId: string, url: string) {
   await requirePermissionAction('edit_products')
+  await assertOwnerByImagen(imagenId)
   const supabase = getSupabaseAdmin()
 
   const path = storagePathFromUrl(url)
@@ -207,6 +236,7 @@ export async function eliminarImagen(imagenId: string, url: string) {
 
 export async function actualizarAltImagen(imagenId: string, alt: string) {
   await requirePermissionAction('edit_products')
+  await assertOwnerByImagen(imagenId)
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('producto_imagenes') as any)
@@ -222,6 +252,7 @@ export async function actualizarAltImagen(imagenId: string, alt: string) {
 
 export async function actualizarColorImagen(imagenId: string, color: string | null) {
   await requirePermissionAction('edit_products')
+  await assertOwnerByImagen(imagenId)
   const supabase = getSupabaseAdmin()
 
   const { error } = await (supabase.from('producto_imagenes') as any)

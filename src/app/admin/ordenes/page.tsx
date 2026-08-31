@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import AdminHeader from '@/components/admin/admin-header'
 import { getOrdenes } from '@/features/admin/services/ordenes'
+import { getRolActual, getUsuarioActual } from '@/features/admin/utils/auth-server'
 import FiltroEstado from './filtro-estado'
 import OrdenesTable from './ordenes-table'
 
@@ -13,7 +14,9 @@ const PAGE_SIZE = 20
 export default async function AdminOrdenesPage({ searchParams }: Props) {
   const { page: pageStr, estado } = await searchParams
   const page = Math.max(1, Number(pageStr) || 1)
-  const { data, total } = await getOrdenes(page, estado, PAGE_SIZE)
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+  const { data, total } = await getOrdenes(page, estado, PAGE_SIZE, ownerId)
 
   return (
     <>

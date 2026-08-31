@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import AdminHeader from '@/components/admin/admin-header'
 import { getProductos } from '@/features/admin/services/productos'
+import { getRolActual, getUsuarioActual } from '@/features/admin/utils/auth-server'
 import SearchInput from './search-input'
 import ProductosTable from './productos-table'
 
@@ -15,7 +16,9 @@ const PAGE_SIZE = 20
 export default async function AdminProductosPage({ searchParams }: Props) {
   const { page: pageStr, q } = await searchParams
   const page = Math.max(1, Number(pageStr) || 1)
-  const { data, total } = await getProductos(page, q, PAGE_SIZE)
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+  const { data, total } = await getProductos(page, q, PAGE_SIZE, ownerId)
 
   return (
     <>

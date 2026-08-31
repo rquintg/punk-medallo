@@ -2,6 +2,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { can, ADMIN_ROLES, type AdminRol, type Permission } from './permissions'
 
+export async function getUsuarioActual(): Promise<{ id: string; email: string | null } | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  return { id: user.id, email: user.email ?? null }
+}
+
 export async function getRolActual(): Promise<string> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -5,7 +5,7 @@ import AdminHeader from '@/components/admin/admin-header'
 import StatusBadge from '@/components/admin/status-badge'
 import { getOrdenByNumero } from '@/features/admin/services/ordenes'
 import { actualizarEstadoOrden } from '@/features/admin/actions/ordenes'
-import { requirePermission } from '@/features/admin/utils/auth-server'
+import { getUsuarioActual, requirePermission } from '@/features/admin/utils/auth-server'
 import { can } from '@/features/admin/utils/permissions'
 import { metodoPagoLabel } from '@/lib/metodo-pago'
 import EliminarOrdenButton from './eliminar-orden-button'
@@ -29,8 +29,10 @@ const TRANSICIONES: Record<string, string[]> = {
 export default async function OrdenDetallePage({ params }: Props) {
   const { numero_pedido } = await params
   const rol = await requirePermission('view_orders')
+  const usuario = await getUsuarioActual()
+  const ownerId = rol === 'publicador' ? usuario?.id ?? null : null
 
-  const orden = await getOrdenByNumero(numero_pedido)
+  const orden = await getOrdenByNumero(numero_pedido, ownerId)
 
   if (!orden) notFound()
 

@@ -7,7 +7,8 @@ import { AvisosManager } from '@/components/admin/avisos-manager'
 import { getProductoById } from '@/features/admin/services/productos'
 import { getCategorias } from '@/features/admin/services/categorias'
 import { getVariantesByProducto } from '@/features/admin/services/variantes'
-import { requirePermission } from '@/features/admin/utils/auth-server'
+import { getRolActual, getUsuarioActual, requirePermission } from '@/features/admin/utils/auth-server'
+import { redirect } from 'next/navigation'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -24,6 +25,11 @@ export default async function EditarProductoPage({ params }: Props) {
   ])
 
   if (!producto) notFound()
+  const rol = await getRolActual()
+  if (rol === 'publicador') {
+    const usuario = await getUsuarioActual()
+    if (!usuario || producto.owner_id !== usuario.id) redirect('/admin/productos')
+  }
 
   return (
     <>

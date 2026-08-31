@@ -101,8 +101,8 @@ export default async function ReporteBoletasPage({
                     <th className="pb-2 pr-3">Titular</th>
                     <th className="pb-2 pr-3">Pedido</th>
                     <th className="pb-2 pr-3">Estado</th>
-                    <th className="pb-2 pr-3">Comprada (Bogotá)</th>
-                    <th className="pb-2 pr-3">Escaneada (Bogotá)</th>
+                    <th className="pb-2 pr-3">Comprada</th>
+                    <th className="pb-2 pr-3">Escaneada</th>
                     <th className="pb-2">Escaneada por</th>
                   </tr>
                 </thead>

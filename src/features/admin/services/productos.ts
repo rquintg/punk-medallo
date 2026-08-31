@@ -24,6 +24,7 @@ export interface ProductoRow {
   destacado: boolean
   activo: boolean
   categoria_id: string | null
+  owner_id?: string | null
   fecha_creacion: string
   categorias?: { nombre: string; slug: string } | null
   producto_imagenes?: ProductoImagen[]
@@ -51,6 +52,7 @@ export async function getProductos(
   page: number,
   search?: string,
   pageSize = 20,
+  ownerId?: string | null,
 ): Promise<ProductosResponse> {
   const supabase = getSupabaseAdmin()
   const from = (page - 1) * pageSize
@@ -58,6 +60,8 @@ export async function getProductos(
 
   let query = (supabase.from('productos') as any)
     .select('*, categorias(nombre, slug), producto_imagenes(*)', { count: 'exact' })
+
+  if (ownerId) query = query.eq('owner_id', ownerId)
 
   if (search) {
     query = query.ilike('nombre', `%${search}%`)

@@ -11,8 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const isRunningStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
-  // iOS Safari: navigator.standalone is deprecated but still functional
-  "standalone" in navigator;
+  (navigator as any).standalone === true;
 
 const isIOS = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) && !("MSStream" in window);
