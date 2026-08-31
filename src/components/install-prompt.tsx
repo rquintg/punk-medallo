@@ -21,7 +21,17 @@ const subscribe = () => () => {};
 export default function InstallPrompt() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const dismissedAt = localStorage.getItem("pwa_prompt_dismissed_at");
+      if (dismissedAt) {
+        const fiveMinutes = 5 * 60 * 1000;
+        return Date.now() - parseInt(dismissedAt, 10) < fiveMinutes;
+      }
+    }
+    return false;
+  });
 
   const showIosHint = useSyncExternalStore(
     subscribe,
@@ -64,6 +74,11 @@ export default function InstallPrompt() {
   if (dismissed) return null;
   if (!installPrompt && !showIosHint) return null;
 
+  const handleDismiss = () => {
+    localStorage.setItem("pwa_prompt_dismissed_at", Date.now().toString());
+    setDismissed(true);
+  };
+
   const handleInstall = async () => {
     if (!installPrompt) return;
     await installPrompt.prompt();
@@ -77,7 +92,7 @@ export default function InstallPrompt() {
       <div 
         className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 cursor-pointer" 
         aria-hidden="true" 
-        onClick={() => setDismissed(true)}
+        onClick={handleDismiss}
       />
       <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-white/10 bg-[#111] rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-10 duration-500 ease-out">
         {/* Handle decorativo para dar sensación de "Bottom Sheet" */}
@@ -85,7 +100,7 @@ export default function InstallPrompt() {
         
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
           aria-label="Cerrar aviso de instalación"
           className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors p-1"
         >
