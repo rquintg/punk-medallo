@@ -105,7 +105,7 @@ export default function OrderDetails({
   numero,
   subtitulo,
   fechaIso,
-  estado,
+  estado: rawEstado,
   fechas,
   entregaEstimada,
   items,
@@ -115,6 +115,9 @@ export default function OrderDetails({
   metodo,
   notaMetodo,
 }: OrderDetailsProps) {
+  const estado = (rawEstado ?? '').trim().toLowerCase();
+  const esConfirmado = ['aprobado', 'preparando', 'enviado', 'entregado'].includes(estado);
+  const esAnulado = ['rechazado', 'anulado', 'cancelado', 'error'].includes(estado);
   const [isVertical, setIsVertical] = useState(false);
 
   useEffect(() => {
@@ -142,8 +145,7 @@ export default function OrderDetails({
     const lineas = [
       "PUNK MEDALLO",
       `Pedido ${numero}`,
-      `Fecha: ${formatearFechaHora(fechas.// Fixed a typo in the line below if it exists
-      aprobado ?? null) ?? subtitulo}`,
+      `Fecha: ${formatearFechaHora(fechas.aprobado ?? null) ?? subtitulo}`,
       "",
       "PRODUCTOS",
       ...items.map(
@@ -191,15 +193,15 @@ export default function OrderDetails({
               Pedido <span className="font-semibold text-neutral-300">{numero}</span>
             </div>
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
-              estado === 'aprobado' ? 'border-emerald-700/50 bg-emerald-950/30 text-emerald-400' :
-              ['rechazado', 'anulado'].includes(estado) ? 'border-red-800/60 bg-red-950/30 text-red-400' :
+              esConfirmado ? 'border-emerald-700/50 bg-emerald-950/30 text-emerald-400' :
+              esAnulado ? 'border-red-800/60 bg-red-950/30 text-red-400' :
               'border-amber-700/50 bg-amber-950/30 text-amber-300'
             }`}>
-              {estado === 'aprobado' ? <CheckCircle size={13} /> : 
-               ['rechazado', 'anulado'].includes(estado) ? <AlertCircle size={13} /> : 
+              {esConfirmado ? <CheckCircle size={13} /> : 
+               esAnulado ? <AlertCircle size={13} /> : 
                <Clock size={13} />}
-              {estado === 'aprobado' ? 'Pago Confirmado' : 
-               ['rechazado', 'anulado'].includes(estado) ? 'Pedido Anulado' : 
+              {esConfirmado ? 'Pago Confirmado' : 
+               esAnulado ? 'Pedido Anulado' : 
                'Pendiente de Pago'}
             </div>
           </div>

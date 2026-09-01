@@ -48,6 +48,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'view_orders',
     'update_order_status',
     'delete_orders',
+    'view_users',
     'manage_cupones',
     'manage_boleteria',
   ],
@@ -57,6 +58,7 @@ const PERMISSION_MATRIX: Record<string, Permission[]> = {
     'create_products',
     'edit_products',
     'view_orders',
+    'manage_boleteria',
   ],
 }
 

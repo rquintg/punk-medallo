@@ -60,9 +60,17 @@ export function formatearBogota(iso: string | null): string {
   }
 }
 
-export async function getBoletasPorEvento(params: BoletasReporteParams): Promise<BoletasReporteResult> {
-  const { eventoId, page = 1, pageSize = PAGE_SIZE_DEFAULT, estado, q } = params
+export async function getBoletasPorEvento(params: BoletasReporteParams & { ownerId?: string | null }): Promise<BoletasReporteResult> {
+  const { eventoId, page = 1, pageSize = PAGE_SIZE_DEFAULT, estado, q, ownerId } = params as BoletasReporteParams & { ownerId?: string | null }
   const supabase = getSupabaseAdmin()
+  if (ownerId) {
+    // verifica que el evento pertenezca al publicador
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+    const { data: ev } = await (supabase.from('eventos_boletos') as any).select('owner_id').eq('id', eventoId).maybeSingle()
+    if (!ev || (ev as { owner_id: string | null }).owner_id !== ownerId) {
+      return { rows: [], total: 0, resumen: { totalBoletas: 0, validas: 0, usadas: 0, anuladas: 0, cupo: 0 } }
+    }
+  }
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
@@ -172,12 +180,12 @@ export async function getBoletasPorEvento(params: BoletasReporteParams): Promise
   }
 }
 
-export async function getEventosParaReporte(): Promise<Array<{ id: string; titulo: string; fechaEvento: string; lugar: string }>> {
+export async function getEventosParaReporte(ownerId?: string | null): Promise<Array<{ id: string; titulo: string; fechaEvento: string; lugar: string }>> {
   const supabase = getSupabaseAdmin()
+  let query = (supabase.from('eventos_boletos') as any).select('id, titulo, fecha_evento, lugar').order('fecha_evento', { ascending: false })
+  if (ownerId) query = query.eq('owner_id', ownerId)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
-  const { data } = await (supabase.from('eventos_boletos') as any)
-    .select('id, titulo, fecha_evento, lugar')
-    .order('fecha_evento', { ascending: false })
+  const { data } = await query
   return ((data ?? []) as Array<{ id: string; titulo: string; fecha_evento: string; lugar: string }>).map((r) => ({
     id: r.id,
     titulo: r.titulo,

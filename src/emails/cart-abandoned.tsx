@@ -41,6 +41,7 @@ export default function CartAbandoned({
   total,
   siteUrl,
   logoUrl,
+  recoveryUrl,
 }: CartAbandonedProps) {
   return (
     <Html lang="es">

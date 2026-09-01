@@ -25,6 +25,7 @@ import {
   type RangoDias,
 } from '@/features/admin/services/dashboard'
 import { getDashboardBoleteriaAnalytics } from '@/features/boletas/services/dashboard-boleteria'
+import { getRolActual, getUsuarioActual } from '@/features/admin/utils/auth-server'
 import AdminHeader from '@/components/admin/admin-header'
 import KpiCard from '@/components/admin/dashboard/kpi-card'
 import DashboardCard from '@/components/admin/dashboard/dashboard-card'
@@ -52,9 +53,11 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const rango: RangoDias = (RANGOS as number[]).includes(rangoParam) ? (rangoParam as RangoDias) : 30
   const vista: VistaDashboard = params.vista === 'boleteria' ? 'boleteria' : 'tienda'
   const etiqueta = ETIQUETA_RANGO[rango]
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
 
   if (vista === 'boleteria') {
-    const analytics = await getDashboardBoleteriaAnalytics(rango)
+    const analytics = await getDashboardBoleteriaAnalytics(rango, ownerId)
     const conVentas = analytics.totalIngresos > 0 || analytics.totalBoletas > 0
     // adapt serie for existing chart components (esperan ingresos + ordenes)
     const serieTiendaCompat = analytics.serie.map((s) => ({ fecha: s.fecha, etiqueta: s.etiqueta, ingresos: s.ingresos, ordenes: s.boletas }))
@@ -175,8 +178,8 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
     )
   }
 
-  // vista tienda (default) — ahora sin fuga de boletería
-  const analytics = await getDashboardAnalytics(rango)
+  // vista tienda (default) — ahora sin fuga de boletería y filtrada por owner si publicador
+  const analytics = await getDashboardAnalytics(rango, ownerId)
   const conVentas = analytics.totalIngresos > 0
 
   return (

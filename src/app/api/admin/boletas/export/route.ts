@@ -37,6 +37,15 @@ export async function GET(request: NextRequest) {
   if (!/^[0-9a-f-]{36}$/i.test(eventoId)) return NextResponse.json({ error: 'eventoId requerido' }, { status: 400 })
 
   const supabase = getSupabaseAdmin()
+  if (rol === 'publicador') {
+    const { getUsuarioActual } = await import('@/features/admin/utils/auth-server')
+    const usuario = await getUsuarioActual()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+    const { data: evOwner } = await (supabase.from('eventos_boletos') as any).select('owner_id').eq('id', eventoId).maybeSingle()
+    if (!evOwner || (evOwner as { owner_id: string | null }).owner_id !== usuario?.id) {
+      return NextResponse.json({ error: 'No autorizado para este evento' }, { status: 403 })
+    }
+  }
 
   // evento info para filename
   const { data: evento } = await (supabase.from('eventos_boletos') as any).select('titulo, fecha_evento').eq('id', eventoId).maybeSingle()

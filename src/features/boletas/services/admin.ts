@@ -18,6 +18,7 @@ interface DbEvento {
   imagen_url: string | null
   imagen_card_url: string | null
   activo: boolean
+  owner_id?: string | null
 }
 
 /** Fila cruda de BD (snake_case) */
@@ -96,13 +97,12 @@ function conDisponibilidad(
   })
 }
 
-export async function getEventosAdmin(): Promise<(EventoBoleto & { totalTipos: number })[]> {
+export async function getEventosAdmin(ownerId?: string | null): Promise<(EventoBoleto & { totalTipos: number })[]> {
   const supabase = getSupabaseAdmin()
+  let eventosQuery = (supabase.from('eventos_boletos') as any).select('*').order('fecha_evento', { ascending: false })
+  if (ownerId) eventosQuery = eventosQuery.eq('owner_id', ownerId)
   const [eventosRes, tiposRes] = await Promise.all([
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
-    (supabase.from('eventos_boletos') as any)
-      .select('*')
-      .order('fecha_evento', { ascending: false }),
+    eventosQuery,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
     (supabase.from('tipos_boleta') as any).select('evento_id, cantidad_total'),
   ])
@@ -116,7 +116,7 @@ export async function getEventosAdmin(): Promise<(EventoBoleto & { totalTipos: n
   return eventos.map((e) => ({ ...e, totalTipos: porEvento.get(e.id) ?? 0 }))
 }
 
-export async function getEventoAdminById(id: string): Promise<{
+export async function getEventoAdminById(id: string, ownerId?: string | null): Promise<{
   evento: EventoBoleto
   tipos: TipoBoleta[]
 } | null> {
@@ -124,6 +124,11 @@ export async function getEventoAdminById(id: string): Promise<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data } = await (supabase.from('eventos_boletos') as any).select('*').eq('id', id).maybeSingle()
   if (!data) return null
+  if (ownerId && (data as DbEvento).owner_id && (data as DbEvento).owner_id !== ownerId) return null
+  if (ownerId && !(data as DbEvento).owner_id) {
+    // legacy eventos sin owner: solo super_admin/admin pueden verlos; publicador no
+    return null
+  }
 
   const [tiposRes, vendidas] = await Promise.all([
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
@@ -150,7 +155,7 @@ export interface EventoInput {
   activo: boolean
 }
 
-export async function createEvento(input: EventoInput): Promise<string> {
+export async function createEvento(input: EventoInput, ownerId?: string | null): Promise<string> {
   const supabase = getSupabaseAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { data, error } = await (supabase.from('eventos_boletos') as any)
@@ -165,6 +170,7 @@ export async function createEvento(input: EventoInput): Promise<string> {
       imagen_url: input.imagenUrl,
       imagen_card_url: input.imagenCardUrl,
       activo: input.activo,
+      ...(ownerId ? { owner_id: ownerId } : {}),
     })
     .select('id')
     .single()

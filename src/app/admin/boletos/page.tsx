@@ -21,7 +21,10 @@ const fechaFmt = (iso: string) =>
 
 export default async function AdminBoletosPage() {
   await requirePermission('manage_boleteria')
-  const eventos = await getEventosAdmin()
+  const { getRolActual, getUsuarioActual } = await import('@/features/admin/utils/auth-server')
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+  const eventos = await getEventosAdmin(ownerId)
   // eslint-disable-next-line react-hooks/purity -- per-request server time for "Pasado" badge
   const ahora = Date.now()
 

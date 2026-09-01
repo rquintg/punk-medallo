@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
-import { requirePermission } from '@/features/admin/utils/auth-server'
+import { getRolActual, getUsuarioActual, requirePermission } from '@/features/admin/utils/auth-server'
 import { listarEventosActivos } from '@/features/boletas/services/public'
+import { getEventosAdmin } from '@/features/boletas/services/admin'
 import AdminHeader from '@/components/admin/admin-header'
 import EscanerClient from './escaner-client'
 
@@ -11,7 +12,16 @@ export const metadata: Metadata = {
 
 export default async function EscanerPage() {
   await requirePermission('manage_boleteria')
-  const eventos = await listarEventosActivos()
+  const rol = await getRolActual()
+  let eventos: Array<{ id: string; titulo: string; fechaEvento: string }> = []
+  if (rol === 'publicador') {
+    const ownerId = (await getUsuarioActual())?.id ?? null
+    const adminEventos = await getEventosAdmin(ownerId)
+    const ahora = Date.now()
+    eventos = adminEventos.filter((e) => e.activo && new Date(e.fechaEvento).getTime() >= ahora).map((e) => ({ id: e.id, titulo: e.titulo, fechaEvento: e.fechaEvento }))
+  } else {
+    eventos = await listarEventosActivos()
+  }
 
   return (
     <div className="mx-auto max-w-xl">

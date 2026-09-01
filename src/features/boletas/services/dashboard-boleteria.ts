@@ -52,10 +52,42 @@ function deltaPct(a: number, b: number): number | null {
   return Math.round(((a - b) / b) * 1000) / 10
 }
 
-export async function getDashboardBoleteriaAnalytics(rango: RangoDias): Promise<BoleteriaAnalytics> {
+export async function getDashboardBoleteriaAnalytics(rango: RangoDias, ownerId?: string | null): Promise<BoleteriaAnalytics> {
   const supabase = getSupabaseAdmin()
   const desde = inicioDiaBogota(rango - 1)
   const desdePrev = inicioDiaBogota(rango - 1 + rango)
+  // si es publicador, solo sus eventos; si no hay ninguno, retorna vacio rapido
+  if (ownerId) {
+    const { data: ownedCheck } = await (supabase.from('eventos_boletos') as any).select('id').eq('owner_id', ownerId).limit(1)
+    if (!ownedCheck || (ownedCheck as unknown[]).length === 0) {
+      return {
+        rango,
+        totalIngresos: 0,
+        deltaIngresos: null,
+        totalBoletas: 0,
+        deltaBoletas: null,
+        ticketPromedio: 0,
+        deltaTicket: null,
+        tasaOcupacion: 0,
+        serie: Array.from({ length: rango }, (_, idx) => {
+          const i = rango - 1 - idx
+          const dia = inicioDiaBogota(i).slice(0, 10)
+          const etiquetas = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'short' })
+          return { fecha: dia, etiqueta: etiquetas.format(new Date(`${dia}T12:00:00.000Z`)), ingresos: 0, boletas: 0 }
+        }),
+        topEventos: [],
+        porEvento: [],
+        porEstado: [],
+        ultimasBoletas: [],
+        totalCupo: 0,
+        validas: 0,
+        usadas: 0,
+        anuladas: 0,
+        porEscanear: 0,
+        eventosActivos: 0,
+      }
+    }
+  }
 
   const [boletasRangoRes, boletasPrevRes, boletasTodasRes, tiposRes, eventosRes, pedidoItemsBoleteriaRes] =
     await Promise.all([
@@ -75,12 +107,22 @@ export async function getDashboardBoleteriaAnalytics(rango: RangoDias): Promise<
         .not('tipo_boleta_id', 'is', null),
     ])
 
-  const boletasRango = (boletasRangoRes.data ?? []) as Array<{ id: string; evento_id: string; tipo_id: string; estado: string; created_at: string; escaneada_en: string | null }>
+  let boletasRango = (boletasRangoRes.data ?? []) as Array<{ id: string; evento_id: string; tipo_id: string; estado: string; created_at: string; escaneada_en: string | null }>
   const boletasPrevCount = ((boletasPrevRes.data ?? []) as unknown[]).length
-  const boletasTodas = (boletasTodasRes.data ?? []) as Array<{ id: string; evento_id: string; estado: string }>
-  const tipos = (tiposRes.data ?? []) as Array<{ id: string; evento_id: string; nombre: string; precio: number; cantidad_total: number }>
-  const eventos = (eventosRes.data ?? []) as Array<{ id: string; titulo: string; fecha_evento: string; activo: boolean }>
-  const pedidoItemsAll = (pedidoItemsBoleteriaRes.data ?? []) as Array<{ pedido_id: string; tipo_boleta_id: string; precio: number; cantidad: number; pedidos: { id: string; created_at: string; estado: string; total: number } }>
+  let boletasTodas = (boletasTodasRes.data ?? []) as Array<{ id: string; evento_id: string; estado: string }>
+  let tipos = (tiposRes.data ?? []) as Array<{ id: string; evento_id: string; nombre: string; precio: number; cantidad_total: number }>
+  let eventos = (eventosRes.data ?? []) as Array<{ id: string; titulo: string; fecha_evento: string; activo: boolean }>
+  let pedidoItemsAll = (pedidoItemsBoleteriaRes.data ?? []) as Array<{ pedido_id: string; tipo_boleta_id: string; precio: number; cantidad: number; pedidos: { id: string; created_at: string; estado: string; total: number } }>
+  if (ownerId) {
+    const ownedIds = new Set(eventos.map((e) => e.id))
+    boletasRango = boletasRango.filter((b) => ownedIds.has(b.evento_id))
+    boletasTodas = boletasTodas.filter((b) => ownedIds.has(b.evento_id))
+    tipos = tipos.filter((t) => ownedIds.has(t.evento_id))
+    pedidoItemsAll = pedidoItemsAll.filter((it) => {
+      const tipo = tipos.find((t) => t.id === it.tipo_boleta_id)
+      return tipo ? ownedIds.has(tipo.evento_id) : false
+    })
+  }
 
   const tipoMap = new Map<string, { eventoId: string; nombre: string; precio: number; cantidad: number }>()
   const cupoPorEvento = new Map<string, number>()

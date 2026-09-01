@@ -1,8 +1,29 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requirePermissionAction } from '@/features/admin/utils/auth-server'
+import { getRolActual, getUsuarioActual, requirePermissionAction } from '@/features/admin/utils/auth-server'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
+
+async function assertOwnerEvento(eventoId: string) {
+  const rol = await getRolActual()
+  if (rol !== 'publicador') return
+  const usuario = await getUsuarioActual()
+  if (!usuario) throw new Error('No autenticado')
+  const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+  const { data } = await (supabase.from('eventos_boletos') as any).select('owner_id').eq('id', eventoId).maybeSingle()
+  if (!data || data.owner_id !== usuario.id) throw new Error('No tienes permiso para modificar este evento')
+}
+
+async function assertOwnerTipo(tipoId: string) {
+  const rol = await getRolActual()
+  if (rol !== 'publicador') return
+  const supabase = getSupabaseAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+  const { data } = await (supabase.from('tipos_boleta') as any).select('evento_id').eq('id', tipoId).maybeSingle()
+  if (!data) throw new Error('Tipo no encontrado')
+  await assertOwnerEvento(data.evento_id)
+}
 import {
   createEvento,
   updateEvento,
@@ -29,7 +50,7 @@ function revalidate(): void {
 // ---------- Evento ----------
 
 export async function crearEventoAction(formData: FormData): Promise<{ id: string }> {
-  await requirePermissionAction('manage_boleteria')
+  const rol = await requirePermissionAction('manage_boleteria')
 
   const titulo = (formData.get('titulo') as string)?.trim() ?? ''
   const lugar = (formData.get('lugar') as string)?.trim() ?? ''
@@ -37,6 +58,7 @@ export async function crearEventoAction(formData: FormData): Promise<{ id: strin
 
   if (!titulo || !lugar || !fecha) throw new Error('Título, lugar y fecha son obligatorios')
 
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
   const id = await createEvento({
     slug: genSlug(titulo),
     titulo,
@@ -48,7 +70,7 @@ export async function crearEventoAction(formData: FormData): Promise<{ id: strin
     imagenUrl: null,
     imagenCardUrl: null,
     activo: true,
-  })
+  }, ownerId)
 
   revalidate()
   return { id }
@@ -56,6 +78,7 @@ export async function crearEventoAction(formData: FormData): Promise<{ id: strin
 
 export async function actualizarEventoAction(id: string, formData: FormData): Promise<void> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerEvento(id)
 
   const titulo = (formData.get('titulo') as string)?.trim() ?? ''
   const lugar = (formData.get('lugar') as string)?.trim() ?? ''
@@ -78,6 +101,7 @@ export async function actualizarEventoAction(id: string, formData: FormData): Pr
 
 export async function desactivarEventoAction(id: string): Promise<void> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerEvento(id)
   await desactivarEvento(id)
   revalidate()
 }
@@ -85,6 +109,7 @@ export async function desactivarEventoAction(id: string): Promise<void> {
 /** Sube la portada del evento al bucket y la guarda como imagen_url */
 export async function subirImagenEventoAction(eventoId: string, slug: string, formData: FormData): Promise<{ url: string }> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerEvento(eventoId)
   const supabase = getSupabaseAdmin()
 
   const file = formData.get('file') as File | null
@@ -117,6 +142,7 @@ export async function subirImagenCardEventoAction(
   formData: FormData,
 ): Promise<{ url: string }> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerEvento(eventoId)
   const supabase = getSupabaseAdmin()
 
   const file = formData.get('file') as File | null
@@ -146,6 +172,7 @@ export async function subirImagenCardEventoAction(
 
 export async function agregarTipoAction(eventoId: string, formData: FormData): Promise<void> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerEvento(eventoId)
 
   const nombre = (formData.get('nombre') as string)?.trim() ?? ''
   const precio = Number(formData.get('precio'))
@@ -161,6 +188,7 @@ export async function agregarTipoAction(eventoId: string, formData: FormData): P
 
 export async function actualizarTipoAction(tipoId: string, formData: FormData): Promise<void> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerTipo(tipoId)
 
   const payload: { nombre?: string; precio?: number; cantidadTotal?: number } = {}
   const nombre = formData.get('nombre')
@@ -185,6 +213,7 @@ export async function actualizarTipoAction(tipoId: string, formData: FormData): 
 
 export async function eliminarTipoAction(tipoId: string): Promise<void> {
   await requirePermissionAction('manage_boleteria')
+  await assertOwnerTipo(tipoId)
   await deleteTipo(tipoId)
   revalidate()
 }

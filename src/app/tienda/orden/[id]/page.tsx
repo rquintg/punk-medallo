@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-dynamic';
+
 import { ArrowLeft, MessageCircle, PackageSearch, ShieldCheck } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'

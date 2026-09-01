@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import AdminHeader from '@/components/admin/admin-header'
+import { getRolActual, getUsuarioActual } from '@/features/admin/utils/auth-server'
 import { requirePermission } from '@/features/admin/utils/auth-server'
 import { getEventoAdminById } from '@/features/boletas/services/admin'
 import EventoForm from '../evento-form'
@@ -13,7 +14,9 @@ export const metadata: Metadata = { title: 'Editar evento — Boletería' }
 export default async function EditarEventoPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission('manage_boleteria')
   const { id } = await params
-  const data = await getEventoAdminById(id)
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+  const data = await getEventoAdminById(id, ownerId)
   if (!data) notFound()
 
   return (

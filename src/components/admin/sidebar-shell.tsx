@@ -65,7 +65,7 @@ const NAV_GROUPS: {
         label: 'Categorías',
         href: '/admin/categorias',
         icon: Tags,
-        permission: 'edit_products',
+        permission: 'delete_products',
       },
       {
         label: 'Cupones',
@@ -77,7 +77,7 @@ const NAV_GROUPS: {
         label: 'Configuración',
         href: '/admin/tienda',
         icon: Store,
-        permission: 'edit_products',
+        permission: 'view_analytics',
       },
     ],
   },

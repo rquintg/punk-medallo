@@ -12,7 +12,7 @@ function slugify(text: string) {
 }
 
 export async function createCategoria(formData: FormData) {
-  await requirePermissionAction('edit_products')
+  await requirePermissionAction('delete_products')
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
   const slug = (formData.get('slug') as string) || slugify(nombre)
@@ -25,7 +25,7 @@ export async function createCategoria(formData: FormData) {
 }
 
 export async function updateCategoria(id: string, formData: FormData) {
-  await requirePermissionAction('edit_products')
+  await requirePermissionAction('delete_products')
   const supabase = getSupabaseAdmin()
   const nombre = formData.get('nombre') as string
   const descripcion = (formData.get('descripcion') as string) || null

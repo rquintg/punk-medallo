@@ -31,12 +31,15 @@ export default async function ReporteBoletasPage({
   const q = typeof sp.q === 'string' ? sp.q : ''
   const page = Math.max(1, Number(sp.page ?? 1) || 1)
 
-  const eventos = await getEventosParaReporte()
+  const { getRolActual, getUsuarioActual } = await import('@/features/admin/utils/auth-server')
+  const rol = await getRolActual()
+  const ownerId = rol === 'publicador' ? (await getUsuarioActual())?.id ?? null : null
+  const eventos = await getEventosParaReporte(ownerId)
 
   let data: Awaited<ReturnType<typeof getBoletasPorEvento>> | null = null
   if (eventoId) {
     try {
-      data = await getBoletasPorEvento({ eventoId, page, pageSize: PAGE_SIZE, estado, q })
+      data = await getBoletasPorEvento({ eventoId, page, pageSize: PAGE_SIZE, estado, q, ownerId })
     } catch (e) {
       console.error('Reporte boletas error:', e)
     }

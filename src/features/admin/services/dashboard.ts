@@ -92,7 +92,7 @@ function deltaPct(actual: number, previo: number): number | null {
   return Math.round(((actual - previo) / previo) * 1000) / 10
 }
 
-export async function getDashboardAnalytics(rango: RangoDias): Promise<DashboardAnalytics> {
+export async function getDashboardAnalytics(rango: RangoDias, ownerId?: string | null): Promise<DashboardAnalytics> {
   const supabase = getSupabaseAdmin()
   const desde = inicioDiaBogota(rango - 1)
   const desdePrev = inicioDiaBogota(rango - 1 + rango)
@@ -125,13 +125,27 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     supabase.from('pedidos').select('id, estado, acepta_politicas'),
     supabase.from('pedidos').select('id, numero_pedido, nombre_entrega, total, estado, metodo_pago, created_at').order('created_at', { ascending: false }).limit(20),
     (supabase.from('pedido_items') as any).select('pedido_id'),
-    supabase.from('pedidos').select('total').in('estado', ['aprobado', 'preparando', 'enviado']).eq('metodo_pago', 'CONTRA_ENTREGA'),
+    supabase.from('pedidos').select('id, total').in('estado', ['aprobado', 'preparando', 'enviado']).eq('metodo_pago', 'CONTRA_ENTREGA'),
     (supabase.from('pedido_items') as any).select('pedido_id').not('tipo_boleta_id', 'is', null),
   ])
 
   const boleteriaIds = new Set(((boleteriaPedidosRes.data ?? []) as { pedido_id: string }[]).map((r) => r.pedido_id))
-  const pedidosRango = ((rangoRes.data ?? []) as PedidoAnalytics[]).filter((p) => !boleteriaIds.has(p.id))
-  const pedidosPrevios = ((previoRes.data ?? []) as PedidoAnalytics[]).filter((p) => !boleteriaIds.has(p.id))
+  // owner filter for publicador (solo lo propio)
+  let ownerProductoIds: Set<string> | null = null
+  let ownerPedidoIds: Set<string> | null = null
+  if (ownerId) {
+    const { data: owned } = await (supabase.from('productos') as any).select('id').eq('owner_id', ownerId)
+    ownerProductoIds = new Set(((owned ?? []) as { id: string }[]).map((p) => p.id))
+    if (ownerProductoIds.size > 0) {
+      const { data: oItems } = await (supabase.from('pedido_items') as any).select('pedido_id').in('producto_id', [...ownerProductoIds])
+      ownerPedidoIds = new Set(((oItems ?? []) as { pedido_id: string }[]).map((i) => i.pedido_id))
+    } else {
+      ownerPedidoIds = new Set()
+    }
+  }
+  const esPedidoPropio = (id: string) => !boleteriaIds.has(id) && (!ownerPedidoIds || ownerPedidoIds.has(id))
+  const pedidosRango = ((rangoRes.data ?? []) as PedidoAnalytics[]).filter((p) => esPedidoPropio(p.id))
+  const pedidosPrevios = ((previoRes.data ?? []) as PedidoAnalytics[]).filter((p) => esPedidoPropio(p.id))
 
   let totalIngresos = 0
   let totalOrdenes = 0
@@ -212,7 +226,7 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     .sort((a, b) => b.ingresos - a.ingresos)
 
   const estadosRawAll = (estadosRes.data ?? []) as { id: string; estado: string; acepta_politicas: boolean | null }[]
-  const estadosRaw = estadosRawAll.filter((r) => !boleteriaIds.has(r.id))
+  const estadosRaw = estadosRawAll.filter((r) => esPedidoPropio(r.id))
   const ordenesPorEstado = Object.entries(
     estadosRaw.reduce((acc: Record<string, number>, item) => {
       const e = item.estado
@@ -227,11 +241,11 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     : 0
 
   const cuponesDataAll = (cuponesRes.data ?? []) as { id: string; descuento: number | null }[]
-  const cuponesData = cuponesDataAll.filter((r) => !boleteriaIds.has(r.id))
+  const cuponesData = cuponesDataAll.filter((r) => esPedidoPropio(r.id))
   const cuponesDescontado = cuponesData.reduce((sum, c) => sum + (c.descuento ?? 0), 0)
 
   const ultimasOrdenesAll = (ultimasRes.data as unknown as (UltimaOrdenInfo & { id: string })[]) ?? []
-  const ultimasOrdenesRaw = ultimasOrdenesAll.filter((r) => !boleteriaIds.has(r.id)).slice(0, 5)
+  const ultimasOrdenesRaw = ultimasOrdenesAll.filter((r) => esPedidoPropio(r.id)).slice(0, 5)
   const itemsUltimas = (itemsUltimasRes.data ?? []) as { pedido_id: string }[]
   const itemsPorPedido = new Map<string, number>()
   for (const i of itemsUltimas) {
@@ -247,8 +261,10 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     items: itemsPorPedido.get(o.id) ?? 0,
   }))
 
-  const productos = (productosRes.data ?? []) as { id: string; stock: number; activo: boolean | null }[]
-  const variantes = (variantesRes.data ?? []) as { producto_id: string; stock: number }[]
+  const productosAll = (productosRes.data ?? []) as { id: string; stock: number; activo: boolean | null }[]
+  const productos = ownerProductoIds ? productosAll.filter((p) => ownerProductoIds.has(p.id)) : productosAll
+  const variantesAll = (variantesRes.data ?? []) as { producto_id: string; stock: number }[]
+  const variantes = ownerProductoIds ? variantesAll.filter((v) => ownerProductoIds.has(v.producto_id)) : variantesAll
 
   const variantesMap = new Map<string, number>()
   const productosConVariantes = new Set<string>()
@@ -267,10 +283,11 @@ export async function getDashboardAnalytics(rango: RangoDias): Promise<Dashboard
     return efectivo < umbralStock
   }).length
 
-  const codData = (codRes.data ?? []) as { total: number | null }[]
+  const codAll = (codRes.data ?? []) as { id: string; total: number | null }[]
+  const codData = ownerPedidoIds ? codAll.filter((p) => ownerPedidoIds.has(p.id)) : codAll
   const contraEntregaPorCobrar = codData.reduce((sum, p) => sum + (p.total ?? 0), 0)
 
-  const porEnviarFiltrado = ((porEnviarRes.data ?? []) as { id: string }[]).filter((r) => !boleteriaIds.has(r.id)).length
+  const porEnviarFiltrado = ((porEnviarRes.data ?? []) as { id: string }[]).filter((r) => esPedidoPropio(r.id)).length
   return {
     rango,
     totalIngresos,

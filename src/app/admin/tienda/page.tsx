@@ -6,7 +6,7 @@ import AdminHeader from '@/components/admin/admin-header'
 
 export default async function AdminTiendaPage() {
   const rol = await getRolActual()
-  if (!can(rol, 'view_dashboard')) {
+  if (!can(rol, 'view_analytics')) {
     const { redirect } = await import('next/navigation')
     redirect('/admin/dashboard')
   }
