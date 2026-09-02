@@ -1,50 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CreditCard } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { loadWompiScript } from "@/lib/wompi-client";
 
 interface RecoveryPaymentProps {
-  wompi: {
-    publicKey: string;
-    amountInCents: number;
-    currency: string;
-    reference: string;
-    signature: { integrity: string };
-    redirectUrl: string;
-  };
+  numeroPedido: string;
 }
 
-export default function RecoveryPayment({ wompi }: RecoveryPaymentProps) {
+export default function RecoveryPayment({ numeroPedido }: RecoveryPaymentProps) {
+  const router = useRouter();
   const [isPaying, setIsPaying] = useState(false);
+  const closeGuardRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (closeGuardRef.current) clearTimeout(closeGuardRef.current);
+  }, []);
 
   const handlePayment = async () => {
     setIsPaying(true);
-    
-    if (!window.Wompi) {
-      const script = document.createElement("script");
-      script.src = "https://checkout.wompi.co/widgets/checkout.js";
-      script.async = true;
-      script.onload = () => initiateWompi();
-      document.body.appendChild(script);
-    } else {
-      initiateWompi();
-    }
-  };
-
-  const initiateWompi = () => {
     try {
-      (window as any).Wompi.checkout({
-        amountInCents: wompi.amountInCents,
-        currency: wompi.currency,
-        reference: wompi.reference,
-        publicKey: wompi.publicKey,
-        signature: wompi.signature,
-        redirectUrl: wompi.redirectUrl,
+      const res = await fetch("/api/recuperar-pedido", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numero_pedido: numeroPedido }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "No se pudo preparar el pago");
+        setIsPaying(false);
+        return;
+      }
+
+      await loadWompiScript();
+      if (typeof window.WidgetCheckout === "undefined") {
+        throw new Error("El widget de Wompi no cargó (¿bloqueador de anuncios o red?)");
+      }
+
+      const checkout = new window.WidgetCheckout({
+        currency: data.wompi.currency,
+        amountInCents: data.wompi.amountInCents,
+        reference: data.wompi.reference,
+        publicKey: data.wompi.publicKey,
+        signature: data.wompi.signature,
+        redirectUrl: data.wompi.redirectUrl || `${window.location.origin}/tienda/compra`,
+        customerData: data.wompi.customerData,
+      });
+
+      closeGuardRef.current = setTimeout(() => setIsPaying(false), 30000);
+
+      checkout.open((result) => {
+        if (closeGuardRef.current) clearTimeout(closeGuardRef.current);
+        setIsPaying(false);
+        const txId = (result as unknown as { transaction?: { id: string } })?.transaction?.id || numeroPedido;
+        router.push(`/tienda/compra?id=${txId}`);
       });
     } catch (err) {
       console.error("Wompi Widget error:", err);
-      alert("Hubo un error al iniciar el pago. Por favor intenta de nuevo.");
-    } finally {
+      toast.error(err instanceof Error ? err.message : "Hubo un error al iniciar el pago. Por favor intenta de nuevo.");
       setIsPaying(false);
     }
   };
@@ -73,10 +88,4 @@ export default function RecoveryPayment({ wompi }: RecoveryPaymentProps) {
       </p>
     </div>
   );
-}
-
-declare global {
-  interface Window {
-    Wompi?: any;
-  }
 }

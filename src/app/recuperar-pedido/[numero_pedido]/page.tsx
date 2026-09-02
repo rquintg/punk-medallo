@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { generateIntegritySignature } from '@/lib/wompi';
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';
 import RecoveryPayment from '@/components/tienda/recovery-payment';
 import { AlertCircle, Receipt, ShieldCheck, Ticket } from 'lucide-react';
@@ -12,11 +11,11 @@ interface RecoveryPageProps {
 
 export default async function RecuperarPedidoPage({ params }: RecoveryPageProps) {
   const { numero_pedido } = await params;
-  const supabase = await createClient();
+  const supabase = getSupabaseAdmin();
 
-  // 1. Buscar el pedido y sus items
-  const { data: pedido, error: pedidoError } = await supabase
-    .from('pedidos')
+  // 1. Buscar el pedido y sus items (service_role bypass RLS, funciona para anon guest y boletería)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+  const { data: pedido, error: pedidoError } = await (supabase.from('pedidos') as any)
     .select('*, pedido_items(*)')
     .eq('numero_pedido', numero_pedido)
     .single();
@@ -61,42 +60,8 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
     );
   }
 
-  // 3. Generar parámetros de Wompi (exactamente como en checkout)
-  const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
-  const integrityKey = process.env.WOMPI_INTEGRITY_KEY;
-  const amountInCents = Math.round(pedido.total * 100);
-
-  if (!publicKey || !integrityKey) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
-        <div className="mt-16 flex flex-col items-center gap-4 text-center">
-          <AlertCircle size={48} className="text-red-500" />
-          <h1 className="text-xl font-semibold text-white">Error de configuración</h1>
-          <p className="text-sm text-neutral-500">Hubo un error interno al generar la pasarela de pago.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const signature = generateIntegritySignature(
-    pedido.numero_pedido,
-    amountInCents,
-    'COP',
-    integrityKey,
-  );
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://punkmedallo.com';
-  const isLocal = siteUrl.startsWith('http://localhost') || siteUrl.startsWith('http://127.0.0.1');
-  const redirectUrl = isLocal ? '' : `${siteUrl}/tienda/compra`;
-
-  const wompiParams = {
-    publicKey,
-    amountInCents,
-    currency: 'COP',
-    reference: pedido.numero_pedido,
-    signature: { integrity: signature },
-    redirectUrl,
-  };
+  // 3. La firma fresca y los params de Wompi se generan en el endpoint POST /api/recuperar-pedido
+  //    (evita expiración y unifica tienda + boletería). El cliente pedirá /api/recuperar-pedido con el numero.
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-20 pb-8">
@@ -176,7 +141,7 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
                 Estás a un solo paso de asegurar tus productos. Completa el pago de forma segura a través de Wompi.
               </p>
             </div>
-            <RecoveryPayment wompi={wompiParams} />
+            <RecoveryPayment numeroPedido={pedido.numero_pedido} />
           </section>
         </div>
       </div>
