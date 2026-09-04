@@ -22,6 +22,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const cfg = await getTiendaConfig().catch(() => null as unknown as { tiendaActiva: boolean })
+  if (cfg && !cfg.tiendaActiva) return { robots: { index: false, follow: false } }
   const [{ slug }, logoOg] = await Promise.all([params, ogImageActual()]);
   const producto = await getProductoBySlug(slug);
 

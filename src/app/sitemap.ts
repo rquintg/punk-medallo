@@ -6,6 +6,7 @@ import { qualifiedSlugBase } from "@/features/descargas/utils/slug";
 import { bandSlug } from "@/features/descargas/utils/album";
 import { getProductosFiltrados } from "@/features/tienda/services/products";
 import { getCategorias } from "@/features/tienda/services/categorias";
+import { getTiendaConfig } from "@/features/tienda/services/tienda-config";
 
 const SITE_URL = "https://punkmedallo.com";
 
@@ -28,7 +29,15 @@ const staticRoutes: Array<{
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const entries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
+  let cfg: { tiendaActiva: boolean; boleteriaActiva: boolean } | null = null
+  try { cfg = await getTiendaConfig() } catch {}
+  const tiendaActiva = cfg?.tiendaActiva ?? true
+  const boleteriaActiva = cfg?.boleteriaActiva ?? false
+  const filteredStatic = staticRoutes.filter((r) => {
+    if (r.url.startsWith('/tienda') && !tiendaActiva) return false
+    return true
+  })
+  const entries: MetadataRoute.Sitemap = filteredStatic.map((route) => ({
     url: `${SITE_URL}${route.url}`,
     lastModified: new Date(),
     changeFrequency: route.changeFrequency,
@@ -94,33 +103,56 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   let productEntries: MetadataRoute.Sitemap = [];
-  try {
-    const productos = await getProductosFiltrados();
-    productEntries = productos.map((p) => {
-      const t = new Date(p.fechaCreacion);
-      return {
-        url: `${SITE_URL}/tienda/${p.slug}`,
-        lastModified: Number.isNaN(t.getTime()) ? new Date() : t,
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-      };
-    });
-  } catch {
-    productEntries = [];
+  if (tiendaActiva) {
+    try {
+      const productos = await getProductosFiltrados();
+      productEntries = productos.map((p) => {
+        const t = new Date(p.fechaCreacion);
+        return {
+          url: `${SITE_URL}/tienda/${p.slug}`,
+          lastModified: Number.isNaN(t.getTime()) ? new Date() : t,
+          changeFrequency: "weekly" as const,
+          priority: 0.6,
+        };
+      });
+    } catch {
+      productEntries = [];
+    }
   }
 
   let categoriaEntries: MetadataRoute.Sitemap = [];
-  try {
-    const categorias = await getCategorias();
-    categoriaEntries = categorias.map((c) => ({
-      url: `${SITE_URL}/tienda/categoria/${c.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
-  } catch {
-    categoriaEntries = [];
+  if (tiendaActiva) {
+    try {
+      const categorias = await getCategorias();
+      categoriaEntries = categorias.map((c) => ({
+        url: `${SITE_URL}/tienda/categoria/${c.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
+    } catch {
+      categoriaEntries = [];
+    }
   }
 
-  return [...entries, ...albumEntries, ...bandEntries, ...productEntries, ...categoriaEntries];
+  let boletasEntries: MetadataRoute.Sitemap = [];
+  if (boleteriaActiva) {
+    try {
+      const { listarEventosActivos } = await import('@/features/boletas/services/public')
+      const eventos = await listarEventosActivos()
+      boletasEntries = [
+        { url: `${SITE_URL}/boletas`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
+        ...eventos.map((e) => ({
+          url: `${SITE_URL}/boletas/${e.slug}`,
+          lastModified: new Date(e.fechaEvento),
+          changeFrequency: "weekly" as const,
+          priority: 0.6,
+        })),
+      ]
+    } catch {
+      boletasEntries = [];
+    }
+  }
+
+  return [...entries, ...albumEntries, ...bandEntries, ...productEntries, ...categoriaEntries, ...boletasEntries];
 }

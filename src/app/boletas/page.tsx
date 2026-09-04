@@ -12,13 +12,13 @@ import { BoletasFilters } from '@/components/boletas/boletas-filters'
 export const revalidate = 60
 
 export async function generateMetadata(): Promise<Metadata> {
-  const ogImage = await ogImageActual()
+  const [{ boleteriaActiva }, ogImage] = await Promise.all([import('@/features/tienda/services/tienda-config').then((m) => m.getTiendaConfig()), ogImageActual()])
   return {
     title: 'La Boleteria - Punk Medallo',
     description:
       'Compra tus entradas para los conciertos de Punk Medallo.',
     alternates: { canonical: '/boletas' },
-    robots: { index: false, follow: true },
+    robots: boleteriaActiva ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       title: 'La Boleteria - Punk Medallo',
       description: 'Compra tus entradas para los conciertos de Punk Medallo.',

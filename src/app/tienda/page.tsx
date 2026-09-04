@@ -20,6 +20,8 @@ import CartDrawer from '@/components/tienda/cart-drawer';
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cfg = await getTiendaConfig().catch(() => null as unknown as { tiendaActiva: boolean })
+  if (cfg && !cfg.tiendaActiva) return { robots: { index: false, follow: false } }
   const ogImage = await ogImageActual();
   return {
     title: 'Tienda',

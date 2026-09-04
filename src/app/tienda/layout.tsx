@@ -1,5 +1,14 @@
+import type { Metadata } from 'next'
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
 import Mantenimiento from '@/components/mantenimiento'
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const cfg = await getTiendaConfig()
+    if (!cfg.tiendaActiva) return { robots: { index: false, follow: false } }
+  } catch {}
+  return {}
+}
 
 export default async function TiendaLayout({ children }: { children: React.ReactNode }) {
   try {

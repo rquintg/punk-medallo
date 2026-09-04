@@ -32,6 +32,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: CategoriaPageProps): Promise<Metadata> {
+  const cfg = await getTiendaConfig().catch(() => null as unknown as { tiendaActiva: boolean })
+  if (cfg && !cfg.tiendaActiva) return { robots: { index: false, follow: false } }
   const [{ slug }, ogImage] = await Promise.all([params, ogImageActual()]);
   const categorias = await getCategorias();
   const categoria = categorias.find((c) => c.slug === slug);

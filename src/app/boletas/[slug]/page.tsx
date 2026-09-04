@@ -20,7 +20,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const evento = await getEventoPublicoBySlug(slug)
+  const [evento, cfg] = await Promise.all([getEventoPublicoBySlug(slug), import('@/features/tienda/services/tienda-config').then((m) => m.getTiendaConfig())])
   if (!evento) return { title: 'Evento no encontrado' }
 
   const ogImage = evento.imagenUrl ?? 'https://punkmedallo.com/logo_punk_medallo.jpg'
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     alternates: { canonical: `/boletas/${evento.slug}` },
-    robots: { index: false, follow: true },
+    robots: cfg.boleteriaActiva ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       title,
       description,

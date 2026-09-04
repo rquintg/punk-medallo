@@ -7,6 +7,7 @@ import {
   type ProductoOrden,
 } from '@/features/tienda/services/products';
 import { getCategorias } from '@/features/tienda/services/categorias';
+import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
 import { breadcrumbListJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
@@ -17,6 +18,8 @@ export const revalidate = 60;
 const URL_OFERTAS = `${TIENDA_URL}/ofertas`;
 
 export async function generateMetadata(): Promise<Metadata> {
+  const cfg = await getTiendaConfig().catch(() => null as unknown as { tiendaActiva: boolean })
+  if (cfg && !cfg.tiendaActiva) return { robots: { index: false, follow: false } }
   const ogImage = await ogImageActual();
   return {
     title: 'Ofertas',
