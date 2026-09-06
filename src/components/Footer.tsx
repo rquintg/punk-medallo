@@ -32,6 +32,7 @@ export default function Footer() {
               { href: "/", label: "Inicio" },
               { href: "/about", label: "Acerca de" },
               { href: "/descargas", label: "Blog" },
+              { href: "/editor-mp3", label: "Editor MP3" },
               { href: "/contacto", label: "Contacto" },
               { href: "/politica-de-privacidad", label: "Política de Privacidad" },
             ].map((link) => (

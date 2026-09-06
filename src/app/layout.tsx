@@ -118,6 +118,7 @@ const navigationSchema = {
     { "@type": "WebPage", name: "Registro Fotográfico", url: `${siteUrl}/fotos` },
     { "@type": "WebPage", name: "Paginas amigas", url: `${siteUrl}/amigos` },
     { "@type": "WebPage", name: "Contacto", url: `${siteUrl}/contacto` },
+    { "@type": "WebPage", name: "Editor MP3", url: `${siteUrl}/editor-mp3` },
   ],
 };
 

@@ -21,6 +21,7 @@ const staticRoutes: Array<{
   { url: "/tienda/ofertas", changeFrequency: "weekly", priority: 0.7 },
   { url: "/fotos", changeFrequency: "daily", priority: 0.8 },
   { url: "/eventos", changeFrequency: "daily", priority: 0.8 },
+  { url: "/editor-mp3", changeFrequency: "monthly", priority: 0.8 },
   { url: "/about", changeFrequency: "monthly", priority: 0.7 },
   { url: "/amigos", changeFrequency: "monthly", priority: 0.7 },
   { url: "/contacto", changeFrequency: "monthly", priority: 0.7 },
