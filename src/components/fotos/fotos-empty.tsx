@@ -19,7 +19,7 @@ export function FotosEmptyState({ mensaje, onRetry }: FotosEmptyStateProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+          className="flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
         >
           <RotateCw size={14} aria-hidden="true" />
           Reintentar

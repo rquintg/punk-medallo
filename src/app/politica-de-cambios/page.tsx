@@ -82,7 +82,7 @@ const sections = [
     body: (
       <>
         Para solicitar un cambio, escríbenos a través de la página de{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
+        <Link href="/contacto" className="text-primary underline underline-offset-2">
           contacto
         </Link>{" "}
         indicando tu <strong>número de pedido</strong>, la{" "}
@@ -119,8 +119,8 @@ const sections = [
 
 export default function PoliticaDeCambios() {
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-[#e0e0e0]">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-muted-foreground">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
         Legal
       </p>
       <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">
@@ -134,10 +134,10 @@ export default function PoliticaDeCambios() {
         {sections.map((section) => (
           <section
             key={section.title}
-            className="rounded-lg border border-neutral-800 bg-[rgba(52,58,64,0.25)] p-6"
+            className="rounded-lg border border-neutral-800 bg-muted/25 p-6"
           >
             <h2 className="flex items-center gap-2.5 text-lg font-bold text-white">
-              <section.icon size={18} className="text-[#dc2626]" aria-hidden="true" />
+              <section.icon size={18} className="text-primary" aria-hidden="true" />
               {section.title}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-neutral-300">
@@ -149,11 +149,11 @@ export default function PoliticaDeCambios() {
 
       <p className="mt-10 text-xs text-neutral-600">
         Consulta también nuestra{" "}
-        <Link href="/politica-de-privacidad" className="text-[#dc2626] underline underline-offset-2">
+        <Link href="/politica-de-privacidad" className="text-primary underline underline-offset-2">
           política de privacidad
         </Link>
         . Preguntas sobre esta política: usa nuestra página de{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
+        <Link href="/contacto" className="text-primary underline underline-offset-2">
           contacto
         </Link>
         .

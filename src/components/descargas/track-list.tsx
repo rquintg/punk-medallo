@@ -13,7 +13,7 @@ export function TrackList({ tracks }: { tracks: string[] }) {
         {tracks.map((track, index) => (
           <li key={`${track}-${index}`}>
             <span className="group flex items-baseline gap-4 py-2.5 transition-colors hover:bg-neutral-900/60">
-              <span className="w-7 shrink-0 text-right font-mono text-xs text-[#dc2626]">
+              <span className="w-7 shrink-0 text-right font-mono text-xs text-primary">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <span className="text-sm text-neutral-200 transition-colors group-hover:text-white">

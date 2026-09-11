@@ -156,14 +156,14 @@ export default function EventosContent({
   if (error) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
-        <p className="font-mono text-sm uppercase tracking-[0.2em] text-[#dc2626]">
+        <p className="font-mono text-sm uppercase tracking-[0.2em] text-primary">
           Error cargando los toques
         </p>
         <p className="max-w-md text-sm text-neutral-500">{error}</p>
         <button
           type="button"
           onClick={() => refetch()}
-          className="flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+          className="flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
         >
           <RotateCw size={14} aria-hidden="true" />
           Reintentar
@@ -201,7 +201,7 @@ export default function EventosContent({
   }
 
   return (
-    <div className="min-h-screen bg-[#181818]">
+    <div className="min-h-screen bg-background">
       <EventosHero eventos={proximos} />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
@@ -215,8 +215,8 @@ export default function EventosContent({
                 aria-pressed={filtro === f.id}
                 className={`rounded-md border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
                   filtro === f.id
-                    ? "border-[#dc2626] bg-[#dc2626] text-white"
-                    : "border-neutral-700 bg-[#181818] text-neutral-400 hover:border-[#dc2626] hover:text-white"
+                    ? "border-primary bg-primary text-white"
+                    : "border-neutral-700 bg-background text-neutral-400 hover:border-primary hover:text-white"
                 }`}
               >
                 {f.label}
@@ -238,7 +238,7 @@ export default function EventosContent({
                 <select
                   value={lugar}
                   onChange={(e) => cambiarLugar(e.target.value)}
-                  className="rounded border border-neutral-700 bg-[#181818] px-2 py-1.5 text-xs text-white outline-none focus:border-[#dc2626]"
+                  className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
                 >
                   <option value="">Todos los lugares</option>
                   {lugares.map((l) => (
@@ -262,7 +262,7 @@ export default function EventosContent({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar banda o lugar…"
-                className="w-56 rounded border border-neutral-700 bg-[#181818] py-1.5 pl-9 pr-3 text-xs text-white outline-none placeholder:text-neutral-600 focus:border-[#dc2626]"
+                className="w-56 rounded border border-neutral-700 bg-background py-1.5 pl-9 pr-3 text-xs text-white outline-none placeholder:text-neutral-600 focus:border-primary"
               />
             </label>
           </div>
@@ -302,7 +302,7 @@ export default function EventosContent({
         ) : mostrarGrupos ? (
           grupos.map((grupo) => (
             <section key={grupo.mes} className="mb-10">
-              <h2 className="mb-4 border-b border-neutral-800 pb-2 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+              <h2 className="mb-4 border-b border-neutral-800 pb-2 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
                 {grupo.mes}
               </h2>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

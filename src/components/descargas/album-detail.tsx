@@ -36,7 +36,7 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
       <nav aria-label="Migajas de pan" className="mb-8">
         <Link
           href="/descargas"
-          className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+          className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-neutral-500 transition-colors hover:text-primary"
         >
           <ArrowLeft size={13} aria-hidden="true" />
           El Archivo
@@ -60,12 +60,12 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           {album.band !== "Varios Artistas" ? (
             <Link
               href={`/descargas/banda/${bandSlug(album.band)}`}
-              className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626] transition-colors hover:text-white"
+              className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-white"
             >
               {album.band}
             </Link>
           ) : (
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
               {album.band}
             </p>
           )}
@@ -112,8 +112,8 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
           )}
 
           {resena && (
-            <div className="mt-8 rounded-lg border border-neutral-800 bg-[rgba(52,58,64,0.2)] p-5">
-              <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+            <div className="mt-8 rounded-lg border border-neutral-800 bg-muted/20 p-5">
+              <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
                 Reseña
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-neutral-300">
@@ -130,7 +130,7 @@ export function AlbumDetail({ album, related }: AlbumDetailProps) {
             Material de la escena punk distribuido libre y gratuitamente con autorización de sus autores. Si eres el dueño del contenido y deseas retirarlo,
             <Link
               href="/contacto"
-              className="font-mono uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+              className="font-mono uppercase tracking-widest text-neutral-500 transition-colors hover:text-primary"
             > contáctanos.
             </Link>
           </p>

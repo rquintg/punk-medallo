@@ -34,7 +34,7 @@ export function FotosDestacadas({ items, onSelect }: FotosDestacadasProps) {
     <section className="border-b border-neutral-800">
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
             Archivo
           </p>
           <h2 className="mt-1 text-lg font-bold uppercase tracking-wide text-white sm:text-xl">
@@ -54,7 +54,7 @@ export function FotosDestacadas({ items, onSelect }: FotosDestacadasProps) {
             return (
               <figure
                 key={item.id}
-                className="group relative w-[240px] shrink-0 overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60 sm:w-[280px]"
+                className="group relative w-[240px] shrink-0 overflow-hidden rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/60 sm:w-[280px]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-neutral-900">
                   {ES_FOTO(item) ? (
@@ -86,7 +86,7 @@ export function FotosDestacadas({ items, onSelect }: FotosDestacadasProps) {
                   />
 
                   {inter > 0 && (
-                    <span className="absolute right-2 top-2 z-10 flex items-center justify-center gap-1 rounded-sm bg-[#dc2626] px-2 py-1 font-mono text-[11px] font-bold tracking-widest text-white shadow-lg shadow-black/40">
+                    <span className="absolute right-2 top-2 z-10 flex items-center justify-center gap-1 rounded-sm bg-primary px-2 py-1 font-mono text-[11px] font-bold tracking-widest text-white shadow-lg shadow-black/40">
                       <Flame size={12} aria-hidden="true" />
                       {formatInteraccion(inter)}
                     </span>

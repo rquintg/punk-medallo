@@ -43,10 +43,10 @@ export function BatchBar({ selectedCount, onApply, onApplyPicture, onClearSelect
   if (selectedCount === 0) return null;
 
   return (
-    <div className="sticky top-[64px] z-20 bg-gradient-to-br from-[#1a0a0a] to-[#111111] border border-[#a40202]/30 rounded-2xl p-4 sm:p-5 shadow-[0_8px_32px_rgba(164,2,2,0.2)] backdrop-blur">
+    <div className="sticky top-[64px] z-20 bg-gradient-to-br from-[#1a0a0a] to-surface border border-primary/30 rounded-2xl p-4 sm:p-5 shadow-[0_8px_32px_rgba(220,38,38,0.2)] backdrop-blur">
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="h-8 w-8 rounded-lg bg-[#dc2626] flex items-center justify-center text-white">
+          <span className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white">
             <Sparkles size={16} />
           </span>
           <div>
@@ -91,7 +91,7 @@ export function BatchBar({ selectedCount, onApply, onApplyPicture, onClearSelect
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div className="sm:col-span-2">
             {pic === undefined ? (
-              <div className="h-20 rounded-xl border-2 border-dashed border-[#262626] bg-[#0a0a0a] flex items-center justify-center text-white/30 text-xs">
+              <div className="h-20 rounded-xl border-2 border-dashed border-muted bg-background flex items-center justify-center text-white/30 text-xs">
                 Sin cambios en portada
               </div>
             ) : (

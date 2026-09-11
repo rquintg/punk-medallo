@@ -65,7 +65,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
   return (
     <section
       aria-label="Próximos toques"
-      className="border-b border-neutral-800 bg-[#101010]"
+      className="border-b border-neutral-800 bg-background"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -74,7 +74,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
       <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
               Agenda de la movida
             </p>
             <h1 className="mt-1 text-3xl font-bold uppercase tracking-tight text-white md:text-4xl">
@@ -93,7 +93,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
               onClick={() => step(-1)}
               disabled={count < 2}
               aria-label="Toque anterior"
-              className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#181818] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-background text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft size={16} aria-hidden="true" />
             </button>
@@ -102,7 +102,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
               onClick={() => step(1)}
               disabled={count < 2}
               aria-label="Toque siguiente"
-              className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#181818] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-background text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight size={16} aria-hidden="true" />
             </button>
@@ -137,8 +137,8 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                       <span
                         className={`absolute left-3 top-3 z-10 rounded-sm px-2 py-1 font-mono text-[10px] font-bold tracking-widest text-white ${
                           etiqueta === "HOY"
-                            ? "bg-[#dc2626] shadow-[0_0_16px_rgba(220,38,38,0.9)]"
-                            : "bg-[#dc2626]"
+                            ? "bg-primary shadow-[0_0_16px_rgba(220,38,38,0.9)]"
+                            : "bg-primary"
                         }`}
                       >
                         {etiqueta}
@@ -153,7 +153,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
 
                   <div>
                     {evento.fecha && (
-                      <p className="font-mono text-sm font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+                      <p className="font-mono text-sm font-semibold uppercase tracking-[0.25em] text-primary">
                         {formatearFecha(evento.fecha)}
                       </p>
                     )}
@@ -192,7 +192,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                           href={calendarioUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 rounded-md bg-[#dc2626] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b91c1c]"
+                          className="flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary-hover"
                         >
                           <CalendarPlus size={15} aria-hidden="true" />
                           Agregar al calendario
@@ -203,7 +203,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                           href={evento.permalink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                          className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                         >
                           <ExternalLink size={15} aria-hidden="true" />
                           Ver en Instagram
@@ -212,7 +212,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                       <button
                         type="button"
                         onClick={() => handleCompartir(evento)}
-                        className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:hidden"
+                        className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary md:hidden"
                       >
                         {copiado ? (
                           <Check size={15} aria-hidden="true" />
@@ -225,7 +225,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                         href={whatsappUrl(evento)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hidden items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:flex"
+                        className="hidden items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary md:flex"
                       >
                         <MessageCircle size={15} aria-hidden="true" />
                         WhatsApp
@@ -249,7 +249,7 @@ export function EventosHero({ eventos }: EventosHeroProps) {
                 aria-current={index === active}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   index === active
-                    ? "w-6 bg-[#dc2626]"
+                    ? "w-6 bg-primary"
                     : "w-3 bg-neutral-700 hover:bg-neutral-500"
                 }`}
               />

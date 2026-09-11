@@ -22,7 +22,7 @@ export function CopyLinkButton({ slug }: { slug: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+      className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-primary"
     >
       {copied ? (
         <Check size={12} aria-hidden="true" />

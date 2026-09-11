@@ -25,7 +25,7 @@ export default function RastrearForm() {
           required
           autoComplete="off"
           placeholder="PM-XXXXXXXX"
-          className="w-full rounded-md border border-neutral-700 bg-[#111] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
+          className="w-full rounded-md border border-neutral-700 bg-surface px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-primary"
         />
         <p className="mt-1 text-[11px] text-neutral-600">
           Lo encontrás en el correo de confirmación y en el recibo de pago.
@@ -46,7 +46,7 @@ export default function RastrearForm() {
           required
           autoComplete="email"
           placeholder="tu@correo.com"
-          className="w-full rounded-md border border-neutral-700 bg-[#111] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
+          className="w-full rounded-md border border-neutral-700 bg-surface px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-primary"
         />
       </div>
 

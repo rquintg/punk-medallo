@@ -25,7 +25,6 @@ export default function FloatingWhatsAppWrapper({ logoUrl }: { logoUrl?: string 
         width: "50px",
         height: "50px",
         backgroundColor: "#25d3664a",
-        bottom: "4.5rem",
         right: "0.8rem",
       }}
     />

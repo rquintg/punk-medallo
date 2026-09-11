@@ -69,12 +69,12 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
       
       <div className="mt-12 mx-auto max-w-3xl space-y-6">
         {/* ================== HERO TICKET STUB ================== */}
-        <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-[#0a0a0a]">
-          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #dc2626 0 1px, transparent 1px 10px)' }} aria-hidden />
+        <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-background">
+          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, var(--color-primary) 0 1px, transparent 1px 10px)' }} aria-hidden />
           
           <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-neutral-800 px-6 py-4 sm:px-8">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-neutral-500">
-              <Receipt size={13} className="text-[#dc2626]" />
+              <Receipt size={13} className="text-primary" />
               Pedido <span className="font-semibold text-neutral-300">{pedido.numero_pedido}</span>
             </div>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-amber-950/30 px-3 py-1 text-xs font-semibold text-amber-300">
@@ -85,7 +85,7 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
 
           <div className="relative grid gap-6 px-6 py-8 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
             <div>
-              <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+              <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 <Ticket size={12} /> Recuperación de Compra
               </p>
               <h1 className="text-3xl font-black uppercase italic leading-[1.05] tracking-tight text-white md:text-5xl">
@@ -107,8 +107,8 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
         {/* ================== RESUMEN Y PAGO ================== */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Detalle de Items */}
-          <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6">
-            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+          <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6">
+            <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
               Resumen de Artículos
             </p>
             <div className="space-y-3">
@@ -124,7 +124,7 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
               ))}
               <div className="pt-3 mt-3 border-t border-neutral-800 flex justify-between items-center">
                 <span className="text-white font-bold">Total Final</span>
-                <span className="text-xl font-black text-[#dc2626]">
+                <span className="text-xl font-black text-primary">
                   ${pedido.total.toLocaleString('es-CO')}
                 </span>
               </div>
@@ -132,9 +132,9 @@ export default async function RecuperarPedidoPage({ params }: RecoveryPageProps)
           </section>
 
           {/* Acción de Pago */}
-          <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6 flex flex-col justify-between">
+          <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6 flex flex-col justify-between">
             <div>
-              <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+              <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 Finalizar Pago
               </p>
               <p className="text-sm text-neutral-400 mb-6">

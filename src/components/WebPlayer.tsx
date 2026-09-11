@@ -128,7 +128,7 @@ export default function WebPlayer() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[1100] bg-[#111] border-t-2 border-[#c40000] flex justify-start px-3 py-2 shadow-[0_-2px_6px_rgba(0,0,0,0.6)]"
+      className="fixed bottom-0 left-0 right-0 z-[1100] bg-surface border-t-2 border-[#c40000] flex justify-start px-3 py-2 shadow-[0_-2px_6px_rgba(0,0,0,0.6)]"
       role="region"
       aria-label="Reproductor de radio"
     >

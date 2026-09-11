@@ -46,14 +46,14 @@ export default function SongRequest({ isOpen, onClose }: SongRequestProps) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-100001 w-full max-w-[95vw] md:max-w-3xl max-h-[calc(100dvh-2rem)] overflow-hidden bg-[rgba(7,7,7,0.56)] text-[#f8f9fa] rounded-lg shadow-[0px_0px_6px_6px_rgba(0,0,0,0.75)]">
+      <div className="relative z-100001 w-full max-w-[95vw] md:max-w-3xl max-h-[calc(100dvh-2rem)] overflow-hidden bg-[rgba(7,7,7,0.56)] text-muted-foreground rounded-lg shadow-[0px_0px_6px_6px_rgba(0,0,0,0.75)]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(149,157,165,0.2)] bg-[rgba(7,7,7,0.3)] rounded-t-lg">
           <div className="flex items-center gap-2">
             <ArrowLeft className="text-red-500" size={16} />
             <h6
               id="song-request-title"
-              className="m-0 font-bold text-sm text-[#f8f9fa]"
+              className="m-0 font-bold text-sm text-muted-foreground"
             >
               Puedes solicitar la misma cancion cada 5 minutos
             </h6>

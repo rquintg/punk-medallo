@@ -60,12 +60,12 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
       />
 
-      <div className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-neutral-800 bg-[#141414] p-6 shadow-2xl">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-neutral-800 bg-surface p-6 shadow-2xl">
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar detalle"
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#181818] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-background text-neutral-300 transition-colors hover:border-primary hover:text-white"
         >
           <X size={16} aria-hidden="true" />
         </button>
@@ -84,7 +84,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
 
           <div>
             {evento.fecha && (
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
                 {formatearFecha(evento.fecha)}
               </p>
             )}
@@ -119,7 +119,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                   <dt className="w-16 shrink-0 uppercase tracking-widest text-neutral-500">
                     Precio
                   </dt>
-                  <dd className="font-semibold text-[#dc2626]">{precio}</dd>
+                  <dd className="font-semibold text-primary">{precio}</dd>
                 </div>
               )}
             </dl>
@@ -131,7 +131,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Agregar al calendario de Google"
-                  className="flex items-center gap-1.5 rounded-md bg-[#dc2626] px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b91c1c]"
+                  className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary-hover"
                 >
                   <CalendarPlus size={13} aria-hidden="true" />
                   Calendario
@@ -141,7 +141,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                 <button
                   type="button"
                   onClick={() => descargarIcs(evento)}
-                  className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                  className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                 >
                   <Download size={13} aria-hidden="true" />
                   .ics
@@ -152,7 +152,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                   href={evento.permalink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                  className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                 >
                   <ExternalLink size={13} aria-hidden="true" />
                   Instagram
@@ -161,7 +161,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
               <button
                 type="button"
                 onClick={handleCompartir}
-                className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:hidden"
+                className="flex items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary md:hidden"
               >
                 {copiado ? (
                   <Check size={13} aria-hidden="true" />
@@ -174,7 +174,7 @@ export function EventoModal({ evento, onClose }: EventoModalProps) {
                 href={whatsappUrl(evento)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] md:flex"
+                className="hidden items-center gap-1.5 rounded-md border border-neutral-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary md:flex"
               >
                 <MessageCircle size={13} aria-hidden="true" />
                 WhatsApp

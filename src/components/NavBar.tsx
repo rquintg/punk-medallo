@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Radio, Menu, X } from "lucide-react";
-import SongRequest from "./SongRequest";
 
 const navLinksBase = [
   { href: "/", label: "Inicio" },
@@ -17,7 +16,6 @@ const navLinksBase = [
 export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva?: boolean } = {}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSongRequestOpen, setIsSongRequestOpen] = useState(false);
   const pathname = usePathname();
 
   const navLinks = [
@@ -55,11 +53,11 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 w-full z-[1000] border-b transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]
+        className={`animate-nav-drop fixed top-0 left-0 right-0 w-full z-[1000] border-b transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]
           ${
             isScrolled
-              ? "bg-gradient-to-br from-[rgba(20,20,20,0.85)] to-[rgba(40,0,0,0.75)] backdrop-blur shadow-[0_8px_32px_0_rgba(164,2,2,0.15)] border-[rgba(164,2,2,0.3)]"
-              : "bg-transparent border-transparent"
+              ? "bg-white/[0.03] backdrop-blur-lg backdrop-saturate-150 border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.2)]"
+              : "bg-transparent backdrop-blur-[2px] border-white/5"
           }`}
       >
         <div className="max-w-7xl mx-auto px-4">
@@ -75,7 +73,7 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
             >
               <Radio
                 size={30}
-                className="text-[#ff3200] drop-shadow-[0_0_8px_rgba(164,2,2,0.4)] transition-all duration-300"
+                className="text-primary drop-shadow-[0_0_8px_rgba(220,38,38,0.4)] transition-all duration-300"
               />
             </Link>
 
@@ -86,22 +84,32 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
               </span>
             )}
 
+            {/* Radio — Centro en móvil */}
+            <Link
+              href="/radio"
+              className={`lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-widest border transition-all ${pathname === "/radio" ? "bg-primary border-primary text-white shadow-[0_0_12px_rgba(220,38,38,0.7)]" : "bg-surface/90 border-primary text-primary hover:bg-primary hover:text-white"}`}
+            >
+              <span className={`h-2 w-2 rounded-full shadow-[0_0_8px_rgba(220,38,38,0.9)] animate-pulse ${pathname === "/radio" ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" : "bg-primary group-hover:bg-white"}`} />
+              Radio
+              <span className="hidden xs:inline">· En vivo</span>
+            </Link>
+
             {/* Mobile Toggler */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={`lg:hidden flex items-center justify-center p-2 rounded transition-all duration-300 ml-auto ${
                 isScrolled
-                  ? "border border-[rgba(164,2,2,0.6)] bg-[rgba(164,2,2,0.05)] hover:bg-[rgba(164,2,2,0.1)] focus:shadow-[0_0_0_0.25rem_rgba(164,2,2,0.3)]"
-                  : "border-2 border-[#ff4444] bg-[rgba(255,68,68,0.15)] hover:bg-[rgba(255,68,68,0.25)] shadow-[0_0_12px_rgba(255,68,68,0.3)]"
+                  ? "border border-primary/60 bg-primary/5 hover:bg-primary/10 focus:shadow-[0_0_0_0.25rem_rgba(220,38,38,0.3)]"
+                  : "border border-primary bg-primary/15 hover:bg-primary/25 shadow-[0_0_12px_rgba(220,38,38,0.3)]"
               }`}
               aria-controls="navbarNav"
               aria-expanded={isMenuOpen}
               aria-label="Toggle navigation"
             >
               {isMenuOpen ? (
-                <X className="text-[#ff4444]" size={24} />
+                <X className="text-primary" size={24} />
               ) : (
-                <Menu className="text-[#ff4444]" size={24} />
+                <Menu className="text-primary" size={24} />
               )}
             </button>
 
@@ -111,7 +119,7 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
               className={`${
                 isMenuOpen ? "block" : "hidden"
               } lg:flex lg:items-center lg:gap-1 lg:ml-auto absolute lg:static top-full left-0 right-0 lg:backdrop-filter-none
-                max-lg:backdrop-blur max-lg:bg-[rgba(20,20,20,0.7)] max-lg:rounded-b-lg max-lg:border-t max-lg:border-[rgba(164,2,2,0.2)]
+                max-lg:backdrop-blur max-lg:bg-surface/70 max-lg:rounded-b-lg max-lg:border-t max-lg:border-primary/20
                 max-lg:px-4 max-lg:pb-4`}
             >
               <ul className="flex flex-col lg:flex-row lg:items-center lg:gap-1 max-lg:text-right">
@@ -124,10 +132,10 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
                         className={`relative inline-block px-3 py-2 text-sm font-semibold uppercase tracking-[0.5px] transition-all duration-300
                           ${
                             isActive
-                              ? "text-[#ff4444]"
-                              : "text-white/90 hover:text-[#ff4444] hover:text-shadow-[0_0_10px_rgba(164,2,2,0.5)]"
+                              ? "text-primary"
+                              : "text-white/90 hover:text-primary hover:text-shadow-[0_0_10px_rgba(220,38,38,0.5)]"
                           }
-                          after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-gradient-to-r after:from-[#a40202] after:to-[#ff4444]
+                          after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-gradient-to-r after:from-primary after:to-primary
                           after:transition-all after:duration-300 after:ease-[cubic-bezier(0.4,0,0.2,1)]
                           ${
                             isActive
@@ -150,25 +158,32 @@ export default function NavBar(_props: { tiendaActiva?: boolean; boleteriaActiva
                 })}
               </ul>
 
-              {/* Divider + Song Request Button - Desktop */}
+              {/* Radio — Mobile (dentro del drawer) */}
+              <Link
+                href="/radio"
+                className={`lg:hidden mt-4 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-black uppercase tracking-widest border group ${pathname === "/radio" ? "bg-primary border-primary text-white" : "bg-surface/90 border-primary text-primary hover:bg-primary hover:text-white"}`}
+              >
+                <span className={`h-2.5 w-2.5 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.9)] animate-pulse ${pathname === "/radio" ? "bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" : "bg-primary group-hover:bg-white"}`} />
+                Radio — En vivo
+              </Link>
+
+              {/* Divider + Radio LIVE — Desktop */}
               <div className="hidden lg:flex lg:items-center">
-                <div className="w-px h-6 bg-[rgba(164,2,2,0.5)] mx-2" />
-                <button
-                  onClick={() => setIsSongRequestOpen(true)}
-                  className="border border-[#a40202] text-[#ff4444] font-bold tracking-[0.5px] uppercase px-4 py-2 text-sm rounded transition-all duration-300 backdrop-blur bg-[rgba(164,2,2,0.1)] hover:bg-[rgba(164,2,2,0.25)] hover:border-[#ff4444] hover:shadow-[0_0_15px_rgba(164,2,2,0.4)] hover:-translate-y-[2px] active:translate-y-0 focus:shadow-[0_0_0_0.25rem_rgba(164,2,2,0.25)]"
+                <div className="w-px h-6 bg-primary/50 mx-2" />
+                <Link
+                  href="/radio"
+                  className={`group flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-widest transition-all duration-300 border ${pathname === "/radio" ? "bg-primary border-primary text-white shadow-[0_0_15px_rgba(220,38,38,0.6)]" : "bg-surface/90 border-primary text-primary hover:bg-primary hover:text-white hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]"}`}
                 >
-                  Pide tu canción
-                </button>
+                  <span className={`h-2.5 w-2.5 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.9)] animate-pulse ${pathname === "/radio" ? "bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" : "bg-primary group-hover:bg-white"}`} />
+                  Radio
+                  <span className="hidden xl:inline font-bold">- En vivo</span>
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </nav>
 
-      <SongRequest
-        isOpen={isSongRequestOpen}
-        onClose={() => setIsSongRequestOpen(false)}
-      />
     </>
   );
 }

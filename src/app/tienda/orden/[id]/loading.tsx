@@ -2,7 +2,7 @@ export default function OrderLoading() {
   return (
     <div className="mx-auto max-w-2xl animate-pulse">
       <div className="mb-6 h-4 w-48 rounded bg-neutral-800" />
-      <div className="rounded-lg border border-neutral-800 bg-[#111]">
+      <div className="rounded-lg border border-neutral-800 bg-surface">
         <div className="flex flex-col items-center gap-4 border-b border-neutral-800 px-6 py-12">
           <div className="h-16 w-16 rounded-full bg-neutral-800" />
           <div className="h-7 w-52 rounded bg-neutral-800" />

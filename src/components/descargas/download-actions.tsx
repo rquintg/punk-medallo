@@ -12,7 +12,7 @@ export function DownloadActions({ album }: { album: Album }) {
           href={primary.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-md bg-[#dc2626] px-6 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-[#b91c1c]"
+          className="flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-primary-hover"
         >
           <Download size={16} aria-hidden="true" />
           Descargar
@@ -31,7 +31,7 @@ export function DownloadActions({ album }: { album: Album }) {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-md border border-neutral-700 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+              className="flex items-center gap-1.5 rounded-md border border-neutral-700 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-300 transition-colors hover:border-primary hover:text-primary"
             >
               <ExternalLink size={12} aria-hidden="true" />
               {link.host}

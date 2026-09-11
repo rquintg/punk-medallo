@@ -328,9 +328,9 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
         <div className="w-full lg:w-2/5 lg:sticky lg:top-24 lg:self-start">
           <h2 className="mb-6 text-lg font-semibold text-white">Resumen ({totalBoletas} boleta{totalBoletas !== 1 ? 's' : ''})</h2>
 
-          <div className="relative overflow-hidden rounded-xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] to-[#111] p-5">
-            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `repeating-linear-gradient(45deg, #dc2626 0 1px, transparent 1px 8px)` }} aria-hidden />
-            <p className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#dc2626]">
+          <div className="relative overflow-hidden rounded-xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] to-surface p-5">
+            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `repeating-linear-gradient(45deg, var(--color-primary) 0 1px, transparent 1px 8px)` }} aria-hidden />
+            <p className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
               <Ticket size={14} /> Vista previa de tu entrada
             </p>
             <div className="relative mt-3 rounded-lg border border-dashed border-neutral-700 bg-black/40 p-4">
@@ -358,7 +358,7 @@ export default function CheckoutBoletas({ slug, eventoTitulo, eventoLugar }: { s
                       {i.cantidad} × <Price amount={i.precio} />
                     </p>
                   </div>
-                  <span className="text-base font-bold text-[#dc2626]">
+                  <span className="text-base font-bold text-primary">
                     <Price amount={i.precio * i.cantidad} />
                   </span>
                 </li>

@@ -158,7 +158,7 @@ export default function FotosContent({
   }
 
   return (
-    <div className="min-h-screen bg-[#181818]">
+    <div className="min-h-screen bg-background">
       <FotosHero
         totalArchivos={statsHero.totalArchivos}
         aniosCubiertos={statsHero.aniosCubiertos}
@@ -171,7 +171,7 @@ export default function FotosContent({
           <div className="mb-10">
             <section className="border-b border-neutral-800">
               <div className="mb-4">
-                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                   Archivo
                 </p>
                 <h2 className="mt-1 text-lg font-bold uppercase tracking-wide text-white sm:text-xl">
@@ -182,7 +182,7 @@ export default function FotosContent({
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-[240px] shrink-0 animate-pulse rounded-lg border border-neutral-800 bg-[#111] sm:w-[280px]"
+                    className="w-[240px] shrink-0 animate-pulse rounded-lg border border-neutral-800 bg-surface sm:w-[280px]"
                   >
                     <div className="aspect-[4/3] bg-neutral-900" />
                     <div className="space-y-2 border-t border-neutral-800/70 p-3">
@@ -211,8 +211,8 @@ export default function FotosContent({
                 onClick={() => cambiarTipo(tab.id)}
                 className={`rounded-md border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
                   tipo === tab.id
-                    ? "border-[#dc2626] bg-[#dc2626] text-white"
-                    : "border-neutral-700 bg-[#181818] text-neutral-400 hover:border-[#dc2626] hover:text-white"
+                    ? "border-primary bg-primary text-white"
+                    : "border-neutral-700 bg-background text-neutral-400 hover:border-primary hover:text-white"
                 }`}
               >
                 {tab.label}
@@ -230,7 +230,7 @@ export default function FotosContent({
                 <select
                   value={anio}
                   onChange={(e) => setAnio(e.target.value)}
-                  className="rounded border border-neutral-700 bg-[#181818] px-2 py-1.5 text-xs text-white outline-none focus:border-[#dc2626]"
+                  className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
                 >
                   <option value="">Todos</option>
                   {anios.map((a) => (
@@ -254,7 +254,7 @@ export default function FotosContent({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar en el registro…"
-                className="w-56 rounded border border-neutral-700 bg-[#181818] py-1.5 pl-9 pr-3 text-xs text-white outline-none placeholder:text-neutral-600 focus:border-[#dc2626]"
+                className="w-56 rounded border border-neutral-700 bg-background py-1.5 pl-9 pr-3 text-xs text-white outline-none placeholder:text-neutral-600 focus:border-primary"
               />
             </label>
           </div>
@@ -279,7 +279,7 @@ export default function FotosContent({
                   setAnio("");
                   setQuery("");
                 }}
-                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-[#dc2626] transition-colors hover:text-white"
+                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-primary transition-colors hover:text-white"
               >
                 <X size={12} aria-hidden="true" />
                 Limpiar filtros
@@ -330,7 +330,7 @@ export default function FotosContent({
                   type="button"
                   onClick={activo.loadMore}
                   disabled={activo.isFetchingMore}
-                  className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#181818] px-6 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-md border border-neutral-700 bg-background px-6 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {activo.isFetchingMore && (
                     <Loader2 className="animate-spin" size={15} aria-hidden="true" />

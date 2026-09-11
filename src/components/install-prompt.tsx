@@ -94,7 +94,7 @@ export default function InstallPrompt() {
         aria-hidden="true" 
         onClick={handleDismiss}
       />
-      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-white/10 bg-[#111] rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-10 duration-500 ease-out">
+      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[340px] border border-white/10 bg-surface rounded-2xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-10 duration-500 ease-out">
         {/* Handle decorativo para dar sensación de "Bottom Sheet" */}
         <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-white/20 rounded-full" />
         
@@ -116,7 +116,7 @@ export default function InstallPrompt() {
               height={52}
               className="rounded-xl shadow-lg"
             />
-            <div className="absolute -bottom-1 -right-1 bg-[#a40202] p-1 rounded-full border-2 border-[#111]">
+            <div className="absolute -bottom-1 -right-1 bg-primary p-1 rounded-full border-2 border-surface">
               <Download size={10} className="text-white" />
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function InstallPrompt() {
           <button
             type="button"
             onClick={handleInstall}
-            className="mt-4 flex w-full items-center justify-center gap-2 bg-[#a40202] text-white font-bold tracking-wider uppercase px-4 py-3 rounded-xl text-xs transition-all duration-300 hover:bg-[#cc0303] active:scale-95 shadow-[0_4px_12px_rgba(164,2,2,0.3)]"
+            className="mt-4 flex w-full items-center justify-center gap-2 bg-primary text-white font-bold tracking-wider uppercase px-4 py-3 rounded-xl text-xs transition-all duration-300 hover:bg-[#cc0303] active:scale-95 shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
           >
             <Download size={14} />
             Instalar Aplicación

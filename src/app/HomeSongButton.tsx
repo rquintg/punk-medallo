@@ -10,7 +10,7 @@ export default function HomeSongButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="hidden max-md:block w-full max-w-[300px] border-2 border-[#a40202] text-[#ff4444] font-bold tracking-[0.5px] uppercase px-4 py-3 text-sm rounded transition-all duration-300 backdrop-blur bg-[rgba(164,2,2,0.1)] hover:bg-[rgba(164,2,2,0.25)] hover:border-[#ff4444] hover:shadow-[0_0_15px_rgba(164,2,2,0.4)] hover:-translate-y-[2px] active:translate-y-0 focus:shadow-[0_0_0_0.25rem_rgba(164,2,2,0.25)]"
+        className="hidden max-md:block w-full max-w-[300px] border-2 border-primary text-primary font-bold tracking-[0.5px] uppercase px-4 py-3 text-sm rounded transition-all duration-300 backdrop-blur bg-primary/10 hover:bg-primary/25 hover:border-primary hover:shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:-translate-y-[2px] active:translate-y-0 focus:shadow-[0_0_0_0.25rem_rgba(220,38,38,0.25)]"
       >
         Pide tu canción
       </button>

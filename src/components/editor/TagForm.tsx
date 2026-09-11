@@ -30,7 +30,7 @@ export function TagForm({ tags, fileName, onSave, onClose }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-start justify-between gap-3 p-5 border-b border-[#262626]">
+      <div className="flex items-start justify-between gap-3 p-5 border-b border-muted">
         <div className="min-w-0">
           <p className="text-xs tracking-widest uppercase text-white/40 font-semibold">Editando</p>
           <p className="text-white font-bold truncate">{fileName}</p>
@@ -93,7 +93,7 @@ export function TagForm({ tags, fileName, onSave, onClose }: Props) {
         </div>
       </div>
 
-      <div className="p-4 border-t border-[#262626] flex gap-2 bg-[#0a0a0a]/50">
+      <div className="p-4 border-t border-muted flex gap-2 bg-background/50">
         <Button variant="secondary" className="flex-1" onClick={onClose}>Cancelar</Button>
         <Button className="flex-1" onClick={() => onSave(draft)}>
           <Save size={16} /> Guardar

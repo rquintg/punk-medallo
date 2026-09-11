@@ -86,11 +86,11 @@ export default async function EventoBoletasPage({ params }: PageProps) {
           <h1 className="text-2xl font-bold text-white lg:text-3xl">{evento.titulo}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-400">
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays size={14} className="text-[#dc2626]" />
+              <CalendarDays size={14} className="text-primary" />
               {formatearFechaBoleta(evento.fechaEvento)}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <MapPin size={14} className="text-[#dc2626]" />
+              <MapPin size={14} className="text-primary" />
               {evento.lugar}
             </span>
             {evento.horaPuertas && (

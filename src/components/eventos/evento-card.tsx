@@ -17,7 +17,7 @@ export function EventoCard({ evento, onSelect }: EventoCardProps) {
   const precio = formatearPrecio(evento);
 
   return (
-    <article className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60">
+    <article className="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/60">
       <div className="relative aspect-[3/4] overflow-hidden">
         <Image
           src={evento.flyer}
@@ -36,7 +36,7 @@ export function EventoCard({ evento, onSelect }: EventoCardProps) {
         />
 
         {etiqueta && (
-          <span className="absolute left-2 top-2 z-10 rounded-sm bg-[#dc2626] px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
+          <span className="absolute left-2 top-2 z-10 rounded-sm bg-primary px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
             {etiqueta}
           </span>
         )}
@@ -55,7 +55,7 @@ export function EventoCard({ evento, onSelect }: EventoCardProps) {
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/90 via-black/40 to-transparent px-3.5 pb-3 pt-12">
           {evento.fecha && (
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#dc2626]">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
               {formatearFecha(evento.fecha)}
             </p>
           )}

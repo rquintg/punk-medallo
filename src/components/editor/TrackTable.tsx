@@ -21,15 +21,15 @@ export function TrackTable({ tracks, selectedIds, onToggleSelect, onSelectAll, o
   if (tracks.length === 0) return null;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#262626] bg-[#111111]">
+    <div className="overflow-hidden rounded-2xl border border-muted bg-surface">
       {/* header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[#262626] bg-[#0f0f0f]">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-muted bg-surface">
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={(e) => onSelectAll(e.target.checked)}
-            className="h-4 w-4 rounded border-[#333] bg-[#0a0a0a] text-[#dc2626] focus:ring-[#dc2626]/30 accent-[#dc2626]"
+            className="h-4 w-4 rounded border-[#333] bg-background text-primary focus:ring-primary/30 accent-primary"
           />
           <span className="text-xs font-bold tracking-widest uppercase text-white/60">Seleccionar todo</span>
         </label>
@@ -57,17 +57,17 @@ export function TrackTable({ tracks, selectedIds, onToggleSelect, onSelectAll, o
               const cover = t.editedTags.picture?.previewUrl;
               const isEdited = t.status === "edited";
               return (
-                <tr key={t.id} className={`border-b border-[#1a1a1a] hover:bg-[#1a1a1a] transition-colors ${checked ? "bg-[#1a1a1a]" : ""} ${t.status === "error" ? "opacity-60" : ""}`}>
+                <tr key={t.id} className={`border-b border-surface hover:bg-surface transition-colors ${checked ? "bg-surface" : ""} ${t.status === "error" ? "opacity-60" : ""}`}>
                   <td className="px-3 py-3">
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => onToggleSelect(t.id)}
-                      className="h-4 w-4 rounded border-[#333] bg-[#0a0a0a] accent-[#dc2626]"
+                      className="h-4 w-4 rounded border-[#333] bg-background accent-primary"
                     />
                   </td>
                   <td className="px-2 py-3">
-                    <div className="h-10 w-10 rounded-lg overflow-hidden bg-[#0a0a0a] border border-[#262626] flex items-center justify-center shrink-0">
+                    <div className="h-10 w-10 rounded-lg overflow-hidden bg-background border border-muted flex items-center justify-center shrink-0">
                       {cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={cover} alt="" className="h-full w-full object-cover" />
@@ -113,19 +113,19 @@ export function TrackTable({ tracks, selectedIds, onToggleSelect, onSelectAll, o
       </div>
 
       {/* mobile cards */}
-      <div className="md:hidden divide-y divide-[#1a1a1a]">
+      <div className="md:hidden divide-y divide-surface">
         {tracks.map((t) => {
           const checked = selectedIds.has(t.id);
           const cover = t.editedTags.picture?.previewUrl;
           return (
-            <div key={t.id} className={`p-4 flex gap-3 ${checked ? "bg-[#1a1a1a]" : ""}`}>
+            <div key={t.id} className={`p-4 flex gap-3 ${checked ? "bg-surface" : ""}`}>
               <input
                 type="checkbox"
                 checked={checked}
                 onChange={() => onToggleSelect(t.id)}
-                className="mt-1 h-4 w-4 rounded accent-[#dc2626]"
+                className="mt-1 h-4 w-4 rounded accent-primary"
               />
-              <div className="h-14 w-14 rounded-xl overflow-hidden bg-[#0a0a0a] border border-[#262626] flex items-center justify-center shrink-0">
+              <div className="h-14 w-14 rounded-xl overflow-hidden bg-background border border-muted flex items-center justify-center shrink-0">
                 {cover ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={cover} alt="" className="h-full w-full object-cover" />

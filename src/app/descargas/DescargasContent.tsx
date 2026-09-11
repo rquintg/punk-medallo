@@ -69,7 +69,7 @@ export default function DescargasContent({
   }, [setQuery, setFilters]);
 
   return (
-    <div className="min-h-screen bg-[#181818]">
+    <div className="min-h-screen bg-background">
       <DescargasHero
         totalAlbums={totalItems}
         totalBands={totalBands}
@@ -114,7 +114,7 @@ export default function DescargasContent({
                       year: event.target.value || null,
                     }))
                   }
-                  className="rounded border border-neutral-700 bg-[#181818] px-2 py-1.5 text-xs text-white outline-none focus:border-[#dc2626]"
+                  className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
                 >
                   <option value="">Todos</option>
                   {years.map((year) => (
@@ -135,7 +135,7 @@ export default function DescargasContent({
                 onChange={(event) =>
                   setOrderBy(event.target.value as OrderBy)
                 }
-                className="rounded border border-neutral-700 bg-[#181818] px-2 py-1.5 text-xs text-white outline-none focus:border-[#dc2626]"
+                className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
               >
                 <option value="published">Más recientes</option>
                 <option value="updated">Actualizados</option>
@@ -167,7 +167,7 @@ export default function DescargasContent({
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-[#dc2626] transition-colors hover:text-white"
+                className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-primary transition-colors hover:text-white"
               >
                 <X size={12} aria-hidden="true" />
                 Limpiar filtros
@@ -196,7 +196,7 @@ export default function DescargasContent({
         )}
 
         {error && (
-          <p className="mt-6 text-center text-sm text-[#dc2626]" role="alert">
+          <p className="mt-6 text-center text-sm text-primary" role="alert">
             {error}
           </p>
         )}
@@ -207,7 +207,7 @@ export default function DescargasContent({
               type="button"
               onClick={loadMore}
               disabled={isLoadingMore}
-              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#181818] px-6 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-background px-6 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoadingMore && (
                 <Loader2 className="animate-spin" size={15} aria-hidden="true" />

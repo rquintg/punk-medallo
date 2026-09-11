@@ -19,12 +19,18 @@ const staticRoutes: Array<{
   { url: "/descargas", changeFrequency: "weekly", priority: 0.8 },
   { url: "/tienda", changeFrequency: "weekly", priority: 0.8 },
   { url: "/tienda/ofertas", changeFrequency: "weekly", priority: 0.7 },
+  { url: "/radio", changeFrequency: "daily", priority: 0.8 },
   { url: "/fotos", changeFrequency: "daily", priority: 0.8 },
   { url: "/eventos", changeFrequency: "daily", priority: 0.8 },
   { url: "/editor-mp3", changeFrequency: "monthly", priority: 0.8 },
   { url: "/about", changeFrequency: "monthly", priority: 0.7 },
   { url: "/amigos", changeFrequency: "monthly", priority: 0.7 },
   { url: "/contacto", changeFrequency: "monthly", priority: 0.7 },
+  { url: "/politica-de-privacidad", changeFrequency: "monthly", priority: 0.5 },
+  { url: "/politica-de-cookies", changeFrequency: "monthly", priority: 0.5 },
+  { url: "/politica-de-cambios", changeFrequency: "monthly", priority: 0.5 },
+  { url: "/terminos", changeFrequency: "monthly", priority: 0.5 },
+  { url: "/terminos-boleteria", changeFrequency: "monthly", priority: 0.5 },
 ];
 
 export const revalidate = 3600;

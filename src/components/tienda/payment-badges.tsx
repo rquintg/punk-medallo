@@ -22,8 +22,8 @@ export default function PaymentBadges({ highlight, label = 'Aceptamos', hideEfec
   const logosDim = !highlight ? ' opacity-50 grayscale' : ''
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-neutral-500">{label}:</span>
+    <div className={`flex flex-wrap items-center gap-2 ${!label ? 'justify-center lg:justify-end' : ''}`}>
+      {label ? <span className="text-xs text-neutral-500">{label}:</span> : null}
 
       {LOGOS.map((logo) => (
         <span
@@ -45,7 +45,7 @@ export default function PaymentBadges({ highlight, label = 'Aceptamos', hideEfec
 
       {!hideEfectivo && (
         <span
-          className={`flex h-8 shrink-0 items-center gap-1 rounded border px-2 text-[11px] font-semibold ${efectivoActive ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400 ring-2 ring-emerald-500' : 'border-neutral-700 bg-[#181818] text-emerald-400'}`}
+          className={`flex h-8 shrink-0 items-center gap-1 rounded border px-2 text-[11px] font-semibold ${efectivoActive ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400 ring-2 ring-emerald-500' : 'border-neutral-700 bg-background text-emerald-400'}`}
           aria-label="Efectivo contra entrega"
           title="Contra entrega"
         >

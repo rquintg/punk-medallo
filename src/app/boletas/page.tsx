@@ -78,15 +78,15 @@ export default async function BoletasPage({
   const hasFilters = !!activeMes || !!activeLugar || disponiblesOnly
 
   return (
-    <div className="min-h-screen bg-[#181818]">
+    <div className="min-h-screen bg-background">
       {/* Hero negro como /blog y /eventos */}
-      <section className="border-b border-neutral-800 bg-[#101010]">
+      <section className="border-b border-neutral-800 bg-background">
         <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">Punk Medallo — Boletería</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">Punk Medallo — Boletería</p>
               <h1 className="mt-3 text-7xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
-                La <span className="text-[#dc2626]">Boleteria</span>
+                La <span className="text-primary">Boleteria</span>
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
                 Consigue tus entradas para los mejores eventos de las ciudad
@@ -120,7 +120,7 @@ export default async function BoletasPage({
             </div>
 
             {filtrados.length === 0 ? (
-              <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-800 bg-[#101010] py-16 text-center">
+              <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-800 bg-background py-16 text-center">
                 <Ticket size={44} className="text-neutral-600" />
                 <div>
                   <p className="font-semibold text-neutral-300">
@@ -154,7 +154,7 @@ export default async function BoletasPage({
                     <Link
                       key={e.id}
                       href={`/boletas/${e.slug}`}
-                      className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-[#101010] transition-all duration-300 hover:border-[#a40202]/60 hover:shadow-lg hover:shadow-black/30 hover:-translate-y-1"
+                      className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-background transition-all duration-300 hover:border-primary/60 hover:shadow-lg hover:shadow-black/30 hover:-translate-y-1"
                     >
                        <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-neutral-900">
                         {(e.imagenCardUrl ?? e.imagenUrl) ? (
@@ -185,7 +185,7 @@ export default async function BoletasPage({
                       <div className="h-px w-full bg-neutral-800" />
 
                       <div className="flex flex-1 flex-col gap-2 p-5">
-                        <h2 className="text-lg font-bold leading-tight text-white transition-colors group-hover:text-[#dc2626]">{e.titulo}</h2>
+                        <h2 className="text-lg font-bold leading-tight text-white transition-colors group-hover:text-primary">{e.titulo}</h2>
                         <p className="flex items-center gap-2 text-sm capitalize text-neutral-400">
                           <CalendarDays size={15} className="shrink-0 text-neutral-500" />
                           {fechaCorta(e.fechaEvento)}
@@ -199,7 +199,7 @@ export default async function BoletasPage({
                             {e.tipos.length} tipo{e.tipos.length !== 1 ? 's' : ''}
                           </span>
                           {desde !== null ? (
-                            <span className="rounded-full bg-[#dc2626] px-3 py-1 text-xs font-bold text-white">
+                            <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
                               Desde <Price amount={desde} />
                             </span>
                           ) : (

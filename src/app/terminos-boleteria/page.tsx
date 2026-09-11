@@ -67,7 +67,7 @@ const sections = [
     body: (
       <>
         Tras el pago aprobado por Wompi recibirás un correo con el QR y el
-        detalle en <Link href="/cuenta/boletas" className="text-[#dc2626] underline underline-offset-2">Mis boletas</Link>. Si no lo ves, reenvíalo
+        detalle en <Link href="/cuenta/boletas" className="text-primary underline underline-offset-2">Mis boletas</Link>. Si no lo ves, reenvíalo
         desde esa sección (rate-limit). Conserva el correo; el QR también
         queda disponible en tu cuenta.
       </>
@@ -93,8 +93,8 @@ const sections = [
       <>
         Fecha, lugar y horarios pueden variar por motivos de producción. Los
         cambios se comunican por el correo de compra y en{" "}
-        <Link href="/boletas" className="text-[#dc2626] underline underline-offset-2">/boletas</Link>. Dudas:{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">contacto</Link>.
+        <Link href="/boletas" className="text-primary underline underline-offset-2">/boletas</Link>. Dudas:{" "}
+        <Link href="/contacto" className="text-primary underline underline-offset-2">contacto</Link>.
       </>
     ),
   },
@@ -112,16 +112,16 @@ const sections = [
 
 export default function TerminosBoleteria() {
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-[#e0e0e0]">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">Legal</p>
+    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-muted-foreground">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">Legal</p>
       <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">Términos de Boletería</h1>
       <p className="mt-3 font-mono text-xs text-neutral-500">Última actualización: septiembre de 2026</p>
 
       <div className="mt-10 flex flex-col gap-8">
         {sections.map((section) => (
-          <section key={section.title} className="rounded-lg border border-neutral-800 bg-[rgba(52,58,64,0.25)] p-6">
+          <section key={section.title} className="rounded-lg border border-neutral-800 bg-muted/25 p-6">
             <h2 className="flex items-center gap-2.5 text-lg font-bold text-white">
-              <section.icon size={18} className="text-[#dc2626]" aria-hidden="true" />
+              <section.icon size={18} className="text-primary" aria-hidden="true" />
               {section.title}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-neutral-300">{section.body}</p>
@@ -131,9 +131,9 @@ export default function TerminosBoleteria() {
 
       <p className="mt-10 text-xs text-neutral-600">
         Consulta también nuestra{" "}
-        <Link href="/politica-de-privacidad" className="text-[#dc2626] underline underline-offset-2">política de privacidad</Link> y{" "}
-        <Link href="/politica-de-cambios" className="text-[#dc2626] underline underline-offset-2">política de cambios</Link>. Preguntas:{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">contacto</Link>.
+        <Link href="/politica-de-privacidad" className="text-primary underline underline-offset-2">política de privacidad</Link> y{" "}
+        <Link href="/politica-de-cambios" className="text-primary underline underline-offset-2">política de cambios</Link>. Preguntas:{" "}
+        <Link href="/contacto" className="text-primary underline underline-offset-2">contacto</Link>.
       </p>
     </main>
   );

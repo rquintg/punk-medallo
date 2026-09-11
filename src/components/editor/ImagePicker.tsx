@@ -39,7 +39,7 @@ export function ImagePicker({ picture, onChange, compact }: Props) {
 
   if (picture?.previewUrl) {
     return (
-      <div className={`relative group rounded-xl overflow-hidden border border-[#262626] bg-[#0a0a0a] ${compact ? "h-20" : "h-40"}`}>
+      <div className={`relative group rounded-xl overflow-hidden border border-muted bg-background ${compact ? "h-20" : "h-40"}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={picture.previewUrl} alt="Portada" className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
@@ -56,7 +56,7 @@ export function ImagePicker({ picture, onChange, compact }: Props) {
   }
 
   return (
-    <div className={`rounded-xl border-2 border-dashed border-[#262626] bg-[#0a0a0a] flex flex-col items-center justify-center gap-2 p-4 hover:border-[#333] hover:bg-[#111] transition-colors ${compact ? "h-20" : "h-40"}`}>
+    <div className={`rounded-xl border-2 border-dashed border-muted bg-background flex flex-col items-center justify-center gap-2 p-4 hover:border-[#333] hover:bg-surface transition-colors ${compact ? "h-20" : "h-40"}`}>
       <ImageIcon size={compact ? 18 : 22} className="text-white/30" />
       <p className="text-xs text-white/40 text-center">JPG/PNG/WebP · se comprime a &lt;500KB</p>
       <Button size="sm" variant="secondary" onClick={() => inputRef.current?.click()}>

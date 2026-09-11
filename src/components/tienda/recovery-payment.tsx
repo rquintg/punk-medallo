@@ -69,7 +69,7 @@ export default function RecoveryPayment({ numeroPedido }: RecoveryPaymentProps) 
       <button
         onClick={handlePayment}
         disabled={isPaying}
-        className="w-full group relative flex items-center justify-center gap-3 bg-[#dc2626] hover:bg-red-700 disabled:bg-neutral-800 text-white font-black uppercase italic tracking-tight py-4 px-6 rounded-xl transition-all duration-300 active:scale-95 shadow-[0_10px_20px_rgba(220,38,38,0.3)]"
+        className="w-full group relative flex items-center justify-center gap-3 bg-primary hover:bg-red-700 disabled:bg-neutral-800 text-white font-black uppercase italic tracking-tight py-4 px-6 rounded-xl transition-all duration-300 active:scale-95 shadow-[0_10px_20px_rgba(220,38,38,0.3)]"
       >
         {isPaying ? (
           <span className="flex items-center gap-2">

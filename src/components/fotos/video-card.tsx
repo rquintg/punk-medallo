@@ -13,7 +13,7 @@ export function VideoCard({ video, onSelect }: VideoCardProps) {
   const anio = video.createdAt.slice(0, 4);
 
   return (
-    <figure className="group relative mb-4 break-inside-avoid overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60">
+    <figure className="group relative mb-4 break-inside-avoid overflow-hidden rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/60">
       <div className="relative">
         <div className="relative aspect-video overflow-hidden bg-neutral-900">
           <Image

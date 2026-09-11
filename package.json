@@ -17,6 +17,7 @@
     "axios": "^1.18.1",
     "browser-id3-writer": "^6.4.0",
     "echarts": "^6.1.0",
+    "framer-motion": "^12.38.0",
     "html5-qrcode": "^2.3.8",
     "jszip": "^3.10.1",
     "lucide-react": "^1.23.0",

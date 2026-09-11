@@ -38,7 +38,7 @@ export default function AuthButton() {
       <div className="flex items-center gap-2">
         <Link
           href="/cuenta/pedidos"
-          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626] sm:flex"
+          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white transition-colors hover:border-primary hover:text-primary sm:flex"
           title="Mis pedidos"
         >
           <PackageSearch size={18} aria-hidden="true" />
@@ -46,7 +46,7 @@ export default function AuthButton() {
         </Link>
         <Link
           href="/cuenta/boletas"
-          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626] sm:flex"
+          className="hidden items-center gap-2 rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white transition-colors hover:border-primary hover:text-primary sm:flex"
           title="Mis boletas"
         >
           <Ticket size={18} aria-hidden="true" />
@@ -57,7 +57,7 @@ export default function AuthButton() {
         </span>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
+          className="flex items-center gap-2 rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white transition-colors hover:border-primary hover:text-primary"
         >
           <UserRoundXIcon size={18} aria-hidden="true" />
         </button>
@@ -69,7 +69,7 @@ export default function AuthButton() {
     <div className="flex items-center gap-2">
       <Link
         href="/login"
-        className="flex items-center gap-2 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white transition-colors hover:border-[#a40202] hover:text-[#dc2626]"
+        className="flex items-center gap-2 rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white transition-colors hover:border-primary hover:text-primary"
       >
         <LucideUserKey size={18} aria-hidden="true" />
       </Link>

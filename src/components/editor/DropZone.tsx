@@ -39,10 +39,10 @@ export function DropZone({ onFiles, isLoading, count }: Props) {
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
       className={`relative group rounded-2xl border-2 border-dashed p-8 sm:p-10 text-center transition-all duration-300
-        ${dragOver ? "border-[#dc2626] bg-[#dc2626]/10 scale-[1.01]" : "border-[#262626] bg-[#111111] hover:border-[#333] hover:bg-[#1a1a1a]"}`}
+        ${dragOver ? "border-primary bg-primary/10 scale-[1.01]" : "border-muted bg-surface hover:border-[#333] hover:bg-surface"}`}
     >
       <div className="mx-auto flex flex-col items-center gap-4 max-w-lg">
-        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-colors ${dragOver ? "bg-[#dc2626] text-white" : "bg-[#1a1a1a] border border-[#262626] text-white/80 group-hover:bg-[#dc2626] group-hover:text-white"}`}>
+        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-colors ${dragOver ? "bg-primary text-white" : "bg-surface border border-muted text-white/80 group-hover:bg-primary group-hover:text-white"}`}>
           {isLoading ? <Loader2 className="animate-spin" size={24} /> : <Upload size={24} />}
         </div>
 
@@ -55,7 +55,7 @@ export function DropZone({ onFiles, isLoading, count }: Props) {
           </p>
         </div>
 
-        <label className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#dc2626] text-white font-semibold text-sm hover:bg-[#b91c1c] cursor-pointer transition-colors shadow-[0_4px_16px_rgba(220,38,38,0.35)]">
+        <label className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover cursor-pointer transition-colors shadow-[0_4px_16px_rgba(220,38,38,0.35)]">
           <Music size={16} />
           Seleccionar archivos
           <input type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={handleInput} />
@@ -66,7 +66,7 @@ export function DropZone({ onFiles, isLoading, count }: Props) {
         </p>
 
         {typeof count === "number" && count > 0 && (
-          <p className="text-xs font-semibold tracking-widest uppercase text-[#ff4444] bg-[#ff4444]/10 border border-[#ff4444]/20 rounded-full px-3 py-1">
+          <p className="text-xs font-semibold tracking-widest uppercase text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1">
             {count} {count === 1 ? "archivo cargado" : "archivos cargados"}
           </p>
         )}

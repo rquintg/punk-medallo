@@ -136,11 +136,11 @@ export default function ComprarPanel({
                     : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
               }`}
             >
-              {qty > 0 && <span className="absolute left-0 top-0 h-full w-1 bg-[#dc2626]" />}
+              {qty > 0 && <span className="absolute left-0 top-0 h-full w-1 bg-primary" />}
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-bold tracking-wide text-white">{t.nombre}</p>
-                  <p className="text-base font-black text-[#dc2626]">
+                  <p className="text-base font-black text-primary">
                     <Price amount={t.precio} />
                   </p>
                   {agotado ? (
@@ -218,14 +218,14 @@ export default function ComprarPanel({
             type="button"
             onClick={handleContinuar}
             disabled={totalBoletas === 0}
-            className="w-full rounded-lg bg-[#dc2626] px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-red-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
+            className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-red-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
           >
             Continuar al pago
           </button>
         ) : (
           <Link
             href={`/login?redirect=/boletas/${slug}`}
-            className="block w-full rounded-lg bg-[#dc2626] px-6 py-3 text-center text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-red-700 active:scale-[0.98]"
+            className="block w-full rounded-lg bg-primary px-6 py-3 text-center text-sm font-bold uppercase tracking-wide text-white transition-all hover:bg-red-700 active:scale-[0.98]"
           >
             Inicia sesión para comprar
           </Link>

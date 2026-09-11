@@ -47,7 +47,7 @@ export function BandTicker({ bands }: { bands: BandInfo[] }) {
             <LucideSlash
               size={13}
               aria-hidden="true"
-              className="shrink-0 text-[#dc2626]"
+              className="shrink-0 text-primary"
             />
           </span>
         ))}

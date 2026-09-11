@@ -55,7 +55,7 @@ export function RelatedCarousel({ title, albums }: RelatedCarouselProps) {
             onClick={() => scrollByCard(-1)}
             disabled={!canScrollLeft}
             aria-label="Ver anteriores"
-            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ChevronLeft size={16} aria-hidden="true" />
           </button>
@@ -64,7 +64,7 @@ export function RelatedCarousel({ title, albums }: RelatedCarouselProps) {
             onClick={() => scrollByCard(1)}
             disabled={!canScrollRight}
             aria-label="Ver siguientes"
-            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ChevronRight size={16} aria-hidden="true" />
           </button>

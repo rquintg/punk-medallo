@@ -110,7 +110,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
 
   const panelComentarios = mostrarComentarios && (
     <div className="border-t border-neutral-800 bg-neutral-900/50 p-4 lg:border-t-0">
-      <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-widest text-[#dc2626]">
+      <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-widest text-primary">
         <MessageCircle size={13} aria-hidden="true" />
         {totalComentarios} {totalComentarios === 1 ? "comentario" : "comentarios"}
       </p>
@@ -147,7 +147,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
         href={link}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-block font-mono text-[11px] uppercase tracking-widest text-neutral-400 transition-colors hover:text-[#dc2626]"
+        className="mt-4 inline-block font-mono text-[11px] uppercase tracking-widest text-neutral-400 transition-colors hover:text-primary"
       >
         Ver todos en Facebook →
       </a>
@@ -169,7 +169,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className="flex h-9 w-9 items-center justify-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white"
         >
           <X size={16} aria-hidden="true" />
         </button>
@@ -180,7 +180,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
           type="button"
           onClick={prev}
           aria-label="Anterior"
-          className="hidden h-10 w-10 shrink-0 items-center justify-center self-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white sm:flex"
+          className="hidden h-10 w-10 shrink-0 items-center justify-center self-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white sm:flex"
         >
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
@@ -213,7 +213,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
 
             {!mostrarComentarios && link && (
               <div className="w-full max-w-2xl text-center">
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#dc2626]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
                   {fecha || (ES_FOTO(item) ? "Registro fotográfico" : "Video")}
                 </p>
                 {descripcion && (
@@ -225,7 +225,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-5 inline-flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                  className="mt-5 inline-flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                 >
                   <ExternalLink size={14} aria-hidden="true" />
                   Ver en Facebook
@@ -238,7 +238,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
             <aside className="w-full max-w-2xl shrink-0 lg:w-[340px]">
               <div className="flex max-h-[30vh] flex-col overflow-y-auto lg:max-h-[calc(100vh-8rem)] lg:border-l lg:border-neutral-800 lg:pl-6">
                 <div className="px-4 pt-4 text-center lg:px-0 lg:text-left">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#dc2626]">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
                     {fecha || (ES_FOTO(item) ? "Registro fotográfico" : "Video")}
                   </p>
                   {descripcion && (
@@ -253,7 +253,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                    className="mt-4 inline-flex items-center gap-2 rounded-md border border-neutral-600 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                   >
                     <ExternalLink size={14} aria-hidden="true" />
                     Ver en Facebook
@@ -268,7 +268,7 @@ export function FotosLightbox({ items, index, onClose, onNavigate }: FotosLightb
           type="button"
           onClick={next}
           aria-label="Siguiente"
-          className="hidden h-10 w-10 shrink-0 items-center justify-center self-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white sm:flex"
+          className="hidden h-10 w-10 shrink-0 items-center justify-center self-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white sm:flex"
         >
           <ChevronRight size={18} aria-hidden="true" />
         </button>

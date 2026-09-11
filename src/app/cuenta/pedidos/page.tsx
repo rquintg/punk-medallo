@@ -68,7 +68,7 @@ export default async function MisPedidosPage() {
       <h1 className="text-xl font-bold text-white">Mis pedidos</h1>
 
       {lista.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-neutral-800 bg-[#111] p-10 text-center">
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-neutral-800 bg-surface p-10 text-center">
           <Package size={32} className="text-neutral-600" />
           <p className="text-sm text-neutral-400">
             Todavía no tienes pedidos. Cuando compres en la tienda, aparecerán acá.
@@ -86,11 +86,11 @@ export default async function MisPedidosPage() {
             <li key={pedido.numero_pedido}>
               <Link
                 href={`/tienda/orden/${pedido.numero_pedido}`}
-                className="group flex items-center justify-between gap-4 rounded-lg border border-neutral-800 bg-[#111] p-4 transition-colors hover:border-[#dc2626]/60"
+                className="group flex items-center justify-between gap-4 rounded-lg border border-neutral-800 bg-surface p-4 transition-colors hover:border-primary/60"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-900">
-                    <PackageSearch size={18} className="text-[#dc2626]" />
+                    <PackageSearch size={18} className="text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">
@@ -115,7 +115,7 @@ export default async function MisPedidosPage() {
                   </span>
                   <ArrowRight
                     size={16}
-                    className="text-neutral-600 transition-colors group-hover:text-[#dc2626]"
+                    className="text-neutral-600 transition-colors group-hover:text-primary"
                   />
                 </div>
               </Link>

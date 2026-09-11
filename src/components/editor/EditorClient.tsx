@@ -127,15 +127,15 @@ export function EditorClient() {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 pt-20 pb-6 sm:pt-24 sm:pb-8 space-y-6">
       {/* Header hero — estilo orden tienda/boletería (degradado rojo) */}
-      <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-[#0a0a0a] p-6 sm:p-8">
-        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, #dc2626 0 1px, transparent 1px 10px)` }} aria-hidden />
+      <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-background p-6 sm:p-8">
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, var(--color-primary) 0 1px, transparent 1px 10px)` }} aria-hidden />
         <div className="relative flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="flex-1 min-w-0">
-            <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-[#ff4444] bg-[#ff4444]/10 border border-[#ff4444]/20 rounded-full px-3 py-1 w-fit">
+            <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 w-fit">
               <Sparkles size={12} /> Punk Medallo · MP3 Editor
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-black tracking-tight text-white leading-none">
-              Edita tus <span className="text-[#dc2626]">MP3</span> en segundos
+              Edita tus <span className="text-primary">MP3</span> en segundos
             </h1>
             <p className="mt-2 text-sm sm:text-base text-white/60 max-w-2xl">
               Título, artista, álbum, año, género y portada. Edición por lotes, descarga individual o ZIP masivo.
@@ -218,7 +218,7 @@ export function EditorClient() {
       {editingTrack && (
         <div className="fixed inset-0 z-40 flex justify-end">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingId(null)} />
-          <div className="relative w-full max-w-md bg-[#111111] border-l border-[#262626] shadow-[-16px_0_64px_rgba(0,0,0,0.6)] flex flex-col animate-[fadeIn_0.2s_ease]">
+          <div className="relative w-full max-w-md bg-surface border-l border-muted shadow-[-16px_0_64px_rgba(0,0,0,0.6)] flex flex-col animate-[fadeIn_0.2s_ease]">
             <TagForm
               tags={editingTrack.editedTags}
               fileName={editingTrack.file.name}

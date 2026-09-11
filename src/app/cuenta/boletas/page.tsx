@@ -82,7 +82,7 @@ export default async function MisBoletasPage() {
       <h1 className="mt-4 text-xl font-bold text-white">Mis boletas</h1>
 
       {conQr.length === 0 ? (
-        <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-neutral-800 bg-[#111] p-10 text-center">
+        <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-neutral-800 bg-surface p-10 text-center">
           <Ticket size={32} className="text-neutral-600" />
           <p className="text-sm text-neutral-400">
             Todavía no tienes boletas. Cuando compres para un concierto, aparecerán acá.
@@ -101,7 +101,7 @@ export default async function MisBoletasPage() {
             return (
               <article
                 key={b.id}
-                className="overflow-hidden rounded-xl border border-neutral-800 bg-[#111]"
+                className="overflow-hidden rounded-xl border border-neutral-800 bg-surface"
               >
                 {/* Encabezado del evento */}
                 <div className="border-b border-neutral-800 p-5">
@@ -109,7 +109,7 @@ export default async function MisBoletasPage() {
                     <div>
                       <h2 className="font-bold leading-tight text-white">{b.evento_titulo}</h2>
                        <p className="mt-1.5 flex items-center gap-1.5 text-xs capitalize text-neutral-400">
-                        <CalendarDays size={13} className="text-[#dc2626]" />
+                        <CalendarDays size={13} className="text-primary" />
                         {new Date(b.evento_fecha).toLocaleString('es-CO', {
                           timeZone: 'America/Bogota',
                           weekday: 'long',
@@ -120,7 +120,7 @@ export default async function MisBoletasPage() {
                         })}
                       </p>
                       <p className="mt-1 flex items-center gap-1.5 text-xs text-neutral-400">
-                        <MapPin size={13} className="text-[#dc2626]" />
+                        <MapPin size={13} className="text-primary" />
                         {b.evento_lugar}
                       </p>
                     </div>
@@ -144,7 +144,7 @@ export default async function MisBoletasPage() {
                     className={`rounded-lg ${b.estado === 'valida' ? '' : 'opacity-40 grayscale'}`}
                   />
                   <div className="min-w-0 flex-1 text-center sm:text-left">
-                    <p className="flex items-center justify-center gap-1.5 font-mono text-base font-bold tracking-widest text-[#ff4444] sm:justify-start">
+                    <p className="flex items-center justify-center gap-1.5 font-mono text-base font-bold tracking-widest text-primary sm:justify-start">
                       <QrCode size={15} />
                       {b.codigo}
                     </p>

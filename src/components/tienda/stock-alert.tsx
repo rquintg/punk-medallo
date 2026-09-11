@@ -80,10 +80,10 @@ export function StockAlert({ productoId, talla, color }: StockAlertProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-md border border-neutral-800 bg-[#181818] p-4"
+      className="rounded-md border border-neutral-800 bg-background p-4"
     >
       <p className="flex items-center gap-2 text-sm font-semibold text-white">
-        <BellRing size={16} className="text-[#dc2626]" />
+        <BellRing size={16} className="text-primary" />
         Avisame cuando haya stock{comboLabel ? ` en ${comboLabel}` : ''}
       </p>
       <p className="mt-1 text-xs text-neutral-500">
@@ -96,7 +96,7 @@ export function StockAlert({ productoId, talla, color }: StockAlertProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="tu@correo.com"
-          className="w-full rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
+          className="w-full rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-primary"
         />
         <div className="flex gap-2">
           <input
@@ -104,7 +104,7 @@ export function StockAlert({ productoId, talla, color }: StockAlertProps) {
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
             placeholder="WhatsApp opcional (ej. 3001234567)"
-            className="flex-1 rounded-md border border-neutral-700 bg-[#111] px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
+            className="flex-1 rounded-md border border-neutral-700 bg-surface px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-primary"
           />
           <button
             type="submit"

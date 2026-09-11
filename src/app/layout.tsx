@@ -3,7 +3,6 @@ import Script from "next/script";
 import { Krub } from "next/font/google";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
-import WebPlayer from "@/components/WebPlayer";
 import FloatingWhatsAppWrapper from "@/components/FloatingWhatsAppWrapper";
 import InstallPrompt from "@/components/install-prompt";
 import { HideOnAdmin } from "@/components/hide-on-admin";
@@ -117,6 +116,7 @@ const navigationSchema = {
     { "@type": "WebPage", name: "Descargas", url: `${siteUrl}/descargas` },
     { "@type": "WebPage", name: "Registro Fotográfico", url: `${siteUrl}/fotos` },
     { "@type": "WebPage", name: "Paginas amigas", url: `${siteUrl}/amigos` },
+    { "@type": "WebPage", name: "Radio", url: `${siteUrl}/radio` },
     { "@type": "WebPage", name: "Contacto", url: `${siteUrl}/contacto` },
     { "@type": "WebPage", name: "Editor MP3", url: `${siteUrl}/editor-mp3` },
   ],
@@ -162,22 +162,22 @@ export default async function RootLayout({
       className={`${krub.variable} h-full antialiased`}
     >
       <head>
-        <meta name="theme-color" content="#181818" />
+        <meta name="theme-color" content="#0a0a0a" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="dns-prefetch" href="https://a3.asurahosting.com" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#181818] text-white">
+      <body className="min-h-full flex flex-col bg-background text-white">
         <HideOnAdmin><NavBar tiendaActiva={tiendaActiva} boleteriaActiva={boleteriaActiva} /></HideOnAdmin>
         <main className="flex-1">
           <QueryProvider>{children}</QueryProvider>
         </main>
         <HideOnAdmin><Footer /></HideOnAdmin>
-        <HideOnAdmin><WebPlayer /></HideOnAdmin>
 
         <Toaster
           position="top-right"
-          offset={{ top: 75 } as any}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- sonner offset typing (number) expects CSSProperties
+          offset={{ top: 75 } as unknown as Record<string, unknown> as any}
           toastOptions={{
             style: { background: "#171717", color: "#fff" },
           }}

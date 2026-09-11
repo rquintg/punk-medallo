@@ -75,7 +75,7 @@ export function FilterDrawer({ children, categoria = null }: FilterDrawerProps) 
         />
 
         <div
-          className={`absolute bottom-0 left-0 top-0 flex w-full max-w-sm flex-col bg-[#111] shadow-xl transition-transform duration-300 ${
+          className={`absolute bottom-0 left-0 top-0 flex w-full max-w-sm flex-col bg-surface shadow-xl transition-transform duration-300 ${
             open ? 'translate-x-0' : '-translate-x-full'
           }`}
           role="dialog"

@@ -53,7 +53,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
   return (
     <section
       aria-label="Destacados del archivo"
-      className="mb-14 border-b border-neutral-800 pb-14"
+      className=""
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -61,9 +61,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
     >
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
-            Destacados
-          </h2>
+          <h2 className="text-lg font-black uppercase tracking-tight"><span className="text-white">Los</span> <span className="text-primary">destacados</span></h2>
           <p className="mt-1 text-sm text-neutral-400">
             Clásicos del archivo punk de Medellín.
           </p>
@@ -74,7 +72,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
             onClick={() => step(-1)}
             disabled={count < 2}
             aria-label="Destacado anterior"
-            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ChevronLeft size={16} aria-hidden="true" />
           </button>
@@ -83,7 +81,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
             onClick={() => step(1)}
             disabled={count < 2}
             aria-label="Destacado siguiente"
-            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-[#111] text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded border border-neutral-700 bg-surface text-neutral-300 transition-colors hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
           >
             <ChevronRight size={16} aria-hidden="true" />
           </button>
@@ -123,12 +121,12 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
                   {bandLink ? (
                     <Link
                       href={bandLink}
-                      className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626] transition-colors hover:text-white"
+                      className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary transition-colors hover:text-white"
                     >
                       {item.band}
                     </Link>
                   ) : (
-                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
                       {item.band}
                     </p>
                   )}
@@ -162,7 +160,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
                   <div className="mt-8 flex flex-wrap items-center gap-4">
                     <Link
                       href={`/descargas/${item.slug}`}
-                      className="flex items-center gap-2 rounded-md bg-[#dc2626] px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b91c1c]"
+                      className="flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary-hover"
                     >
                       Ver álbum
                       <ArrowRight size={15} aria-hidden="true" />
@@ -172,7 +170,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
                         href={primaryDownload.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+                        className="flex items-center gap-2 rounded-md border border-neutral-600 px-6 py-3 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:border-primary hover:text-primary"
                       >
                         <Download size={15} aria-hidden="true" />
                         Descargar
@@ -197,7 +195,7 @@ export function DestacadosHero({ albums }: DestacadosHeroProps) {
               aria-current={index === active}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 index === active
-                  ? "w-6 bg-[#dc2626]"
+                  ? "w-6 bg-primary"
                   : "w-3 bg-neutral-700 hover:bg-neutral-500"
               }`}
             />

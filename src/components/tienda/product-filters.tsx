@@ -263,7 +263,7 @@ export function ProductFilters({
   const span = limiteMax - limiteMin || 1;
   const pctA = Math.min(Math.max((((draftMin ?? limiteMin) - limiteMin) / span) * 100, 0), 100);
   const pctB = Math.min(Math.max((((draftMax ?? limiteMax) - limiteMin) / span) * 100, 0), 100);
-  const trackFill = `linear-gradient(to right, #262626 ${pctA}%, #dc2626 ${pctA}%, #dc2626 ${pctB}%, #262626 ${pctB}%)`;
+  const trackFill = `linear-gradient(to right, var(--color-muted) ${pctA}%, var(--color-primary) ${pctA}%, var(--color-primary) ${pctB}%, var(--color-muted) ${pctB}%)`;
 
   const rangeClassName = `pointer-events-none absolute h-4 w-full appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-red-600`;
   const sliderProps = {

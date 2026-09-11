@@ -25,14 +25,14 @@ export function FotosHero({
   const latest = daysAgo(ultimaPublicacion);
 
   return (
-    <section className="border-b border-neutral-800 bg-[#101010]">
+    <section className="border-b border-neutral-800 bg-background">
       <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
           Punk Medallo — Archivo visual
         </p>
         <h1 className="mt-3 text-5xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
           Registro{" "}
-          <span className="text-[#dc2626]">Audiovisual</span>
+          <span className="text-primary">Audiovisual</span>
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
           La memoria visual de la escena: toques, ensayos.

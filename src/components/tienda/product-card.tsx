@@ -129,7 +129,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div
-      className={`group relative flex flex-col rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-[#a40202]/50 hover:shadow-lg hover:shadow-black/20 ${showPopover ? 'z-20' : ''}`}
+      className={`group relative flex flex-col rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-black/20 ${showPopover ? 'z-20' : ''}`}
     >
       <Link
         href={`/tienda/${product.slug}`}
@@ -183,12 +183,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <Link href={`/tienda/${product.slug}`}>
-          <h3 className="font-bold leading-tight text-white transition-colors hover:text-[#dc2626]">
+          <h3 className="font-bold leading-tight text-white transition-colors hover:text-primary">
             {product.nombre}
           </h3>
         </Link>
 
-        <p className="flex items-baseline gap-2 text-xl font-bold text-[#dc2626]">
+        <p className="flex items-baseline gap-2 text-xl font-bold text-primary">
           <Price amount={precioConDescuento(product.precio, product.descuento)} />
           {tieneDescuento(product.descuento) && (
             <span className="text-sm font-medium text-neutral-500 line-through">
@@ -227,7 +227,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {showPopover && needsCustomization ? (
           <div
             ref={popoverRef}
-            className="absolute left-0 right-0 top-full z-20 mt-2 flex flex-col gap-3 rounded-md border border-neutral-700 bg-[#1a1a1a] p-2.5 shadow-xl shadow-black/50"
+            className="absolute left-0 right-0 top-full z-20 mt-2 flex flex-col gap-3 rounded-md border border-neutral-700 bg-surface p-2.5 shadow-xl shadow-black/50"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-neutral-400">
@@ -331,7 +331,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className="mt-auto flex w-full items-center justify-center gap-2 rounded-md bg-[#dc2626] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#b91c1c] active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
+            className="mt-auto flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-hover active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-neutral-700 disabled:text-neutral-400"
             aria-label={
               isOutOfStock
                 ? `${product.nombre} - Agotado`

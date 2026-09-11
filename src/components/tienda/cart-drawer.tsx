@@ -60,7 +60,7 @@ export default function CartDrawer() {
         />
 
         <div
-          className={`absolute bottom-0 right-0 top-0 flex w-full max-w-md flex-col bg-[#111] shadow-xl transition-transform duration-300 ${
+          className={`absolute bottom-0 right-0 top-0 flex w-full max-w-md flex-col bg-surface shadow-xl transition-transform duration-300 ${
             drawerOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
           role="dialog"
@@ -102,7 +102,7 @@ export default function CartDrawer() {
               <button
                 type="button"
                 onClick={close}
-                className="rounded-md bg-[#dc2626] px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#b91c1c]"
+                className="rounded-md bg-primary px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
               >
                 Seguir comprando
               </button>
@@ -120,7 +120,7 @@ export default function CartDrawer() {
                 ))}
               </ul>
 
-              <div className="border-t border-neutral-800 bg-[#0f0f0f] px-5 py-4 shadow-[0_-8px_16px_rgba(0,0,0,0.5)]">
+              <div className="border-t border-neutral-800 bg-surface px-5 py-4 shadow-[0_-8px_16px_rgba(0,0,0,0.5)]">
                 {/* Barra envio gratis */}
                 <div className="mb-3">
                   <div className="mb-1.5 flex items-center justify-between text-xs">
@@ -130,7 +130,7 @@ export default function CartDrawer() {
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-800">
-                    <div className={`h-full rounded-full transition-all duration-500 ${envioGratis ? 'bg-emerald-500' : 'bg-[#dc2626]'}`} style={{ width: `${progresoEnvio}%` }} />
+                    <div className={`h-full rounded-full transition-all duration-500 ${envioGratis ? 'bg-emerald-500' : 'bg-primary'}`} style={{ width: `${progresoEnvio}%` }} />
                   </div>
                 </div>
 
@@ -146,7 +146,7 @@ export default function CartDrawer() {
                 <Link
                   href="/tienda/checkout"
                   onClick={close}
-                  className="flex w-full items-center justify-center rounded-md bg-[#dc2626] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#b91c1c]"
+                  className="flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
                 >
                   Proceder al pago
                 </Link>
@@ -192,14 +192,14 @@ function CartItemRow({
         <div className="flex justify-between gap-2">
           <Link
             href={`/tienda/${item.slug}`}
-            className="text-sm font-semibold leading-tight text-white transition-colors hover:text-[#dc2626]"
+            className="text-sm font-semibold leading-tight text-white transition-colors hover:text-primary"
           >
             {item.nombre}
           </Link>
           <button
             type="button"
             onClick={() => onRemove(item.id, item.tallaSeleccionada, item.colorSeleccionado)}
-            className="shrink-0 text-neutral-500 transition-colors hover:text-[#dc2626]"
+            className="shrink-0 text-neutral-500 transition-colors hover:text-primary"
             aria-label={`Eliminar ${item.nombre} del carrito`}
           >
             <X size={16} />
@@ -258,7 +258,7 @@ function CartItemRow({
             </button>
           </div>
 
-          <span className="text-base font-bold text-[#dc2626]">
+          <span className="text-base font-bold text-primary">
             <Price amount={item.precio * item.cantidad} />
           </span>
         </div>

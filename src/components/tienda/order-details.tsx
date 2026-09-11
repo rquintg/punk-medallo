@@ -182,14 +182,14 @@ export default function OrderDetails({
     <section className="pt-16 pb-8">
       <div className="container mx-auto px-4">
         {/* ================== HERO TICKET STUB ================== */}
-        <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-[#0a0a0a] mb-12">
+        <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-background mb-12">
           {/* Patrón decorativo */}
-          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, #dc2626 0 1px, transparent 1px 10px)` }} aria-hidden />
+          <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, var(--color-primary) 0 1px, transparent 1px 10px)` }} aria-hidden />
           
           {/* Header con número de pedido y badge de estado */}
           <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-neutral-800 px-6 py-4 sm:px-8">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-neutral-500">
-              <Receipt size={13} className="text-[#dc2626]" />
+              <Receipt size={13} className="text-primary" />
               Pedido <span className="font-semibold text-neutral-300">{numero}</span>
             </div>
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
@@ -209,7 +209,7 @@ export default function OrderDetails({
           {/* Contenido principal */}
           <div className="relative grid gap-6 px-6 py-10 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
             <div className="space-y-2">
-              <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+              <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 <Ticket size={12} /> Información de la Orden
               </p>
               <h1 className="text-3xl font-black uppercase italic leading-[1.05] tracking-tight text-white md:text-5xl">
@@ -233,9 +233,9 @@ export default function OrderDetails({
         <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-8">
             {/* Timeline */}
-            <div className="rounded-xl border border-neutral-800 bg-[#111] p-6 shadow-sm">
+            <div className="rounded-xl border border-neutral-800 bg-surface p-6 shadow-sm">
               <div className="mb-6 flex items-center gap-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                   Estado del Proceso
                 </p>
               </div>
@@ -248,7 +248,7 @@ export default function OrderDetails({
                             <div
                                 className={
                                   i < completados
-                                      ? "bg-[#dc2626] flex h-10 w-10 items-center justify-center rounded-full shadow-[0_0_10px_rgba(220,38,38,0.4)]"
+                                      ? "bg-primary flex h-10 w-10 items-center justify-center rounded-full shadow-[0_0_10px_rgba(220,38,38,0.4)]"
                                       : "bg-neutral-800 flex h-10 w-10 items-center justify-center rounded-full"
                                 }
                             >
@@ -262,7 +262,7 @@ export default function OrderDetails({
                                 <div
                                     className={
                                       i < completados
-                                          ? "bg-[#dc2626] my-2 w-0.5 flex-1"
+                                          ? "bg-primary my-2 w-0.5 flex-1"
                                           : "bg-neutral-800 my-2 w-0.5 flex-1"
                                     }
                                 />
@@ -294,14 +294,14 @@ export default function OrderDetails({
                             <div
                                 className={
                                   i < completados
-                                      ? "bg-[#dc2626] h-0.5 flex-1"
+                                      ? "bg-primary h-0.5 flex-1"
                                       : "bg-neutral-800 h-0.5 flex-1"
                                 }
                             />
                             <div
                                 className={
                                   i < completados
-                                      ? "bg-[#dc2626] flex h-10 w-10 items-center justify-center rounded-full shadow-[0_0_10px_rgba(220,38,38,0.4)]"
+                                      ? "bg-primary flex h-10 w-10 items-center justify-center rounded-full shadow-[0_0_10px_rgba(220,38,38,0.4)]"
                                       : "bg-neutral-800 flex h-10 w-10 items-center justify-center rounded-full"
                                 }
                             >
@@ -314,7 +314,7 @@ export default function OrderDetails({
                             <div
                                 className={
                                   i < completados && i < PASOS.length - 1
-                                      ? "bg-[#dc2626] h-0.5 flex-1"
+                                      ? "bg-primary h-0.5 flex-1"
                                       : i < PASOS.length - 1
                                           ? "bg-neutral-800 h-0.5 flex-1"
                                           : "h-0.5 flex-1"
@@ -343,9 +343,9 @@ export default function OrderDetails({
             </div>
 
             {/* Header Info */}
-            <div className="flex flex-wrap items-center justify-between gap-4 p-6 rounded-xl border border-neutral-800 bg-[#111] shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-6 rounded-xl border border-neutral-800 bg-surface shadow-sm">
               <div className="space-y-1">
-                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                   Fecha
                 </p>
                 <p className="font-semibold text-white">
@@ -353,14 +353,14 @@ export default function OrderDetails({
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+                <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                   Número de pedido
                 </p>
                 <p className="font-semibold text-white">{numero}</p>
               </div>
               <Button
                 variant="outline"
-                className="group flex w-full items-center justify-center gap-2 sm:max-w-fit border-neutral-800 bg-transparent text-neutral-400 hover:text-white hover:border-[#dc2626] transition-all"
+                className="group flex w-full items-center justify-center gap-2 sm:max-w-fit border-neutral-800 bg-transparent text-neutral-400 hover:text-white hover:border-primary transition-all"
                 onClick={descargarFactura}
               >
                 Descargar factura
@@ -371,9 +371,9 @@ export default function OrderDetails({
 
 
             {/* Items List */}
-            <div className="rounded-xl border border-neutral-800 bg-[#111] p-6 shadow-sm">
+            <div className="rounded-xl border border-neutral-800 bg-surface p-6 shadow-sm">
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+                <h3 className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                   Productos del pedido
                 </h3>
               </div>
@@ -424,8 +424,8 @@ export default function OrderDetails({
           </div>
           <div className="space-y-6 lg:col-span-4">
             {/* Dirección */}
-            <div className="rounded-xl border border-neutral-800 bg-[#111] p-6 shadow-sm">
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+            <div className="rounded-xl border border-neutral-800 bg-surface p-6 shadow-sm">
+              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 Dirección de envío
               </p>
               <div className="grid grid-cols-1 gap-y-3 text-sm">
@@ -464,8 +464,8 @@ export default function OrderDetails({
             </div>
 
             {/* Pago */}
-            <div className="rounded-xl border border-neutral-800 bg-[#111] p-6 shadow-sm">
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+            <div className="rounded-xl border border-neutral-800 bg-surface p-6 shadow-sm">
+              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 Método de pago
               </p>
               <div className="flex items-center gap-4 rounded-xl border border-neutral-800 bg-black/40 p-4">
@@ -503,8 +503,8 @@ export default function OrderDetails({
             </div>
 
             {/* Resumen */}
-            <div className="rounded-xl border border-neutral-800 bg-[#111] p-6 shadow-sm">
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+            <div className="rounded-xl border border-neutral-800 bg-surface p-6 shadow-sm">
+              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
                 Resumen Financiero
               </p>
               <div className="space-y-2">

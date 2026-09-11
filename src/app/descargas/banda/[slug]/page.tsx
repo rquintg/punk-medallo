@@ -88,14 +88,14 @@ export default async function BandPage({ params }: BandPageProps) {
         <nav aria-label="Migajas de pan" className="mb-8">
           <Link
             href="/descargas"
-            className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+            className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-neutral-500 transition-colors hover:text-primary"
           >
             <ArrowLeft size={13} aria-hidden="true" />
             El Archivo
           </Link>
         </nav>
 
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
           Banda
         </p>
         <h1 className="mt-2 text-3xl font-bold leading-tight text-white md:text-5xl">

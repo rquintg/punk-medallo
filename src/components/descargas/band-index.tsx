@@ -37,7 +37,7 @@ export function BandIndex({
           onClick={() => onLetterChange(null)}
           className={`shrink-0 rounded px-1.5 py-1 font-mono text-xs font-bold transition-colors ${
             activeLetter === null
-              ? "bg-[#dc2626] text-white"
+              ? "bg-primary text-white"
               : "text-neutral-400 hover:text-white"
           }`}
           aria-pressed={activeLetter === null}
@@ -57,7 +57,7 @@ export function BandIndex({
               aria-pressed={activeLetter === letter}
               className={`shrink-0 rounded px-1.5 py-1 font-mono text-xs font-bold transition-colors ${
                 activeLetter === letter
-                  ? "bg-[#dc2626] text-white"
+                  ? "bg-primary text-white"
                   : present
                     ? "text-neutral-300 hover:text-white"
                     : "cursor-not-allowed text-neutral-700"
@@ -73,7 +73,7 @@ export function BandIndex({
         <button
           type="button"
           onClick={() => setShowAll((value) => !value)}
-          className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-[#dc2626]"
+          className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-neutral-500 transition-colors hover:text-primary"
           aria-expanded={showAll}
         >
           <ChevronDown
@@ -92,7 +92,7 @@ export function BandIndex({
                   href={`/descargas/banda/${bandSlug(band.name)}`}
                   className="group flex w-full items-baseline justify-between gap-2 border-b border-neutral-800/60 pb-1 text-left"
                 >
-                  <span className="truncate text-sm text-neutral-300 transition-colors group-hover:text-[#dc2626]">
+                  <span className="truncate text-sm text-neutral-300 transition-colors group-hover:text-primary">
                     {band.name}
                   </span>
                   <span className="shrink-0 font-mono text-[10px] text-neutral-600">
@@ -109,7 +109,7 @@ export function BandIndex({
             <button
               type="button"
               onClick={() => onLetterChange(null)}
-              className="flex items-center gap-1 rounded border border-[#dc2626]/50 bg-[#dc2626]/10 px-2 py-1 text-[#dc2626] transition-colors hover:bg-[#dc2626]/20"
+              className="flex items-center gap-1 rounded border border-primary/50 bg-primary/10 px-2 py-1 text-primary transition-colors hover:bg-primary/20"
             >
               Letra {activeLetter}
               <X size={11} aria-hidden="true" />

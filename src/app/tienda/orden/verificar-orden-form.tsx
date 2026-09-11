@@ -30,7 +30,7 @@ export default function VerificarOrdenForm({ numero }: { numero: string }) {
           required
           autoComplete="email"
           placeholder="tu@correo.com"
-          className="w-full rounded-md border border-neutral-700 bg-[#111] px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-[#dc2626]"
+          className="w-full rounded-md border border-neutral-700 bg-surface px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-primary"
         />
         <p className="mt-1 text-[11px] text-neutral-600">
           Es el correo que usaste al hacer el pedido. Solo se usa para

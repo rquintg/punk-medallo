@@ -342,7 +342,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
 
       {!verificado && (
         <div className="container mx-auto max-w-7xl px-4 pt-6">
-          <div className="rounded-lg border border-neutral-800 bg-[#111] p-5 sm:p-6">
+          <div className="rounded-lg border border-neutral-800 bg-surface p-5 sm:p-6">
             <div className="mb-4 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-950/60">
                 <ShieldCheck size={18} className="text-red-500" />
@@ -424,10 +424,10 @@ export default async function OrderPage({ params }: OrderPageProps) {
       )}
 
       <div className="container mx-auto max-w-7xl px-4 pb-16">
-        <div className="rounded-lg border border-neutral-800 bg-[#111] p-5">
+        <div className="rounded-lg border border-neutral-800 bg-surface p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111a14]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface">
                 <MessageCircle size={18} className="text-emerald-500" />
               </div>
               <div>
@@ -463,7 +463,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
             ¿Perdiste el link?{' '}
             <Link
               href="/tienda/rastrear"
-              className="inline-flex items-center gap-1 text-neutral-400 transition-colors hover:text-[#dc2626]"
+              className="inline-flex items-center gap-1 text-neutral-400 transition-colors hover:text-primary"
             >
               <PackageSearch size={12} aria-hidden="true" />
               Rastrear pedido

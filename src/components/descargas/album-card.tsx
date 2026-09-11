@@ -15,7 +15,7 @@ export function AlbumCard({ album, position }: AlbumCardProps) {
   const detailHref = `/descargas/${album.slug}`;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60">
+    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/60">
       <div className="relative block aspect-square overflow-hidden">
         <CoverImage
           src={coverAtSize(album.coverUrl, 1200)}
@@ -35,7 +35,7 @@ export function AlbumCard({ album, position }: AlbumCardProps) {
         </span>
 
         {album.isRecent && (
-          <span className="absolute right-2 top-2 z-10 rounded-sm bg-[#dc2626] px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
+          <span className="absolute right-2 top-2 z-10 rounded-sm bg-primary px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
             NUEVO
           </span>
         )}
@@ -52,7 +52,7 @@ export function AlbumCard({ album, position }: AlbumCardProps) {
               href={primaryDownload.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="pointer-events-auto flex items-center gap-1.5 rounded-md border border-[#dc2626] bg-[#dc2626] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b91c1c]"
+              className="pointer-events-auto flex items-center gap-1.5 rounded-md border border-primary bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary-hover"
             >
               <Download size={13} aria-hidden="true" />
               Descargar
@@ -69,11 +69,11 @@ export function AlbumCard({ album, position }: AlbumCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3.5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#dc2626]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
           {album.band}
         </p>
         <Link href={detailHref}>
-          <h3 className="line-clamp-2 font-bold leading-snug text-white transition-colors hover:text-[#dc2626]">
+          <h3 className="line-clamp-2 font-bold leading-snug text-white transition-colors hover:text-primary">
             {album.title}
           </h3>
         </Link>

@@ -18,7 +18,7 @@ export function FormatFilter({ active, onChange }: FormatFilterProps) {
         onClick={() => onChange(null)}
         className={`rounded-full border px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
           active === null
-            ? "border-[#dc2626] bg-[#dc2626] text-white"
+            ? "border-primary bg-primary text-white"
             : "border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
         }`}
         aria-pressed={active === null}
@@ -32,7 +32,7 @@ export function FormatFilter({ active, onChange }: FormatFilterProps) {
           onClick={() => onChange(active === format ? null : format)}
           className={`rounded-full border px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
             active === format
-              ? "border-[#dc2626] bg-[#dc2626] text-white"
+              ? "border-primary bg-primary text-white"
               : "border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white"
           }`}
           aria-pressed={active === format}

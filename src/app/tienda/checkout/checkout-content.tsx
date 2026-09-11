@@ -598,14 +598,14 @@ export default function CheckoutContent() {
                           </button>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-base font-bold text-[#dc2626]">
+                          <span className="text-base font-bold text-primary">
                             <Price amount={item.precio * item.cantidad} />
                           </span>
                           <button
                             onClick={() =>
                               removeItem(item.id, item.tallaSeleccionada, item.colorSeleccionado)
                             }
-                            className="text-neutral-500 transition-colors hover:text-[#dc2626]"
+                            className="text-neutral-500 transition-colors hover:text-primary"
                             aria-label="Eliminar producto"
                           >
                             <Trash2 size={15} />

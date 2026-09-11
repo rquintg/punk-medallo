@@ -33,14 +33,14 @@ export function DescargasHero({
   const latest = daysSince(latestPublished);
 
   return (
-    <section className="border-b border-neutral-800 bg-[#101010]">
+    <section className="border-b border-neutral-800 bg-background">
       <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">
           Punk Medallo — Archivo digital
         </p>
         <h1 className="mt-3 text-5xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
           El{" "}
-          <span className="text-[#dc2626]">Blog</span>
+          <span className="text-primary">Blog</span>
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
           {totalAlbums} Trabajos del punk, hardcore y el ruido underground de
@@ -61,13 +61,13 @@ export function DescargasHero({
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
               placeholder="Buscar banda o álbum..."
-              className="w-full rounded-md border border-neutral-700 bg-[#181818] py-3 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 outline-none transition-colors focus:border-[#dc2626]"
+              className="w-full rounded-md border border-neutral-700 bg-background py-3 pl-10 pr-4 text-sm text-white placeholder:text-neutral-500 outline-none transition-colors focus:border-primary"
             />
           </label>
           <button
             type="button"
             onClick={onRandom}
-            className="flex shrink-0 items-center gap-2 rounded-md border border-neutral-700 bg-[#181818] px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:border-[#dc2626] hover:text-[#dc2626]"
+            className="flex shrink-0 items-center gap-2 rounded-md border border-neutral-700 bg-background px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:border-primary hover:text-primary"
           >
             <Shuffle size={14} aria-hidden="true" />
             <span className="hidden sm:inline">Aleatorio</span>

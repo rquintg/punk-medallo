@@ -29,10 +29,10 @@ export default function RastrearPage() {
         />
       </div>
 
-      <div className="rounded-lg border border-neutral-800 bg-[#111] p-6">
+      <div className="rounded-lg border border-neutral-800 bg-surface p-6">
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900">
-            <PackageSearch size={26} className="text-[#dc2626]" />
+            <PackageSearch size={26} className="text-primary" />
           </div>
           <h1 className="text-xl font-bold text-white">Rastrear mi pedido</h1>
           <p className="mt-1 text-sm text-neutral-400">
@@ -57,7 +57,7 @@ export default function RastrearPage() {
               ¿Dudas? Consulta{' '}
               <Link
                 href="/politica-de-cambios"
-                className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-[#dc2626]"
+                className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-primary"
               >
                 la política de cambios
               </Link>{' '}
@@ -66,7 +66,7 @@ export default function RastrearPage() {
                 href="https://wa.me/573014453392?text=Hola%2C%20necesito%20rastrear%20mi%20pedido"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-[#dc2626]"
+                className="text-neutral-300 underline decoration-neutral-700 underline-offset-2 hover:text-primary"
               >
                 WhatsApp
               </a>

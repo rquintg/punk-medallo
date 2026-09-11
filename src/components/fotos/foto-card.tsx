@@ -22,7 +22,7 @@ export function FotoCard({ foto, onSelect }: FotoCardProps) {
   const anio = foto.createdAt.slice(0, 4);
 
   return (
-    <figure className="group relative mb-4 break-inside-avoid overflow-hidden rounded-lg border border-neutral-800 bg-[#111] transition-all duration-300 hover:border-[#dc2626]/60">
+    <figure className="group relative mb-4 break-inside-avoid overflow-hidden rounded-lg border border-neutral-800 bg-surface transition-all duration-300 hover:border-primary/60">
       <div className="relative">
         <Image
           src={src}
@@ -48,7 +48,7 @@ export function FotoCard({ foto, onSelect }: FotoCardProps) {
         )}
 
         {esNueva(foto) && (
-          <span className="absolute right-2 top-2 z-10 rounded-sm bg-[#dc2626] px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
+          <span className="absolute right-2 top-2 z-10 rounded-sm bg-primary px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-widest text-white">
             NUEVO
           </span>
         )}

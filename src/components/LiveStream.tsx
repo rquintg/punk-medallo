@@ -23,7 +23,7 @@ export default function LiveStream({
   const waShare = `https://wa.me/?text=${encodeURIComponent(waMsg)}`
 
   return (
-    <section id="en-vivo" className="relative w-full overflow-hidden border-b-2 border-[#a40202] bg-[#0d0d0d] pt-20 pb-10">
+    <section id="en-vivo" className="relative w-full overflow-hidden border-b-2 border-primary bg-[#0d0d0d] pt-20 pb-10">
       {/* Glow radial de fondo (rojo en vivo, ambar tenue en revive) */}
       <div
         aria-hidden="true"
@@ -72,7 +72,7 @@ export default function LiveStream({
               Revive
             </span>
           ) : (
-            <span className="absolute -top-4 right-6 z-10 rotate-[-6deg] rounded-sm border border-black bg-[#dc2626] px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(0,0,0,0.7)]">
+            <span className="absolute -top-4 right-6 z-10 rotate-[-6deg] rounded-sm border border-black bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-[3px_3px_0_rgba(0,0,0,0.7)]">
               Directo
             </span>
           )}

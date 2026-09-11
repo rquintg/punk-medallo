@@ -100,7 +100,7 @@ const sections = [
           href="https://www.google.com/policies/privacy/partners/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#dc2626] underline underline-offset-2"
+          className="text-primary underline underline-offset-2"
         >
           Cómo usa Google los datos cuando usas sitios o aplicaciones de
           nuestros socios
@@ -114,7 +114,7 @@ const sections = [
           href="https://adssettings.google.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#dc2626] underline underline-offset-2"
+          className="text-primary underline underline-offset-2"
         >
           Configuración de anuncios de Google
         </a>
@@ -135,7 +135,7 @@ const sections = [
           href="https://adssettings.google.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#dc2626] underline underline-offset-2"
+          className="text-primary underline underline-offset-2"
         >
           Configuración de anuncios de Google
         </a>{" "}
@@ -144,7 +144,7 @@ const sections = [
           href="https://www.aboutads.info"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#dc2626] underline underline-offset-2"
+          className="text-primary underline underline-offset-2"
         >
           www.aboutads.info
         </a>
@@ -175,7 +175,7 @@ const sections = [
         eres autor, banda, sello o titular de derechos sobre algún material
         publicado en este sitio y deseas que sea retirado, escríbenos a través
         de nuestra página de{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
+        <Link href="/contacto" className="text-primary underline underline-offset-2">
           contacto
         </Link>{" "}
         con el enlace del contenido y lo retiraremos a la mayor brevedad
@@ -191,7 +191,7 @@ const sections = [
         Tienes derecho a solicitar acceso, corrección o eliminación de los
         datos personales que nos hayas proporcionado. Para ejercer estos
         derechos, contáctanos a través de la página de{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
+        <Link href="/contacto" className="text-primary underline underline-offset-2">
           contacto
         </Link>
         .
@@ -213,8 +213,8 @@ const sections = [
 
 export default function PoliticaDePrivacidad() {
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-[#e0e0e0]">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#dc2626]">
+    <main className="mx-auto max-w-3xl px-4 pt-28 pb-16 text-muted-foreground">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-primary">
         Legal
       </p>
       <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl">
@@ -228,10 +228,10 @@ export default function PoliticaDePrivacidad() {
         {sections.map((section) => (
           <section
             key={section.title}
-            className="rounded-lg border border-neutral-800 bg-[rgba(52,58,64,0.25)] p-6"
+            className="rounded-lg border border-neutral-800 bg-muted/25 p-6"
           >
             <h2 className="flex items-center gap-2.5 text-lg font-bold text-white">
-              <section.icon size={18} className="text-[#dc2626]" aria-hidden="true" />
+              <section.icon size={18} className="text-primary" aria-hidden="true" />
               {section.title}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-neutral-300">
@@ -242,19 +242,12 @@ export default function PoliticaDePrivacidad() {
       </div>
 
       <p className="mt-10 text-xs text-neutral-600">
-        Consulta también nuestra{" "}
-        <Link href="/politica-de-cambios" className="text-[#dc2626] underline underline-offset-2">
-          política de cambios
-        </Link>{" "}
-        y nuestros{" "}
-        <Link href="/terminos-boleteria" className="text-[#dc2626] underline underline-offset-2">
-          términos de boletería
-        </Link>
-        . Preguntas sobre esta política: usa nuestra página de{" "}
-        <Link href="/contacto" className="text-[#dc2626] underline underline-offset-2">
-          contacto
-        </Link>
-        .
+        Consulta también nuestros{" "}
+        <Link href="/terminos" className="text-primary underline underline-offset-2">términos</Link>,{" "}
+        <Link href="/politica-de-cookies" className="text-primary underline underline-offset-2">política de cookies</Link>,{" "}
+        <Link href="/politica-de-cambios" className="text-primary underline underline-offset-2">política de cambios</Link> y{" "}
+        <Link href="/terminos-boleteria" className="text-primary underline underline-offset-2">términos de boletería</Link>. Preguntas:{" "}
+        <Link href="/contacto" className="text-primary underline underline-offset-2">contacto</Link> · <a href="mailto:info@punkmedallo.com" className="text-primary underline underline-offset-2">info@punkmedallo.com</a>.
       </p>
     </main>
   );

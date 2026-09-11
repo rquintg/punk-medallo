@@ -15,9 +15,9 @@ export default function CodigoForm() {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-20 pb-8">
       <div className="mx-auto max-w-md mt-16">
-        <div className="border border-[rgba(164,2,2,0.3)] rounded-lg p-8 bg-[rgba(20,20,20,0.8)]">
+        <div className="border border-primary/30 rounded-lg p-8 bg-[rgba(20,20,20,0.8)]">
           <div className="flex items-center gap-3 mb-8">
-            <KeyRound className="text-[#ff4444]" size={28} />
+            <KeyRound className="text-primary" size={28} />
             <h1 className="text-2xl font-bold text-white">Confirma tu cuenta</h1>
           </div>
 
@@ -37,7 +37,7 @@ export default function CodigoForm() {
                 type="email"
                 required
                 autoComplete="email"
-                className="w-full px-4 py-2.5 rounded bg-[#222] border border-[rgba(164,2,2,0.3)] text-white focus:outline-none focus:border-[#ff4444] focus:ring-1 focus:ring-[#ff4444]/30 placeholder:text-white/30"
+                className="w-full px-4 py-2.5 rounded bg-[#222] border border-primary/30 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 placeholder:text-white/30"
                 placeholder="tucorreo@ejemplo.com"
               />
             </div>
@@ -56,7 +56,7 @@ export default function CodigoForm() {
                 required
                 maxLength={6}
                 placeholder="••••••"
-                className="w-full px-4 py-2.5 rounded bg-[#222] border border-[rgba(164,2,2,0.3)] text-white tracking-[0.5em] text-center text-lg font-mono focus:outline-none focus:border-[#ff4444] focus:ring-1 focus:ring-[#ff4444]/30 placeholder:text-white/30"
+                className="w-full px-4 py-2.5 rounded bg-[#222] border border-primary/30 text-white tracking-[0.5em] text-center text-lg font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 placeholder:text-white/30"
               />
             </div>
 
@@ -67,7 +67,7 @@ export default function CodigoForm() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full border border-[#a40202] text-[#ff4444] font-bold tracking-[0.5px] uppercase px-6 py-3 rounded text-sm transition-all duration-300 bg-[rgba(164,2,2,0.1)] hover:bg-[rgba(164,2,2,0.25)] hover:border-[#ff4444] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full border border-primary text-primary font-bold tracking-[0.5px] uppercase px-6 py-3 rounded text-sm transition-all duration-300 bg-primary/10 hover:bg-primary/25 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {pending ? 'Verificando...' : 'Activar cuenta'}
             </button>
@@ -75,7 +75,7 @@ export default function CodigoForm() {
 
           <p className="mt-6 text-center text-sm text-white/60">
             ¿No te llega el código?{' '}
-            <Link href="/login" className="text-[#ff4444] hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
               Ingresa con tu correo y contraseña
             </Link>
           </p>

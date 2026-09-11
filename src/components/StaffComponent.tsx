@@ -16,7 +16,7 @@ export default function StaffComponent() {
               rel="noopener noreferrer"
               className="no-underline"
             >
-              <h3 className="text-[#ff3200] font-normal my-4 text-[calc(1.1rem+0.5vw)]">
+              <h3 className="text-primary font-normal my-4 text-[calc(1.1rem+0.5vw)]">
                 Cartelera de Eventos
               </h3>
               <div className="flex justify-center">
@@ -42,7 +42,7 @@ export default function StaffComponent() {
               rel="noopener noreferrer"
               className="no-underline"
             >
-              <h3 className="text-[#ff3200] font-normal my-4 text-[calc(1.1rem+0.5vw)]">Blog</h3>
+              <h3 className="text-primary font-normal my-4 text-[calc(1.1rem+0.5vw)]">Blog</h3>
               <div className="flex justify-center">
                 <Image
                   src="/images/blog.jpg"
@@ -61,7 +61,7 @@ export default function StaffComponent() {
           {/* Páginas Amigas */}
           <div className="flex flex-col items-center">
             <Link href="/amigos" className="no-underline">
-              <h3 className="text-[#ff3200] font-normal my-4 text-[calc(1.1rem+0.5vw)]">
+              <h3 className="text-primary font-normal my-4 text-[calc(1.1rem+0.5vw)]">
                 Páginas Amigas
               </h3>
               <div className="flex justify-center">

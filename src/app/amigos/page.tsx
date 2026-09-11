@@ -69,7 +69,7 @@ const friendPages = [
 export default async function Amigos() {
   const { logoUrl } = await getTiendaConfig();
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f8f9fa] flex flex-col">
+    <div className="min-h-screen bg-background text-muted-foreground flex flex-col">
       {/* Hero Section */}
       <div
         className="relative flex items-center justify-center h-[50vh] w-screen text-white z-[1] pt-20 bg-cover bg-center bg-no-repeat before:absolute before:inset-0 before:bg-gradient-to-br before:from-black/60 before:to-black/70 before:z-[1]"
@@ -85,7 +85,7 @@ export default async function Amigos() {
                 fill
                 priority
                 sizes="(max-width: 768px) 90vw, 480px"
-                className="object-contain drop-shadow-[0_4px_6px_rgba(164,2,2,0.5)]"
+                className="object-contain drop-shadow-[0_4px_6px_rgba(220,38,38,0.5)]"
               />
             </div>
           </div>
@@ -95,8 +95,8 @@ export default async function Amigos() {
       {/* Content */}
       <div className="flex-1 max-w-[1200px] w-full mx-auto px-8 py-16 max-md:px-4 max-md:py-8">
         {/* Intro */}
-        <section className="bg-[rgba(52,58,64,0.4)] p-10 rounded-xl border-l-[5px] border-[#a40202] backdrop-blur mb-16 animate-[fadeIn_0.8s_ease-out]">
-          <p className="text-[1.1rem] leading-relaxed text-[#e0e0e0] m-0">
+        <section className="bg-muted/40 p-10 rounded-xl border-l-[5px] border-primary backdrop-blur mb-16 animate-[fadeIn_0.8s_ease-out]">
+          <p className="text-[1.1rem] leading-relaxed text-muted-foreground m-0">
             En Punk Medallo creemos en la comunidad y en el apoyo mutuo entre
             proyectos alternativos. Aquí encontrarás las páginas de nuestros
             compañeros en la lucha por mantener viva la contracultura, el arte
@@ -107,14 +107,14 @@ export default async function Amigos() {
 
         {/* Friends Grid */}
         <section className="mb-16">
-          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-[#a40202] inline-block tracking-wider max-md:text-[1.8rem]">
+          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-primary inline-block tracking-wider max-md:text-[1.8rem]">
             Nuestros Aliados
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
             {friendPages.map((friend) => (
               <div
                 key={friend.id}
-                className="bg-[rgba(52,58,64,0.3)] rounded-xl overflow-hidden border border-[#a40202]/20 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_25px_rgba(164,2,2,0.3)]"
+                className="bg-muted/30 rounded-xl overflow-hidden border border-primary/20 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_25px_rgba(220,38,38,0.3)]"
               >
                 <div className="relative overflow-hidden">
                   <Image
@@ -136,17 +136,17 @@ export default async function Amigos() {
                   </a>
                 </div>
                 <div className="p-5">
-                  <h3 className="text-[1.2rem] font-bold text-[#a40202] mb-2">
+                  <h3 className="text-[1.2rem] font-bold text-primary mb-2">
                     {friend.name}
                   </h3>
-                  <p className="text-[#d0d0d0] text-sm leading-relaxed mb-4">
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                     {friend.description}
                   </p>
                   <a
                     href={friend.url}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="inline-flex items-center gap-2 text-[#a40202] font-semibold hover:text-[#ff6b6b] transition-colors"
+                    className="inline-flex items-center gap-2 text-primary font-semibold hover:text-primary transition-colors"
                   >
                     <span>Ver Página</span>
                     <ArrowRight size={16} />
@@ -158,24 +158,24 @@ export default async function Amigos() {
         </section>
 
         {/* CTA */}
-        <section className="bg-gradient-to-br from-[rgba(164,2,2,0.2)] to-[rgba(164,2,2,0.05)] p-12 rounded-xl text-center border-2 border-[#a40202] backdrop-blur">
+        <section className="bg-gradient-to-br from-primary/20 to-primary/5 p-12 rounded-xl text-center border-2 border-primary backdrop-blur">
           <h2 className="text-[2rem] text-white mb-4 font-black">
             ¿Tu proyecto es parte de la comunidad punk?
           </h2>
-          <p className="text-[1.1rem] text-[#d0d0d0] mb-8">
+          <p className="text-[1.1rem] text-muted-foreground mb-8">
             Si tienes un proyecto independiente o alternativo y te gustaría ser
             parte de nuestra red de páginas amigas, contáctanos.
           </p>
           <div className="flex gap-4 justify-center flex-wrap max-md:flex-col">
             <Link
               href="/contacto"
-              className="bg-[#a40202] text-white px-8 py-3 rounded-md font-bold text-base border-2 border-[#a40202] transition-all duration-300 hover:bg-[#ff6b6b] hover:border-[#ff6b6b] hover:shadow-[0_6px_20px_rgba(164,2,2,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
+              className="bg-primary text-white px-8 py-3 rounded-md font-bold text-base border-2 border-primary transition-all duration-300 hover:bg-primary hover:border-primary hover:shadow-[0_6px_20px_rgba(220,38,38,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
             >
               Contacta con Nosotros
             </Link>
             <Link
               href="/"
-              className="bg-transparent text-[#a40202] px-8 py-3 rounded-md font-bold text-base border-2 border-[#a40202] transition-all duration-300 hover:bg-[#a40202] hover:text-white hover:shadow-[0_6px_20px_rgba(164,2,2,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
+              className="bg-transparent text-primary px-8 py-3 rounded-md font-bold text-base border-2 border-primary transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-[0_6px_20px_rgba(220,38,38,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
             >
               Volver al Inicio
             </Link>

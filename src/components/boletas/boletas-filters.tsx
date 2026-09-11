@@ -38,7 +38,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
           <select
             value={activeMes}
             onChange={(e) => updateParam('mes', e.target.value)}
-            className="w-full rounded-md border border-neutral-700 bg-[#181818] px-3 py-2 text-sm text-white outline-none focus:border-[#dc2626]"
+            className="w-full rounded-md border border-neutral-700 bg-background px-3 py-2 text-sm text-white outline-none focus:border-primary"
           >
             <option value="">Todos</option>
             {meses.map((m) => (
@@ -57,7 +57,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
           <select
             value={activeLugar}
             onChange={(e) => updateParam('lugar', e.target.value)}
-            className="w-full rounded-md border border-neutral-700 bg-[#181818] px-3 py-2 text-sm text-white outline-none focus:border-[#dc2626]"
+            className="w-full rounded-md border border-neutral-700 bg-background px-3 py-2 text-sm text-white outline-none focus:border-primary"
           >
             <option value="">Todos</option>
             {lugares.map((l) => (
@@ -75,7 +75,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
           type="checkbox"
           checked={disponiblesOnly}
           onChange={(e) => updateParam('disponibles', e.target.checked ? '1' : '')}
-          className="h-4 w-4 rounded border-neutral-700 bg-[#181818] accent-[#dc2626]"
+          className="h-4 w-4 rounded border-neutral-700 bg-background accent-primary"
         />
         Solo disponibles
       </label>
@@ -87,7 +87,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
             <button
               type="button"
               onClick={() => updateParam('mes', '')}
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-[#dc2626]"
+              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-primary"
             >
               {meses.find((m) => m.value === activeMes)?.label ?? activeMes}
               <X size={12} />
@@ -97,7 +97,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
             <button
               type="button"
               onClick={() => updateParam('lugar', '')}
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-[#dc2626]"
+              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-primary"
             >
               {activeLugar}
               <X size={12} />
@@ -107,7 +107,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
             <button
               type="button"
               onClick={() => updateParam('disponibles', '')}
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-[#dc2626]"
+              className="inline-flex items-center gap-1 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs text-white hover:border-primary"
             >
               Solo disponibles
               <X size={12} />
@@ -120,7 +120,7 @@ export function BoletasFilters({ meses, lugares }: BoletasFiltersProps) {
         <button
           type="button"
           onClick={() => router.replace('/boletas', { scroll: false })}
-          className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-[#dc2626] hover:text-white"
+          className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-primary hover:text-white"
         >
           <X size={12} />
           Limpiar filtros

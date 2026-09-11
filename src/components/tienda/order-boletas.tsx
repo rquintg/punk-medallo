@@ -78,14 +78,14 @@ export default function BoletaOrdenView({
   return (
     <div className="space-y-6">
       {/* ================== HERO TICKET STUB ================== */}
-      <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-[#0a0a0a]">
+      <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-br from-[#1a0a0a] via-[#140707] to-background">
         {/* Patrón decorativo */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, #dc2626 0 1px, transparent 1px 10px)` }} aria-hidden />
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: `repeating-linear-gradient(45deg, var(--color-primary) 0 1px, transparent 1px 10px)` }} aria-hidden />
 
         {/* Header con número de pedido y badge de estado */}
         <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-neutral-800 px-6 py-4 sm:px-8">
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-neutral-500">
-            <Receipt size={13} className="text-[#dc2626]" />
+            <Receipt size={13} className="text-primary" />
             Pedido <span className="font-semibold text-neutral-300">{numero}</span>
           </div>
           <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${bannerCls} ${bannerText}`}>
@@ -97,7 +97,7 @@ export default function BoletaOrdenView({
         {/* Contenido principal: título del evento + fecha destacada */}
         <div className="relative grid gap-6 px-6 py-8 sm:px-8 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+            <p className="mb-2 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
               <Ticket size={12} /> Tu entrada
             </p>
             {evento ? (
@@ -130,13 +130,13 @@ export default function BoletaOrdenView({
 
       {/* ================== DATOS DEL EVENTO ================== */}
       {evento && (
-        <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6">
-          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+        <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6">
+          <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
             <CalendarDays size={13} /> Detalles del evento
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex items-start gap-3 rounded-lg border border-neutral-800 bg-black/30 p-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#dc2626]/10 text-[#dc2626]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <CalendarDays size={17} />
               </div>
               <div className="min-w-0">
@@ -145,7 +145,7 @@ export default function BoletaOrdenView({
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-lg border border-neutral-800 bg-black/30 p-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#dc2626]/10 text-[#dc2626]">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <MapPin size={17} />
               </div>
               <div className="min-w-0">
@@ -183,8 +183,8 @@ export default function BoletaOrdenView({
       <section
         className={`rounded-xl border-2 p-5 sm:p-6 ${
           esPendiente || esAnulado
-            ? 'border-neutral-800 bg-[#111]'
-            : 'border-[#a40202]/50 bg-gradient-to-br from-[rgba(164,2,2,0.08)] to-[#111]'
+            ? 'border-neutral-800 bg-surface'
+            : 'border-primary/50 bg-gradient-to-br from-primary/8 to-surface'
         }`}
       >
         <div className="flex items-start gap-3">
@@ -233,7 +233,7 @@ export default function BoletaOrdenView({
               {codigos.map((c) => (
                 <span
                   key={c}
-                  className="rounded-md border border-neutral-800 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tracking-widest text-[#dc2626]"
+                  className="rounded-md border border-neutral-800 bg-black/40 px-3 py-1.5 font-mono text-sm font-bold tracking-widest text-primary"
                 >
                   {c}
                 </span>
@@ -268,8 +268,8 @@ export default function BoletaOrdenView({
       {/* ================== TITULAR + PAGO (grid) ================== */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Titular */}
-        <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6">
-          <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+        <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6">
+          <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
             <User size={13} /> Titular
           </p>
           <p className="text-base font-semibold capitalize text-white">{titularMostrado}</p>
@@ -279,8 +279,8 @@ export default function BoletaOrdenView({
         </section>
 
         {/* Método de pago */}
-        <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6">
-          <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+        <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6">
+          <p className="mb-3 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
             Pago
           </p>
           <div className="flex items-center gap-3">
@@ -301,8 +301,8 @@ export default function BoletaOrdenView({
       </div>
 
       {/* ================== RESUMEN ================== */}
-      <section className="rounded-xl border border-neutral-800 bg-[#111] p-5 sm:p-6">
-        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#dc2626]">
+      <section className="rounded-xl border border-neutral-800 bg-surface p-5 sm:p-6">
+        <p className="mb-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
           Resumen
         </p>
         <div className="space-y-2">
@@ -333,7 +333,7 @@ export default function BoletaOrdenView({
       <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/boletas"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#dc2626] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
         >
           <ArrowLeft size={16} />
           Volver a la boletería
@@ -398,7 +398,7 @@ function ReenviarTodasButton({ codigos }: { codigos: string[] }) {
       type="button"
       onClick={handleReenviar}
       disabled={enviando}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-[#dc2626] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
     >
       {enviando ? 'Reenviando...' : 'Reenviar correo'}
     </button>

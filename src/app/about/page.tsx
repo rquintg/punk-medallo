@@ -79,7 +79,7 @@ const offers = [
 export default async function About() {
   const { logoUrl } = await getTiendaConfig();
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f8f9fa] flex flex-col">
+    <div className="min-h-screen bg-background text-muted-foreground flex flex-col">
       {/* Hero Section */}
       <div
         className="relative flex items-center justify-center h-[58vh] w-screen text-white z-[1] pt-20 bg-cover bg-center bg-no-repeat before:absolute before:inset-0 before:bg-gradient-to-br before:from-black/50 before:to-black/60 before:z-[1]"
@@ -94,7 +94,7 @@ export default async function About() {
                 fill
                 priority
                 sizes="(max-width: 768px) 90vw, 480px"
-                className="object-contain drop-shadow-[0_4px_6px_rgba(164,2,2,0.5)]"
+                className="object-contain drop-shadow-[0_4px_6px_rgba(220,38,38,0.5)]"
               />
             </div>
           </div>
@@ -105,11 +105,11 @@ export default async function About() {
       <div className="flex-1 max-w-[1200px] w-full mx-auto px-8 py-16 max-md:px-4 max-md:py-8">
         {/* Historia */}
         <section className="mb-20 animate-fade-in max-md:mb-12">
-          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-[#a40202] inline-block tracking-wider max-md:text-[1.8rem]">
+          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-primary inline-block tracking-wider max-md:text-[1.8rem]">
             Historia
           </h2>
-          <div className="bg-[rgba(52,58,64,0.5)] p-8 rounded-lg border-l-4 border-[#a40202] backdrop-blur max-md:p-4">
-            <p className="text-[1.1rem] leading-relaxed text-[#e0e0e0] m-0 max-md:text-base">
+          <div className="bg-muted/50 p-8 rounded-lg border-l-4 border-primary backdrop-blur max-md:p-4">
+            <p className="text-[1.1rem] leading-relaxed text-muted-foreground m-0 max-md:text-base">
               Punk Medallo no es regionalista ni ninguna de esas casualidades por
               la que se colectivizan falsamente algunos. Punk Medallo reúne las
               bandas provenientes de Medellín, por que las situaciones que
@@ -141,22 +141,22 @@ export default async function About() {
 
         {/* Valores */}
         <section className="mb-20 animate-fade-in max-md:mb-12">
-          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-[#a40202] inline-block tracking-wider max-md:text-[1.8rem]">
+          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-primary inline-block tracking-wider max-md:text-[1.8rem]">
             Promovemos
           </h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8 mt-8 max-md:grid-cols-1">
             {values.map((value) => (
               <div
                 key={value.title}
-                className="bg-gradient-to-br from-[rgba(164,2,2,0.1)] to-[rgba(52,58,64,0.5)] p-8 rounded-lg border-2 border-[#a40202] text-center backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_20px_rgba(164,2,2,0.3)] hover:border-[#ff6b6b]"
+                className="bg-gradient-to-br from-primary/10 to-muted/50 p-8 rounded-lg border-2 border-primary text-center backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_20px_rgba(220,38,38,0.3)] hover:border-primary"
               >
                 <span className="block mb-4">
                   <value.icon size={48} className="mx-auto" />
                 </span>
-                <h3 className="text-[1.3rem] text-[#a40202] mt-4 mb-2 font-bold">
+                <h3 className="text-[1.3rem] text-primary mt-4 mb-2 font-bold">
                   {value.title}
                 </h3>
-                <p className="text-[#d0d0d0] text-[0.95rem] leading-relaxed m-0">
+                <p className="text-muted-foreground text-[0.95rem] leading-relaxed m-0">
                   {value.description}
                 </p>
               </div>
@@ -166,23 +166,23 @@ export default async function About() {
 
         {/* Qué Encuentras */}
         <section className="mb-20 animate-fade-in max-md:mb-12">
-          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-[#a40202] inline-block tracking-wider max-md:text-[1.8rem]">
+          <h2 className="text-[2.5rem] font-black text-white mb-8 pb-4 border-b-[3px] border-primary inline-block tracking-wider max-md:text-[1.8rem]">
             Qué Encuentras
           </h2>
           <div className="flex flex-col gap-6 mt-8">
             {offers.map((offer) => (
               <div
                 key={offer.title}
-                className="flex gap-6 bg-[rgba(52,58,64,0.4)] p-6 rounded-lg border-l-4 border-[#a40202] backdrop-blur transition-all duration-300 hover:bg-[rgba(52,58,64,0.6)] hover:shadow-[0_4px_12px_rgba(164,2,2,0.2)] max-md:flex-col max-md:text-center"
+                className="flex gap-6 bg-muted/40 p-6 rounded-lg border-l-4 border-primary backdrop-blur transition-all duration-300 hover:bg-muted/60 hover:shadow-[0_4px_12px_rgba(220,38,38,0.2)] max-md:flex-col max-md:text-center"
               >
                 <span className="flex-shrink-0 flex items-center max-md:justify-center">
                   <offer.icon size={40} />
                 </span>
                 <div>
-                  <h3 className="text-[1.2rem] text-[#a40202] mb-2 font-bold">
+                  <h3 className="text-[1.2rem] text-primary mb-2 font-bold">
                     {offer.title}
                   </h3>
-                  <p className="text-[#d0d0d0] m-0 leading-relaxed">
+                  <p className="text-muted-foreground m-0 leading-relaxed">
                     {offer.description}
                   </p>
                 </div>
@@ -192,23 +192,23 @@ export default async function About() {
         </section>
 
         {/* CTA */}
-        <section className="bg-gradient-to-br from-[rgba(164,2,2,0.2)] to-[rgba(164,2,2,0.05)] p-12 rounded-xl text-center border-2 border-[#a40202] backdrop-blur mt-12 max-md:p-8">
+        <section className="bg-gradient-to-br from-primary/20 to-primary/5 p-12 rounded-xl text-center border-2 border-primary backdrop-blur mt-12 max-md:p-8">
           <h2 className="text-[2rem] text-white mb-4 font-black">
             ¿Listo para escuchar?
           </h2>
-          <p className="text-[1.1rem] text-[#d0d0d0] mb-8 m-0">
+          <p className="text-[1.1rem] text-muted-foreground mb-8 m-0">
             Únete a nuestra comunidad y sé parte del movimiento punk.
           </p>
           <div className="flex gap-4 justify-center flex-wrap max-md:flex-col max-md:w-full">
             <Link
               href="/"
-              className="bg-[#a40202] text-white px-8 py-3 rounded-md font-bold text-base border-2 border-[#a40202] transition-all duration-300 hover:bg-[#ff6b6b] hover:border-[#ff6b6b] hover:shadow-[0_6px_20px_rgba(164,2,2,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
+              className="bg-primary text-white px-8 py-3 rounded-md font-bold text-base border-2 border-primary transition-all duration-300 hover:bg-primary hover:border-primary hover:shadow-[0_6px_20px_rgba(220,38,38,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
             >
               Ir a Inicio
             </Link>
             <Link
               href="/descargas"
-              className="bg-transparent text-[#a40202] px-8 py-3 rounded-md font-bold text-base border-2 border-[#a40202] transition-all duration-300 hover:bg-[#a40202] hover:text-white hover:shadow-[0_6px_20px_rgba(164,2,2,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
+              className="bg-transparent text-primary px-8 py-3 rounded-md font-bold text-base border-2 border-primary transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-[0_6px_20px_rgba(220,38,38,0.4)] hover:scale-105 no-underline inline-block cursor-pointer tracking-wider max-md:w-full max-md:text-center"
             >
               Leer Blog
             </Link>

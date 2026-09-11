@@ -131,7 +131,7 @@ export default async function CategoriaPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#181818]">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd(breadcrumbSegments)) }}
@@ -143,13 +143,13 @@ export default async function CategoriaPage({
         />
       )}
 
-      <section className="border-b border-neutral-800 bg-[#101010]">
+      <section className="border-b border-neutral-800 bg-background">
         <div className="mx-auto max-w-6xl px-4 pt-24 pb-12 md:pt-28 md:pb-16">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#dc2626]">Punk Medallo — Tienda</p>
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">Punk Medallo — Tienda</p>
               <h1 className="mt-3 text-5xl font-bold uppercase leading-none tracking-tight text-white md:text-7xl">
-                {categoria.nombre.split(' ')[0]} <span className="text-[#dc2626]">{categoria.nombre.split(' ').slice(1).join(' ') || ''}</span>
+                {categoria.nombre.split(' ')[0]} <span className="text-primary">{categoria.nombre.split(' ').slice(1).join(' ') || ''}</span>
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
                 {categoria.descripcion || `Compra ${categoria.nombre.toLowerCase()} de Punk Medallo. Envios a toda Colombia.`}
