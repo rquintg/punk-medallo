@@ -19,6 +19,7 @@ export default function useCurrentTrack() {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [nextTrack, setNextTrack] = useState<Track | null>(null);
   const [history, setHistory] = useState<HistoryTrack[]>([]);
+  const [isStationOnline, setIsStationOnline] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +34,9 @@ export default function useCurrentTrack() {
         const data = await response.json();
 
         if (!isMounted) return;
+
+        const online = (data?.is_online ?? data?.station?.is_online ?? data?.live?.is_live ?? true) as boolean;
+        setIsStationOnline(Boolean(online));
 
         if (data?.now_playing?.song) {
           setCurrentTrack({
@@ -78,6 +82,7 @@ export default function useCurrentTrack() {
         setCurrentTrack(null);
         setNextTrack(null);
         setHistory([]);
+        setIsStationOnline(false);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -92,5 +97,5 @@ export default function useCurrentTrack() {
     };
   }, []);
 
-  return { currentTrack, nextTrack, history, isLoading };
+  return { currentTrack, nextTrack, history, isStationOnline, isLoading };
 }

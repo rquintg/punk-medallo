@@ -11,6 +11,8 @@ import {
 } from '@/lib/aprobar-pedido'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
+export const runtime = 'nodejs'
 
 // No tocar pedidos frescos: el webhook (o un PSE en curso) puede llegar dentro
 // de los primeros minutos.
@@ -56,12 +58,12 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       logger.error('Cron: error consultando pendientes', { requestId: rid, error, duration: Date.now() - start })
-      return NextResponse.json({ error: 'Error consultando pendientes' }, { status: 500 })
+      return NextResponse.json({ ok: false, error: 'Error consultando pendientes', requestId: rid, duration: Date.now() - start }, { status: 200 })
     }
 
     if (!pendientes || pendientes.length === 0) {
       logger.info('Cron: sin pedidos pendientes por reconciliar', { requestId: rid, duration: Date.now() - start })
-      return NextResponse.json({ processed: 0, failed: 0, skipped: 0 })
+      return NextResponse.json({ ok: true, processed: 0, failed: 0, skipped: 0 })
     }
 
     const resultados = { aprobados: 0, rechazados: 0, anulados: 0, salteados: 0, fallidos: 0 }
@@ -172,9 +174,9 @@ export async function GET(request: NextRequest) {
       data: { total: pendientes.length, ...resultados },
     })
 
-    return NextResponse.json({ total: pendientes.length, ...resultados, errores })
+    return NextResponse.json({ ok: errores.length === 0, total: pendientes.length, ...resultados, errores })
   } catch (err) {
-    logger.error('Cron: error general', { requestId: rid, error: err, duration: Date.now() - start })
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    logger.error('Cron: error general no capturado', { requestId: rid, error: err, duration: Date.now() - start })
+    return NextResponse.json({ ok: false, error: 'Error interno', requestId: rid, duration: Date.now() - start }, { status: 200 })
   }
 }

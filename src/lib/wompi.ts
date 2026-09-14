@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { fetchWithRetry } from './fetch-retry'
 
 export function getWompiApiUrl(): string {
   const key = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY ?? ''
@@ -97,13 +98,14 @@ export async function getTransaction(
 
   const url = `${getWompiApiUrl()}/transactions/${transactionId}`
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     headers: {
       Authorization: `Bearer ${privateKey}`,
     },
   })
 
   if (!res.ok) {
+    if (res.status === 429 || res.status === 503 || res.status === 502) throw new Error(`Wompi getTransaction transient ${res.status}`)
     console.error('Wompi getTransaction error:', res.status, await res.text())
     return null
   }
@@ -125,13 +127,14 @@ export async function getTransactionsByReference(
 
   const url = `${getWompiApiUrl()}/transactions?reference=${encodeURIComponent(reference)}`
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     headers: {
       Authorization: `Bearer ${privateKey}`,
     },
   })
 
   if (!res.ok) {
+    if (res.status === 429 || res.status === 503 || res.status === 502) throw new Error(`Wompi getTransactionsByReference transient ${res.status}`)
     console.error('Wompi getTransactionsByReference error:', res.status, await res.text())
     return []
   }

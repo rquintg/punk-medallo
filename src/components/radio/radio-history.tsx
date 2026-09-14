@@ -6,6 +6,7 @@ import type { HistoryTrack } from '@/hooks/useCurrentTrack'
 
 interface RadioHistoryProps {
   history: HistoryTrack[]
+  isStationOnline?: boolean
 }
 
 function formatTime(ts?: number): string {
@@ -14,7 +15,7 @@ function formatTime(ts?: number): string {
   return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota' })
 }
 
-export default function RadioHistory({ history }: RadioHistoryProps) {
+export default function RadioHistory({ history, isStationOnline = true }: RadioHistoryProps) {
   if (history.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
@@ -25,14 +26,18 @@ export default function RadioHistory({ history }: RadioHistoryProps) {
     )
   }
 
+  const offline = !isStationOnline
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
-      <div className="border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
-        <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white">
-          <Clock size={14} className="text-primary" /> Sonó hace poco
+    <div className={`overflow-hidden rounded-2xl border backdrop-blur ${offline ? 'border-white/5 bg-white/[0.02]' : 'border-white/10 bg-white/[0.03]'}`}>
+      <div className={`border-b px-4 py-3 ${offline ? 'border-white/[0.04] bg-white/[0.01]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+        <h3 className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest ${offline ? 'text-muted-foreground' : 'text-white'}`}>
+          <Clock size={14} className={offline ? 'text-muted-foreground' : 'text-primary'} /> Sonó hace poco
+          {offline && <span className="ml-1 rounded-full bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30 grayscale-0">Offline</span>}
         </h3>
       </div>
-      <ul className="divide-y divide-white/[0.04]">
+      <div className="relative">
+        <ul className={`divide-y ${offline ? 'divide-white/[0.02] grayscale opacity-50 pointer-events-none' : 'divide-white/[0.04]'}`}>
         {history.map((t, i) => (
           <li key={`${t.title}-${t.artist}-${i}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03]">
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-neutral-900">
@@ -59,6 +64,12 @@ export default function RadioHistory({ history }: RadioHistoryProps) {
           </li>
         ))}
       </ul>
+        {offline && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white border border-white/10">Historial pausado — la radio está offline</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

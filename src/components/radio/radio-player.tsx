@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Play, Pause, Volume2, Radio, Wifi } from 'lucide-react'
+import { Play, Pause, Volume2, Radio, Wifi, SkipForward } from 'lucide-react'
 import { STREAM_URL } from '@/lib/azuracast'
 import type { Track } from '@/hooks/useCurrentTrack'
 
@@ -10,12 +10,13 @@ interface RadioPlayerProps {
   currentTrack: Track | null
   nextTrack: Track | null
   isLoading: boolean
+  isStationOnline: boolean
 }
 
-export default function RadioPlayer({ currentTrack, nextTrack, isLoading }: RadioPlayerProps) {
+export default function RadioPlayer({ currentTrack, nextTrack, isLoading, isStationOnline }: RadioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolume] = useState(0.8)
+  const [volume, setVolume] = useState(1)
   const [isOnline, setIsOnline] = useState(true)
   const [showNext, setShowNext] = useState(false)
   const togglePlayRef = useRef<(() => void) | null>(null)
@@ -61,6 +62,7 @@ export default function RadioPlayer({ currentTrack, nextTrack, isLoading }: Radi
   }, [])
 
   const togglePlay = async () => {
+    if (!isStationOnline) return
     const audio = audioRef.current
     if (!audio) return
     if (isPlaying) {
@@ -78,6 +80,14 @@ export default function RadioPlayer({ currentTrack, nextTrack, isLoading }: Radi
       setIsOnline(false)
     }
   }
+
+  useEffect(() => {
+    if (!isStationOnline && isPlaying) {
+      audioRef.current?.pause()
+      setIsPlaying(false)
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'
+    }
+  }, [isStationOnline, isPlaying])
 
   useEffect(() => {
     togglePlayRef.current = togglePlay
@@ -116,46 +126,60 @@ export default function RadioPlayer({ currentTrack, nextTrack, isLoading }: Radi
   const displayTrack = showNext && nextTrack ? nextTrack : currentTrack
   const label = showNext && nextTrack ? 'A continuación' : 'Suena ahora'
 
+  const stationOffline = !isStationOnline
+  const effectiveOnline = isStationOnline && isOnline
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur">
-      <div className="flex items-center justify-between border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
-        <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-primary shadow-[0_0_8px_rgba(220,38,38,0.8)]" /> {label}
+    <div className={`overflow-hidden rounded-2xl border backdrop-blur ${stationOffline ? 'border-white/5 bg-white/[0.02]' : 'border-white/10 bg-white/[0.04]'}`}>
+      <div className={`flex items-center justify-between border-b px-4 py-3 ${stationOffline ? 'border-white/[0.04] bg-white/[0.01]' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+        <span className={`inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest ${stationOffline ? 'text-muted-foreground' : 'text-primary'}`}>
+          <span className={`h-2 w-2 rounded-full shadow-[0_0_8px_rgba(220,38,38,0.8)] ${stationOffline ? 'bg-muted-foreground' : 'animate-pulse bg-primary'}`} /> {stationOffline ? 'Fuera del aire' : label}
         </span>
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${isOnline ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
-          <Wifi size={12} /> {isOnline ? 'En vivo' : 'Offline'}
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold border grayscale-0 ${stationOffline ? 'bg-red-500/15 text-red-400 border-red-500/30' : effectiveOnline ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-red-500/15 text-red-400 border-red-500/30'}`}>
+          <Wifi size={12} /> {stationOffline ? 'Offline' : effectiveOnline ? 'En vivo' : 'Offline'}
         </span>
       </div>
 
-      <div className="p-5 sm:p-6">
+      <div className={`p-5 sm:p-6 ${stationOffline ? 'grayscale' : ''}`}>
         <div className="flex gap-4">
           <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-900 sm:h-32 sm:w-32">
-            {displayTrack?.art ? (
+            {stationOffline ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-neutral-900 p-3 text-center">
+                <Radio size={22} className="text-muted-foreground" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fuera del aire</span>
+              </div>
+            ) : displayTrack?.art ? (
               <Image src={displayTrack.art} alt={displayTrack.title} fill unoptimized className="object-cover" sizes="128px" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-background">
                 <Radio size={28} className="text-primary/60" />
               </div>
             )}
+            {stationOffline && <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px]" />}
           </div>
-          <div className="min-w-0 flex-1">
-            {isLoading ? (
+          <div className="min-w-0 flex-1 overflow-hidden">
+            {stationOffline ? (
+              <>
+                <p className="text-base font-black leading-tight text-white/60">Radio fuera del aire</p>
+                <p className="mt-1 text-sm text-muted-foreground">Volvemos pronto. Las solicitudes y la reproducción están pausadas.</p>
+              </>
+            ) : isLoading ? (
               <p className="animate-pulse text-sm text-muted-foreground">Cargando…</p>
             ) : displayTrack ? (
               <>
-                <p className="flex items-center gap-2 truncate text-base font-black leading-tight text-white sm:text-lg">
-                  <span className="truncate">{displayTrack.title}</span>
+                <p className="flex items-start gap-2 text-base font-black leading-tight text-white sm:text-lg">
+                  <span className="min-w-0 flex-1 line-clamp-2 break-words">{displayTrack.title}</span>
                   {displayTrack.isRequest && (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]" /> Pedida
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> Pedida
                     </span>
                   )}
                 </p>
-                <p className="truncate text-sm text-muted-foreground">{displayTrack.artist}</p>
-                {displayTrack.album && <p className="mt-1 truncate text-xs text-muted-foreground/70">{displayTrack.album}</p>}
+                <p className="mt-1 line-clamp-1 break-words text-sm text-muted-foreground">{displayTrack.artist}</p>
+                {displayTrack.album && <p className="mt-1 line-clamp-1 break-words text-xs text-muted-foreground/70">{displayTrack.album}</p>}
                 {!isLoading && nextTrack && (
-                  <button type="button" onClick={() => setShowNext((v) => !v)} className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
-                    {showNext ? 'Ver ahora' : 'Ver siguiente'}
+                  <button type="button" onClick={() => setShowNext((v) => !v)} className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
+                    <SkipForward size={12} /> {showNext ? 'Ver ahora' : 'Ver siguiente'}
                   </button>
                 )}
               </>
@@ -169,24 +193,20 @@ export default function RadioPlayer({ currentTrack, nextTrack, isLoading }: Radi
           <button
             type="button"
             onClick={togglePlay}
-            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-[0_4px_16px_rgba(220,38,38,0.4)] hover:bg-primary-hover"
-            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+            disabled={stationOffline}
+            className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-[0_4px_16px_rgba(220,38,38,0.4)] ${stationOffline ? 'cursor-not-allowed bg-white/10 text-muted-foreground border border-white/10' : 'bg-primary text-white hover:bg-primary-hover'}`}
+            aria-label={stationOffline ? 'Radio offline' : isPlaying ? 'Pausar' : 'Reproducir'}
           >
             {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
           </button>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-white/60">{isPlaying ? 'Reproduciendo' : 'Pausado'}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/60">{stationOffline ? 'Fuera del aire' : isPlaying ? 'Reproduciendo' : 'Pausado'}</p>
             <p className="truncate text-xs text-muted-foreground">punkmedallo.com/radio • MP3 192k</p>
           </div>
           <div className="hidden items-center gap-2 sm:flex">
-            <Volume2 size={16} className="text-muted-foreground" />
-            <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="h-1 w-24 accent-primary" aria-label="Volumen" />
+            <Volume2 size={16} className={stationOffline ? 'text-muted-foreground/40' : 'text-muted-foreground'} />
+            <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} disabled={stationOffline} className={`h-1 w-24 accent-primary ${stationOffline ? 'opacity-40 cursor-not-allowed' : ''}`} aria-label="Volumen" />
           </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 sm:hidden">
-          <Volume2 size={14} className="text-muted-foreground" />
-          <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="h-1 flex-1 accent-primary" aria-label="Volumen" />
         </div>
       </div>
 

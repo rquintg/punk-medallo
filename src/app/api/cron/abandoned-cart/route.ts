@@ -4,6 +4,8 @@ import { sendCartAbandoned } from '@/lib/email'
 import { logger, generateRequestId } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
+export const runtime = 'nodejs'
 
 let supabaseAdminClient: SupabaseClient | null = null
 
@@ -29,21 +31,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const unaHoraAtras = new Date(Date.now() - 60 * 60 * 1000).toISOString()
     const { data: pedidos, error: pedidosError } = await getSupabaseAdmin()
       .from('pedidos')
       .select('id, numero_pedido, email, nombre_entrega, total')
       .eq('estado', 'pendiente')
       .eq('recordatorio_abandono', false)
+      .lt('created_at', unaHoraAtras)
       .order('created_at', { ascending: true })
+      .limit(20)
 
     if (pedidosError) {
       logger.error('Cron: error consultando pedidos', { requestId: rid, error: pedidosError })
-      return NextResponse.json({ error: 'Error consultando pedidos' }, { status: 500 })
+      return NextResponse.json({ ok: false, error: 'Error consultando pedidos', requestId: rid, duration: Date.now() - start }, { status: 200 })
     }
 
     if (!pedidos || pedidos.length === 0) {
       logger.info('Cron: no hay pedidos abandonados', { requestId: rid, duration: Date.now() - start })
-      return NextResponse.json({ processed: 0, failed: 0 })
+      return NextResponse.json({ ok: true, processed: 0, failed: 0 })
     }
 
     const errors: string[] = []
@@ -100,9 +105,9 @@ export async function GET(request: NextRequest) {
       data: { total: pedidos.length, processed, failed: errors.length },
     })
 
-    return NextResponse.json({ processed, failed: errors.length, errors })
+    return NextResponse.json({ ok: errors.length === 0, processed, failed: errors.length, errors })
   } catch (err) {
-    logger.error('Cron: error general', { requestId: rid, error: err, duration: Date.now() - start })
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    logger.error('Cron: error general no capturado', { requestId: rid, error: err, duration: Date.now() - start })
+    return NextResponse.json({ ok: false, error: 'Error interno', requestId: rid, duration: Date.now() - start }, { status: 200 })
   }
 }

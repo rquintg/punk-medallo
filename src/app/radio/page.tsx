@@ -3,6 +3,7 @@ import Image from "next/image";
 import RadioClient from "./radio-client";
 import { ogImageActual } from "@/features/tienda/utils/seo";
 import { getTiendaConfig, LOGO_DEFAULT } from "@/features/tienda/services/tienda-config";
+import { NOWPLAYING_URL } from "@/lib/azuracast";
 
 export const revalidate = 30;
 
@@ -24,23 +25,40 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+async function obtenerIsOnline(): Promise<boolean> {
+  try {
+    const res = await fetch(NOWPLAYING_URL, { next: { revalidate: 30 } });
+    if (!res.ok) return true;
+    const data = await res.json();
+    const online = (data?.is_online ?? data?.station?.is_online ?? data?.live?.is_live ?? true) as boolean;
+    return Boolean(online);
+  } catch {
+    return true;
+  }
+}
+
 export default async function RadioPage() {
-  const { logoUrl } = await getTiendaConfig().catch(() => ({ logoUrl: null as string | null }));
+  const [{ logoUrl }, isStationOnline] = await Promise.all([
+    getTiendaConfig().catch(() => ({ logoUrl: null as string | null })),
+    obtenerIsOnline(),
+  ]);
+  const heroOffline = !isStationOnline;
   return (
     <div className="min-h-screen bg-background">
-      <section className="border-b border-white/[0.06] bg-background">
+      <section className={`border-b bg-background ${heroOffline ? 'border-white/5' : 'border-white/[0.06]'}`}>
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-24 pb-10 md:pt-28 md:pb-12 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">Punk Medallo — En vivo</p>
-            <h1 className="mt-3 text-5xl font-black uppercase leading-none tracking-tight text-white md:text-7xl">
-              Radio <span className="text-primary">24/7</span>
+            <p className={`font-mono text-xs uppercase tracking-[0.3em] ${heroOffline ? 'text-muted-foreground' : 'text-primary'}`}>Punk Medallo — {heroOffline ? 'Offline' : 'En vivo'}</p>
+            <h1 className="mt-3 text-5xl font-black uppercase leading-none tracking-tight md:text-7xl">
+              <span className={heroOffline ? 'text-white/60' : 'text-white'}>Radio</span> <span className={heroOffline ? 'text-muted-foreground' : 'text-primary'}>{heroOffline ? 'Offline' : '24/7'}</span>
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              Puro punk, hardcore y alternativo sin pausa. Escucha lo que suena ahora, descubre lo que sonó hace poco y pide tu canción.
+              {heroOffline ? 'La radio está fuera del aire. Volvemos pronto — las solicitudes y la reproducción están pausadas.' : 'Puro punk, hardcore y alternativo sin pausa. Escucha lo que suena ahora, descubre lo que sonó hace poco y pide tu canción.'}
             </p>
           </div>
-          <div className="relative aspect-[2/1] w-full max-w-[320px] shrink-0 self-center lg:self-auto">
+          <div className={`relative aspect-[2/1] w-full max-w-[320px] shrink-0 self-center lg:self-auto ${heroOffline ? 'grayscale opacity-60' : ''}`}>
             <Image src={logoUrl ?? LOGO_DEFAULT} alt="Punk Medallo" fill priority sizes="320px" className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]" />
+            {heroOffline && <div className="pointer-events-none absolute inset-0 bg-black/20" />}
           </div>
         </div>
       </section>
