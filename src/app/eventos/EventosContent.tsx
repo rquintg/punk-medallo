@@ -174,14 +174,16 @@ export default function EventosContent({
 
   if (eventos.length === 0) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 border border-dashed border-neutral-800 text-center">
-        <SearchX className="h-10 w-10 text-neutral-600" aria-hidden="true" />
-        <p className="font-mono text-sm font-semibold uppercase tracking-[0.2em] text-neutral-400">
-          SIN TOQUES POR AHORA
-        </p>
-        <p className="max-w-md text-sm text-neutral-500">
-          Cuando publiquen un flyer en Instagram, aparecerá acá.
-        </p>
+      <div className="mx-auto max-w-6xl px-4 pt-24 md:pt-28">
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 border border-dashed border-neutral-800 py-16 text-center">
+          <SearchX className="h-10 w-10 text-neutral-600" aria-hidden="true" />
+          <p className="font-mono text-sm font-semibold uppercase tracking-[0.2em] text-neutral-400">
+            SIN TOQUES POR AHORA
+          </p>
+          <p className="max-w-md text-sm text-neutral-500">
+            Cuando publiquen un flyer en Instagram, aparecerá acá.
+          </p>
+        </div>
       </div>
     );
   }
@@ -205,50 +207,51 @@ export default function EventosContent({
       <EventosHero eventos={proximos} />
 
       <main className="mx-auto max-w-6xl px-4 py-10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            {FILTROS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => cambiarFiltro(f.id)}
-                aria-pressed={filtro === f.id}
-                className={`rounded-md border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
-                  filtro === f.id
-                    ? "border-primary bg-primary text-white"
-                    : "border-neutral-700 bg-background text-neutral-400 hover:border-primary hover:text-white"
-                }`}
-              >
-                {f.label}
-                <span
-                  className={`ml-1.5 ${
-                    filtro === f.id ? "text-white/70" : "text-neutral-600"
+        <div className="sticky top-[64px] z-30 -mx-4 border-b border-white/[0.04] bg-background/80 px-4 py-4 backdrop-blur lg:mx-0 lg:px-0">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {FILTROS.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => cambiarFiltro(f.id)}
+                  aria-pressed={filtro === f.id}
+                  className={`rounded-md border px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors ${
+                    filtro === f.id
+                      ? "border-primary bg-primary text-white"
+                      : "border-neutral-700 bg-background text-neutral-400 hover:border-primary hover:text-white"
                   }`}
                 >
-                  {conteos[f.id]}
-                </span>
-              </button>
-            ))}
-          </div>
+                  {f.label}
+                  <span
+                    className={`ml-1.5 ${
+                      filtro === f.id ? "text-white/70" : "text-neutral-600"
+                    }`}
+                  >
+                    {conteos[f.id]}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {lugares.length > 0 && (
-              <label className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-neutral-500">
-                <MapPin size={13} aria-hidden="true" />
-                <select
-                  value={lugar}
-                  onChange={(e) => cambiarLugar(e.target.value)}
-                  className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
-                >
-                  <option value="">Todos los lugares</option>
-                  {lugares.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
+            <div className="flex flex-wrap items-center gap-3">
+              {lugares.length > 0 && (
+                <label className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-neutral-500">
+                  <MapPin size={13} aria-hidden="true" />
+                  <select
+                    value={lugar}
+                    onChange={(e) => cambiarLugar(e.target.value)}
+                    className="rounded border border-neutral-700 bg-background px-2 py-1.5 text-xs text-white outline-none focus:border-primary"
+                  >
+                    <option value="">Todos los lugares</option>
+                    {lugares.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
             <label className="relative">
               <span className="sr-only">Buscar toque</span>
@@ -267,8 +270,9 @@ export default function EventosContent({
             </label>
           </div>
         </div>
+        </div>
 
-        <div className="mt-5 mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-8 mb-6 flex flex-wrap items-center justify-between gap-3 scroll-mt-[88px]">
           <p className="font-mono text-xs uppercase tracking-widest text-neutral-500">
             {filtro === "proximos"
               ? "Próximos toques"
