@@ -2,8 +2,6 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getProductoBySlug, getProductosFiltrados } from '@/features/tienda/services/products';
-
-export const revalidate = 60
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config';
 import { breadcrumbListJsonLd, productJsonLd, ogImageActual, TIENDA_URL } from '@/features/tienda/utils/seo';
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs';

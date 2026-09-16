@@ -110,5 +110,5 @@ async function fetchTiendaConfig(): Promise<TiendaConfig> {
   }
 }
 
-export const getTiendaConfig = unstable_cache(fetchTiendaConfig, ['tienda-config-v2'], { revalidate: 60 })
+export const getTiendaConfig = unstable_cache(fetchTiendaConfig, ['tienda-config-v2'], { revalidate: 300 })
 export const TIENDA_CONFIG_DEFAULTS = DEFAULTS

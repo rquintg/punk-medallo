@@ -17,8 +17,6 @@ import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
-export const revalidate = 60;
-
 interface CategoriaPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

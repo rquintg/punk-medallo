@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '../services/supabase-admin'
 import { getRolActual, getUsuarioActual, requirePermissionAction } from '../utils/auth-server'
@@ -76,6 +76,7 @@ export async function createProducto(formData: FormData) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda', 'layout')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
   return data.id
 }
@@ -124,6 +125,7 @@ export async function updateProducto(id: string, formData: FormData) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda', 'layout')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }
 
@@ -148,6 +150,7 @@ export async function deleteProducto(id: string) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda', 'layout')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }
 
@@ -210,6 +213,7 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
   revalidatePath(`/admin/productos/${productoId}`)
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }
 
@@ -231,6 +235,7 @@ export async function eliminarImagen(imagenId: string, url: string) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }
 
@@ -247,6 +252,7 @@ export async function actualizarAltImagen(imagenId: string, alt: string) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }
 
@@ -263,5 +269,6 @@ export async function actualizarColorImagen(imagenId: string, color: string | nu
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
+  revalidateTag('tienda', 'max')
   revalidatePath('/', 'layout')
 }

@@ -13,8 +13,6 @@ import { parsePrecios } from '@/features/tienda/utils/precios';
 import { Catalog } from '@/components/tienda/catalog';
 import CartDrawer from '@/components/tienda/cart-drawer';
 
-export const revalidate = 60;
-
 const URL_OFERTAS = `${TIENDA_URL}/ofertas`;
 
 export async function generateMetadata(): Promise<Metadata> {
