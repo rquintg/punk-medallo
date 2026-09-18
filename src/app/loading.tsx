@@ -1,13 +1,26 @@
+import { HeroSkeleton, ProximosSkeleton, DestacadosSkeleton, ArchivoSkeleton, ProductosSkeleton } from "@/components/home/skeletons";
+
 export default function Loading() {
   return (
-    <div className="animate-pulse">
-      <div className="h-[100vh] min-h-[540px] w-screen bg-neutral-900" />
+    <div>
+      <HeroSkeleton />
       <div className="mx-auto max-w-6xl px-4 py-12">
-        <div className="h-6 w-40 rounded bg-neutral-800" />
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="h-32 rounded-xl bg-neutral-900" />
-          <div className="h-32 rounded-xl bg-neutral-900" />
+        <div className="h-6 w-40 rounded bg-neutral-800 animate-pulse" />
+        <div className="mt-6">
+          <ProximosSkeleton />
         </div>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <DestacadosSkeleton />
+      </div>
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="h-6 w-32 rounded bg-neutral-800 animate-pulse" />
+        <div className="mt-6">
+          <ArchivoSkeleton />
+        </div>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <ProductosSkeleton />
       </div>
     </div>
   );

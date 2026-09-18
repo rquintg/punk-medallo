@@ -19,6 +19,7 @@ import { srcMasCercana, interaccion, formatInteraccion } from "@/features/fotos/
 import { Suspense } from "react";
 import { DestacadosHero } from "@/components/descargas/destacados-hero";
 import { getAlbumBySlug } from "@/features/descargas/services/albums";
+import { ProximosSkeleton, ArchivoSkeleton, DestacadosSkeleton, HeroSkeleton } from "@/components/home/skeletons";
 
 export const revalidate = 300;
 
@@ -106,9 +107,7 @@ const obtenerDestacados = unstable_cache(async () => {
   }
 }, ["home-destacados"], { revalidate: 3600 });
 
-function SectionSkeleton() {
-  return <div className="h-32 animate-pulse rounded-xl bg-neutral-900" />;
-}
+
 
 async function ProximosSection() {
   const eventos = await obtenerEventosHome();
@@ -164,7 +163,7 @@ export default async function Home() {
       <section className="w-screen ml-[calc(-50vw+50%)] bg-background">
         <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
           <h2 className="mb-6 text-lg font-black uppercase tracking-tight"><span className="text-white">Próximos</span> <span className="text-primary">toques</span></h2>
-          <Suspense fallback={<SectionSkeleton />}>
+          <Suspense fallback={<ProximosSkeleton />}>
             <ProximosSection />
           </Suspense>
         </div>
@@ -172,7 +171,7 @@ export default async function Home() {
 
       <section className="w-screen ml-[calc(-50vw+50%)] bg-surface/40 border-y border-white/[0.04]">
         <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-          <Suspense fallback={<SectionSkeleton />}>
+          <Suspense fallback={<DestacadosSkeleton />}>
             <DestacadosSection />
           </Suspense>
         </div>
@@ -181,7 +180,7 @@ export default async function Home() {
       <section className="w-screen ml-[calc(-50vw+50%)] bg-background">
         <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
           <h2 className="mb-6 text-lg font-black uppercase tracking-tight"><span className="text-white">Archivo</span> <span className="text-primary">visual</span></h2>
-          <Suspense fallback={<SectionSkeleton />}>
+          <Suspense fallback={<ArchivoSkeleton />}>
             <ArchivoSection />
           </Suspense>
         </div>
