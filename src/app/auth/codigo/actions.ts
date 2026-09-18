@@ -18,8 +18,8 @@ export async function verificarCodigo(prevState: CodigoState, formData: FormData
     return { error: 'Ingresa el correo con el que te registraste.' }
   }
 
-  if (!/^\d{6}$/.test(token)) {
-    return { error: 'Ingresa el código de 6 dígitos que recibiste por correo.' }
+  if (!/^\d{6,8}$/.test(token)) {
+    return { error: 'Ingresa el código de 6 a 8 dígitos que recibiste por correo.' }
   }
 
   const { error } = await supabase.auth.verifyOtp({ type: 'signup', email, token })

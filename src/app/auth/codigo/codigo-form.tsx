@@ -54,7 +54,7 @@ export default function CodigoForm() {
                 autoComplete="one-time-code"
                 autoFocus
                 required
-                maxLength={6}
+                maxLength={8}
                 placeholder="••••••"
                 className="w-full px-4 py-2.5 rounded bg-[#222] border border-primary/30 text-white tracking-[0.5em] text-center text-lg font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 placeholder:text-white/30"
               />
