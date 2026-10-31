@@ -9,8 +9,6 @@ import { ogImageActual } from '@/features/tienda/utils/seo'
 import CartDrawer from '@/components/tienda/cart-drawer'
 import { BoletasFilters } from '@/components/boletas/boletas-filters'
 
-export const revalidate = 60
-
 export async function generateMetadata(): Promise<Metadata> {
   const [{ boleteriaActiva }, ogImage] = await Promise.all([import('@/features/tienda/services/tienda-config').then((m) => m.getTiendaConfig()), ogImageActual()])
   return {

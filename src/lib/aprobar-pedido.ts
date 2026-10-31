@@ -286,12 +286,8 @@ export async function aprobarPedido(
       })
       return 'rechazado_stock'
     }
-
-    revalidatePath('/boletas', 'layout')
-    revalidatePath('/cuenta/boletas')
   }
 
-  // Revalidar página del producto y catálogo (el stock cambió).
   // ⚠️ Filtrar nulls: los items de boletería no tienen producto_id y PostgREST
   // rechaza `.in()` con nulls en el array (causó webhook 500 post-emisión).
   const productoIds = [...new Set(items.map((i) => i.producto_id).filter((id): id is string => Boolean(id)))]
@@ -304,7 +300,6 @@ export async function aprobarPedido(
     for (const p of productosAfectados ?? []) {
       revalidatePath(`/tienda/${p.slug}`)
     }
-    revalidatePath('/tienda')
   }
 
   return 'aprobado'
@@ -397,20 +392,14 @@ export async function anularBoletasPedido(
   supabase: SupabaseClient,
   pedidoId: string,
 ): Promise<void> {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('boletas')
     .update({ estado: 'anulada' })
     .eq('pedido_id', pedidoId)
     .in('estado', ['valida'])
-    .select('id')
 
   if (error) {
     console.error(`Error anulando boletas del pedido ${pedidoId}:`, error.message)
-    return
-  }
-  if ((data?.length ?? 0) > 0) {
-    revalidatePath('/boletas', 'layout')
-    revalidatePath('/cuenta/boletas')
   }
 }
 

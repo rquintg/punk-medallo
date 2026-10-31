@@ -42,6 +42,7 @@ export async function updateCategoria(id: string, formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/categorias')
+  revalidatePath('/tienda/[slug]', 'page')
 }
 
 export async function deleteCategoria(id: string) {

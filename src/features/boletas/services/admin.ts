@@ -176,7 +176,6 @@ export async function createEvento(input: EventoInput, ownerId?: string | null):
     .single()
 
   if (error) throw new Error(error.message)
-  revalidateBoletas()
   return data.id as string
 }
 
@@ -197,7 +196,6 @@ export async function updateEvento(id: string, input: Partial<EventoInput>): Pro
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('eventos_boletos') as any).update(payload).eq('id', id)
   if (error) throw new Error(error.message)
-  revalidateBoletas()
 }
 
 /** Soft delete: nunca se borra un evento con ventas (historial de boletas) */
@@ -206,7 +204,6 @@ export async function desactivarEvento(id: string): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('eventos_boletos') as any).update({ activo: false }).eq('id', id)
   if (error) throw new Error(error.message)
-  revalidateBoletas()
 }
 
 // ---------- Tipos de boleta ----------
@@ -230,7 +227,6 @@ export async function createTipo(eventoId: string, input: { nombre: string; prec
     activo: true,
   })
   if (error) throw new Error(error.message)
-  revalidateBoletas()
 }
 
 export async function updateTipo(
@@ -261,7 +257,6 @@ export async function updateTipo(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('tipos_boleta') as any).update(payload).eq('id', id)
   if (error) throw new Error(error.message)
-  revalidateBoletas()
 }
 
 /** Solo permite eliminar si tiene 0 ventas; si no, desactivar */
@@ -282,13 +277,4 @@ export async function deleteTipo(id: string): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
   const { error } = await (supabase.from('tipos_boleta') as any).delete().eq('id', id)
   if (error) throw new Error(error.message)
-  revalidateBoletas()
-}
-
-function revalidateBoletas(): void {
-  // import dinámico para no acoplar este módulo server-only al bundle del cliente
-  void import('next/cache').then(({ revalidatePath }) => {
-    revalidatePath('/boletas', 'layout')
-    revalidatePath('/admin/boletos')
-  })
 }

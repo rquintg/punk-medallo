@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getSupabaseAdmin } from '../services/supabase-admin'
 import { getRolActual, getUsuarioActual, requirePermissionAction } from '../utils/auth-server'
@@ -75,9 +75,8 @@ export async function createProducto(formData: FormData) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
-  revalidatePath('/tienda', 'layout')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/')
   return data.id
 }
 
@@ -124,9 +123,8 @@ export async function updateProducto(id: string, formData: FormData) {
   await notificarStockDisponible(id)
 
   revalidatePath('/admin/productos')
-  revalidatePath('/tienda', 'layout')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/')
 }
 
 export async function deleteProducto(id: string) {
@@ -149,9 +147,8 @@ export async function deleteProducto(id: string) {
   if (error) throw new Error(error.message)
 
   revalidatePath('/admin/productos')
-  revalidatePath('/tienda', 'layout')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/')
 }
 
 function storagePathFromUrl(url: string): string {
@@ -213,8 +210,7 @@ export async function subirImagen(productoId: string, slug: string, formData: Fo
   revalidatePath(`/admin/productos/${productoId}`)
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/')
 }
 
 export async function eliminarImagen(imagenId: string, url: string) {
@@ -235,8 +231,7 @@ export async function eliminarImagen(imagenId: string, url: string) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/')
 }
 
 export async function actualizarAltImagen(imagenId: string, alt: string) {
@@ -252,8 +247,7 @@ export async function actualizarAltImagen(imagenId: string, alt: string) {
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/')
 }
 
 export async function actualizarColorImagen(imagenId: string, color: string | null) {
@@ -269,6 +263,5 @@ export async function actualizarColorImagen(imagenId: string, color: string | nu
 
   revalidatePath('/admin/productos')
   revalidatePath('/tienda/[slug]', 'page')
-  revalidateTag('tienda', 'max')
-  revalidatePath('/', 'layout')
+  revalidatePath('/')
 }

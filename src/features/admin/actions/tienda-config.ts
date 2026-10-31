@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { requirePermissionAction } from '@/features/admin/utils/auth-server'
 import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 
@@ -63,9 +63,7 @@ export async function updateTiendaConfig(key: string, valor: boolean) {
     { onConflict: 'key' },
   )
   if (error) throw new Error(error.message)
-  revalidatePath('/tienda', 'layout')
-  revalidatePath('/boletas', 'layout')
-  revalidatePath('/', 'layout')
+  updateTag('tienda-config')
   revalidatePath('/admin/tienda')
 }
 
@@ -100,7 +98,7 @@ export async function updateTiendaConfigValor(key: string, valorText: string) {
     { onConflict: 'key' },
   )
   if (error) throw new Error(error.message)
-  revalidatePath('/tienda', 'layout')
+  updateTag('tienda-config')
   revalidatePath('/admin/tienda')
 }
 
@@ -136,7 +134,7 @@ export async function subirLogo(formData: FormData) {
   )
   if (upsertError) throw new Error(upsertError.message)
 
-  revalidatePath('/', 'layout')
+  updateTag('tienda-config')
   revalidatePath('/admin/tienda')
 }
 
@@ -148,6 +146,6 @@ export async function restaurarLogo() {
     { onConflict: 'key' },
   )
   if (error) throw new Error(error.message)
-  revalidatePath('/', 'layout')
+  updateTag('tienda-config')
   revalidatePath('/admin/tienda')
 }

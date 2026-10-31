@@ -110,5 +110,13 @@ async function fetchTiendaConfig(): Promise<TiendaConfig> {
   }
 }
 
-export const getTiendaConfig = unstable_cache(fetchTiendaConfig, ['tienda-config-v2'], { revalidate: 300 })
+// revalidate 86400 (24h): el root layout llama getTiendaConfig() y Next.js aplica
+// semántica de MÍNIMO — un valor corto aquí topea el ISR de TODAS las páginas hijas
+// (los revalidate 600/3600/86400 declarados en las rutas nunca tomaban efecto).
+// El tag 'tienda-config' permite invalidar al instante desde las actions del admin
+// (revalidateTag), ya que revalidatePath NO invalida entradas de unstable_cache.
+export const getTiendaConfig = unstable_cache(fetchTiendaConfig, ['tienda-config-v3'], {
+  revalidate: 86_400,
+  tags: ['tienda-config'],
+})
 export const TIENDA_CONFIG_DEFAULTS = DEFAULTS

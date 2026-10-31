@@ -40,6 +40,8 @@ export async function createVariante(productoId: string, data: VarianteInput) {
   await notificarStockDisponible(productoId)
 
   revalidatePath(`/admin/productos/${productoId}`)
+  revalidatePath('/tienda/[slug]', 'page')
+  revalidatePath('/')
 }
 
 export async function updateVariante(id: string, data: VarianteInput) {
@@ -63,6 +65,8 @@ export async function updateVariante(id: string, data: VarianteInput) {
   if (v) {
     await notificarStockDisponible(v.producto_id)
     revalidatePath(`/admin/productos/${v.producto_id}`)
+    revalidatePath('/tienda/[slug]', 'page')
+    revalidatePath('/')
   }
 }
 
@@ -79,5 +83,9 @@ export async function deleteVariante(id: string) {
   const { error } = await (supabase.from('producto_variantes') as any).delete().eq('id', id)
   if (error) throw new Error(error.message)
 
-  if (v) revalidatePath(`/admin/productos/${v.producto_id}`)
+  if (v) {
+    revalidatePath(`/admin/productos/${v.producto_id}`)
+    revalidatePath('/tienda/[slug]', 'page')
+    revalidatePath('/')
+  }
 }

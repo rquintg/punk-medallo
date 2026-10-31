@@ -12,8 +12,6 @@ import Price from '@/components/tienda/price'
 import ComprarPanel from './comprar-panel'
 import BoletasGalleryClient from './boletas-gallery-client'
 
-export const revalidate = 60
-
 interface PageProps {
   params: Promise<{ slug: string }>
 }

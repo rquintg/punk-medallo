@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import EventosContent from "./EventosContent";
 import { fetchInstagramPhotos } from "@/lib/axiosInstagram";
 import { parseCaptionEventos, esProximoEvento } from "@/features/eventos/parse-caption";
@@ -6,11 +7,11 @@ import { formatearFecha, formatearPrecio } from "@/features/eventos/format";
 import { ogImageActual } from "@/features/tienda/utils/seo";
 import type { Evento } from "@/features/eventos/types";
 
-export const revalidate = 120;
+export const revalidate = 600;
 
 const SITE_URL = "https://punkmedallo.com";
 
-async function obtenerEventos(): Promise<Evento[]> {
+const obtenerEventos = cache(async (): Promise<Evento[]> => {
   try {
     const photos = await fetchInstagramPhotos();
     return parseCaptionEventos(photos);
@@ -18,7 +19,7 @@ async function obtenerEventos(): Promise<Evento[]> {
     console.error("Error fetching initial Instagram photos:", error);
     return [];
   }
-}
+});
 
 function proximos(eventos: Evento[]): Evento[] {
   return eventos
