@@ -21,7 +21,7 @@ import { DestacadosHero } from "@/components/descargas/destacados-hero";
 import { getAlbumBySlug } from "@/features/descargas/services/albums";
 import { ProximosSkeleton, ArchivoSkeleton, DestacadosSkeleton, HeroSkeleton } from "@/components/home/skeletons";
 
-export const revalidate = 300;
+export const revalidate = 600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const ogImage = await ogImageActual();
