@@ -41,7 +41,6 @@ export async function createVariante(productoId: string, data: VarianteInput) {
 
   revalidatePath(`/admin/productos/${productoId}`)
   revalidatePath('/tienda/[slug]', 'page')
-  revalidatePath('/')
 }
 
 export async function updateVariante(id: string, data: VarianteInput) {
@@ -66,7 +65,6 @@ export async function updateVariante(id: string, data: VarianteInput) {
     await notificarStockDisponible(v.producto_id)
     revalidatePath(`/admin/productos/${v.producto_id}`)
     revalidatePath('/tienda/[slug]', 'page')
-    revalidatePath('/')
   }
 }
 
@@ -86,6 +84,5 @@ export async function deleteVariante(id: string) {
   if (v) {
     revalidatePath(`/admin/productos/${v.producto_id}`)
     revalidatePath('/tienda/[slug]', 'page')
-    revalidatePath('/')
   }
 }

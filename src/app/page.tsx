@@ -21,7 +21,7 @@ import { DestacadosHero } from "@/components/descargas/destacados-hero";
 import { getAlbumBySlug } from "@/features/descargas/services/albums";
 import { ProximosSkeleton, ArchivoSkeleton, DestacadosSkeleton, HeroSkeleton } from "@/components/home/skeletons";
 
-export const revalidate = 600;
+export const revalidate = 900;
 
 export async function generateMetadata(): Promise<Metadata> {
   const ogImage = await ogImageActual();
@@ -54,7 +54,7 @@ const obtenerEventosHome = unstable_cache(async () => {
     console.error("Home eventos error:", e);
     return [];
   }
-}, ["home-eventos"], { revalidate: 600 });
+}, ["home-eventos"], { revalidate: 900 });
 
 async function obtenerArchivoVisualBase() {
   const { fotos } = await fetchFacebookPagePhotos({ limit: 50 });
