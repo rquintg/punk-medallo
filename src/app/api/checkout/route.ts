@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { randomInt } from 'node:crypto'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { generateIntegritySignature } from '@/lib/wompi'
 import { verifyCsrf } from '@/lib/csrf'
@@ -8,8 +7,9 @@ import { logger, generateRequestId } from '@/lib/logger'
 import { firmarPedido, ORDER_VERIFY_COOKIE } from '@/lib/order-verify'
 import { sanitizeShipping } from '@/lib/sanitize'
 import { generateOrderNumber } from '@/lib/order-number'
-import { calcularEnvio, calcularEnvioConConfig, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega, calcularRecargoConConfig } from '@/data/envio'
+import { calcularEnvioConConfig, getDiasEntrega, esContraEntregaDisponible, calcularRecargoContraEntrega, calcularRecargoConConfig } from '@/data/envio'
 import { getTiendaConfig } from '@/features/tienda/services/tienda-config'
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 import { sendOrderConfirmation } from '@/lib/email'
 import { precioConDescuento } from '@/lib/precio'
 import { MAX_QUANTITY } from '@/features/tienda/constants'
@@ -32,6 +32,12 @@ interface CheckoutRequest {
   items: CartItem[]
   metodoPago?: 'wompi' | 'contra_entrega'
   cuponCodigo?: string
+}
+
+interface PedidoInsertado {
+  id: string
+  numero_pedido: string
+  created_at: string
 }
 
 export async function POST(request: NextRequest) {
@@ -61,6 +67,19 @@ export async function POST(request: NextRequest) {
     })
     return res
   }
+
+  // Escrituras de pedidos/pedido_items con service role.
+  // Las políticas RLS de `pedidos` son `authenticated`-only y `pedido_items`
+  // valida pertenencia con un EXISTS sobre `pedidos` (ilegible para anon), así
+  // que el checkout de invitado no puede escribir con el cliente de sesión
+  // (INSERT ... RETURNING falla con 42501). Toda la autoridad —stock, precios,
+  // cupón, envío, usuario— ya se valida en este handler.
+  //
+  // `getSupabaseAdmin()` no lleva el generic `Database` (ver
+  // FUTURO_TIPADO_SUPABASE.md): sin él `.from()` infiere `never`, así que el
+  // cast queda concentrado acá en vez de repetirse en cada query.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+  const admin = getSupabaseAdmin() as any
 
   try {
     logger.info('Checkout iniciado', { requestId: rid })
@@ -182,8 +201,7 @@ export async function POST(request: NextRequest) {
 
     do {
       orderNumber = generateOrderNumber()
-      const { data: existing } = await supabase
-        .from('pedidos')
+      const { data: existing } = await admin.from('pedidos')
         .select('id')
         .eq('numero_pedido', orderNumber)
         .maybeSingle()
@@ -347,8 +365,7 @@ export async function POST(request: NextRequest) {
     const totalConDescuento = total + envio + recargo - descuento
 
     // 2. Insertar pedido
-    const { data: pedido, error: pedidoError } = await supabase
-      .from('pedidos')
+    const { data: pedidoRow, error: pedidoError } = await admin.from('pedidos')
       .insert({
         usuario_id: user?.id ?? null,
         numero_pedido: orderNumber,
@@ -373,6 +390,8 @@ export async function POST(request: NextRequest) {
       })
       .select('id, numero_pedido, created_at')
       .single()
+
+    const pedido = pedidoRow as PedidoInsertado | null
 
     if (pedidoError || !pedido) {
       if (cuponInfo) await liberarCupon(cuponInfo.id)
@@ -409,13 +428,12 @@ export async function POST(request: NextRequest) {
       imagen_url: item.imagenes[0]?.url ?? null,
     }))
 
-    const { error: itemsError } = await supabase
-      .from('pedido_items')
+    const { error: itemsError } = await admin.from('pedido_items')
       .insert(pedidoItems)
 
     if (itemsError) {
       console.error('Insert pedido_items error:', itemsError)
-      await supabase.from('pedidos').delete().eq('id', pedido.id)
+      await admin.from('pedidos').delete().eq('id', pedido.id)
       if (cuponInfo) await liberarCupon(cuponInfo.id)
       return respond(
         { error: 'Error al guardar los artículos del pedido' },
@@ -429,8 +447,8 @@ export async function POST(request: NextRequest) {
       const registrada = await registrarRedencion(cuponInfo.id, shipping.email, pedido.id)
 
       if (!registrada) {
-        await supabase.from('pedido_items').delete().eq('pedido_id', pedido.id)
-        await supabase.from('pedidos').delete().eq('id', pedido.id)
+        await admin.from('pedido_items').delete().eq('pedido_id', pedido.id)
+        await admin.from('pedidos').delete().eq('id', pedido.id)
         await liberarCupon(cuponInfo.id)
         logger.warn('Checkout: cupón ya usado por email (race)', { requestId: rid, data: { codigo: cuponInfo.codigo } })
         return respond(
@@ -501,8 +519,8 @@ export async function POST(request: NextRequest) {
 
     if (!publicKey || !integrityKey) {
       console.error('Faltan llaves de Wompi en .env.local')
-      await supabase.from('pedido_items').delete().eq('pedido_id', pedido.id)
-      await supabase.from('pedidos').delete().eq('id', pedido.id)
+      await admin.from('pedido_items').delete().eq('pedido_id', pedido.id)
+      await admin.from('pedidos').delete().eq('id', pedido.id)
       return respond(
         { error: 'Error de configuracion de pago. Contacta al administrador.' },
         { status: 500 },

@@ -48,6 +48,10 @@ export async function buscarCupon(
  * existe, activo, vigencia, monto mínimo y 1 uso por email.
  * El descuento devuelto es orientativo para la UI; el checkout
  * recalcula y reserva el cupo de forma atómica.
+ *
+ * Nota: la lectura de `cupon_redenciones` va con service role porque
+ * `anon` no tiene política SELECT ahí (RLS la oculta y el chequeo
+ * "1 uso por email" quedaría ciego; solo se detectaría al insertar).
  */
 export async function validarCupon(
   cliente: SupabaseClient,
@@ -71,9 +75,12 @@ export async function validarCupon(
   else if (fin && ahora > fin) motivo = 'vencido'
   else if (subtotal < cupon.monto_minimo) motivo = 'minimo'
   else {
-    const { data: yaUsado } = await cliente
+    // Service role: `anon` no tiene política SELECT en `cupon_redenciones`
+    // (RLS), así que con el cliente de sesión este chequeo sería ciego.
+    const { data: yaUsado } = await (getSupabaseAdmin()
       .from('cupon_redenciones')
-      .select('id')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+      .select('id') as any)
       .eq('cupon_id', cupon.id)
       .eq('email', email.trim().toLowerCase())
       .maybeSingle()

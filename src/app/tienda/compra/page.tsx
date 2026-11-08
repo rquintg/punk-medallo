@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/features/admin/services/supabase-admin'
 import { getTransaction } from '@/lib/wompi'
 import { Breadcrumbs } from '@/components/tienda/breadcrumbs'
 import RedirectTimer from './redirect-timer'
@@ -98,9 +98,12 @@ export default async function CompraPage({ searchParams }: CompraPageProps) {
     )
   }
 
-  const supabase = await createClient()
-
-  const { data: pedido } = await supabase
+  // Con service role: `pedidos` tiene RLS `authenticated`-only, así que un
+  // invitado (usuario_id null) no puede leer su propio pedido con el cliente
+  // de sesión. Acá solo se lee el número de pedido ya validado por Wompi.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase client sin Database generic (patrón tienda: as unknown as)
+  const admin = getSupabaseAdmin() as any
+  const { data: pedido } = await admin
     .from('pedidos')
     .select('numero_pedido')
     .eq('numero_pedido', transaction.reference)
